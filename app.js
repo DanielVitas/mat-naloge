@@ -655,27 +655,20 @@ function openTopicPicker(meta, anchorBtn) {
     }
     // If search has a non-empty value that isn't already in the list,
     // offer to add it as a custom topic — but ONLY for the repo owner.
-    // Other signed-in users can still pick from the master list above.
+    // Non-owners just see no extra entry.
     const query = filter.trim();
     const isCustom = query && !current.has(query) &&
         !ALL_TOPICS.some(t => t.toLowerCase() === query.toLowerCase());
-    if (isCustom) {
-      if (isOwner()) {
-        const btn = document.createElement('button');
-        btn.className = 'topic-picker-item topic-picker-custom';
-        btn.type = 'button';
-        btn.innerHTML = 'Add new topic: <strong>' + escapeHtml(query) + '</strong>';
-        btn.addEventListener('click', (e) => {
-          e.preventDefault(); e.stopPropagation();
-          addTopic(query);
-        });
-        list.appendChild(btn);
-      } else {
-        const note = document.createElement('div');
-        note.className = 'topic-picker-empty';
-        note.textContent = 'Only ' + OWNER_LOGIN + ' can add new topics.';
-        list.appendChild(note);
-      }
+    if (isCustom && isOwner()) {
+      const btn = document.createElement('button');
+      btn.className = 'topic-picker-item topic-picker-custom';
+      btn.type = 'button';
+      btn.innerHTML = 'Add new topic: <strong>' + escapeHtml(query) + '</strong>';
+      btn.addEventListener('click', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        addTopic(query);
+      });
+      list.appendChild(btn);
     }
   }
   renderList('');
