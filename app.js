@@ -26,6 +26,17 @@ function setToken(t) {
   if (t) localStorage.setItem('gh-token', t);
   else   localStorage.removeItem('gh-token');
 }
+function getName() { return localStorage.getItem('gh-name') || ''; }
+function setName(n) {
+  if (n) localStorage.setItem('gh-name', n);
+  else   localStorage.removeItem('gh-name');
+}
+// Derive a short reviewer-name from the GitHub token's display name.
+// "mat-naloge-john" -> "john";  "john" -> "john".
+function deriveName(tokenDisplayName) {
+  const parts = (tokenDisplayName || '').split('-').map(s => s.trim()).filter(Boolean);
+  return parts.length ? parts[parts.length - 1] : '';
+}
 
 async function fetchRemoteData() {
   // Read data.json directly off the deployed site (no auth needed).
@@ -74,9 +85,10 @@ function pendingChanges() {
     const r = remote[id] || {};
     // A local entry is "pending" if any of its fields differs from remote.
     const same = (
-      JSON.stringify(local.latex)    === JSON.stringify(r.latex) &&
-      JSON.stringify(local.bbox)     === JSON.stringify(r.bbox)  &&
-      JSON.stringify(!!local.outdated) === JSON.stringify(!!r.outdated)
+      JSON.stringify(local.latex)        === JSON.stringify(r.latex) &&
+      JSON.stringify(local.bbox)         === JSON.stringify(r.bbox)  &&
+      JSON.stringify(!!local.outdated)   === JSON.stringify(!!r.outdated) &&
+      JSON.stringify(local.approved_by || null) === JSON.stringify(r.approved_by || null)
     );
     if (!same) out[id] = local;
   }
@@ -145,20 +157,31 @@ async function pushChanges() {
 function initSyncBar() {
   const bar = document.getElementById('gh-sync');
   if (!bar) return;
-  const tokenInput = bar.querySelector('#gh-token-input');
-  const tokenRow   = bar.querySelector('.gh-token-row');
-  const statusRow  = bar.querySelector('.gh-status-row');
-  const pendingTag = bar.querySelector('#gh-pending');
-  const tokenStatus= bar.querySelector('#gh-token-status');
-  const setBtn     = bar.querySelector('#gh-set-token');
-  const clearBtn   = bar.querySelector('#gh-clear-token');
-  const pushBtn    = bar.querySelector('#gh-push');
-  const editTokenBtn = bar.querySelector('#gh-edit-token');
+  const tokenInput     = bar.querySelector('#gh-token-input');
+  const tokenNameInput = bar.querySelector('#gh-token-name-input');
+  const tokenRow       = bar.querySelector('.gh-token-row');
+  const pendingTag     = bar.querySelector('#gh-pending');
+  const tokenStatus    = bar.querySelector('#gh-token-status');
+  const nameStatus     = bar.querySelector('#gh-name-status');
+  const setBtn         = bar.querySelector('#gh-set-token');
+  const clearBtn       = bar.querySelector('#gh-clear-token');
+  const pushBtn        = bar.querySelector('#gh-push');
+  const editTokenBtn   = bar.querySelector('#gh-edit-token');
 
   function refresh() {
     const has = !!getToken();
     tokenStatus.textContent = has ? 'token set' : 'no token';
     tokenStatus.className   = 'pending ' + (has ? 'none' : '');
+
+    const name = getName();
+    if (has && name) {
+      nameStatus.hidden = false;
+      nameStatus.textContent = `approving as ${name}`;
+      nameStatus.className   = 'pending none';
+    } else {
+      nameStatus.hidden = true;
+    }
+
     if (has) tokenRow.classList.add('collapsed'); else tokenRow.classList.remove('collapsed');
     pushBtn.disabled = !has;
     const n = Object.keys(pendingChanges()).length;
@@ -168,14 +191,19 @@ function initSyncBar() {
 
   setBtn.addEventListener('click', () => {
     const v = tokenInput.value.trim();
-    if (!v) return;
+    const tn = tokenNameInput.value.trim();
+    if (!v) { alert('Paste your token in the password field.'); return; }
+    if (!tn) { alert('Enter the token name (e.g. mat-naloge-john) so the approver name can be derived.'); return; }
     setToken(v);
+    setName(deriveName(tn));
     tokenInput.value = '';
+    tokenNameInput.value = '';
     refresh();
   });
   clearBtn.addEventListener('click', () => {
-    if (!confirm('Forget GitHub token from this browser?')) return;
+    if (!confirm('Forget GitHub token + name from this browser?')) return;
     setToken('');
+    setName('');
     refresh();
   });
   if (editTokenBtn) {
@@ -306,6 +334,8 @@ async function initProblemPage(meta) {
   const cancelBtn     = $('cancel-crop');
   const markBtn       = $('mark-outdated');
   const badge         = $('status-badge');
+  const approveCb     = $('approve-cb');
+  const approvalChip  = $('approval-chip');
   const exportBtn     = $('export-changes');
 
   function showEditor() {
@@ -320,6 +350,8 @@ async function initProblemPage(meta) {
   // -------- LaTeX --------
   ta.value = state.latex !== undefined ? state.latex : meta.latex;
   updateBadge(state.outdated);
+  approveCb.checked = !!state.approved_by;
+  updateApprovalChip(state.approved_by || null);
   renderTeXPreview(ta.value, preview, meta.n, meta.tikz_count);
 
   let timer;
@@ -471,6 +503,24 @@ async function initProblemPage(meta) {
     updateBadge(s.outdated);
   });
 
+  // -------- Approve --------
+  approveCb.addEventListener('change', () => {
+    const s = loadState(id);
+    if (approveCb.checked) {
+      const myName = getName();
+      if (!myName) {
+        alert('Save your token name (e.g. mat-naloge-john) in the GitHub bar first — the approver name is derived from it.');
+        approveCb.checked = false;
+        return;
+      }
+      s.approved_by = myName;
+    } else {
+      s.approved_by = null;
+    }
+    saveState(id, s);
+    updateApprovalChip(s.approved_by);
+  });
+
   // Mark outdated when bbox changes (after save) — but not on every keystroke
   saveBtn.addEventListener('click', () => {
     const s = loadState(id);
@@ -498,6 +548,15 @@ async function initProblemPage(meta) {
     } else {
       badge.textContent = '✓ up to date';
       badge.className = 'status-badge ok';
+    }
+  }
+
+  function updateApprovalChip(name) {
+    if (name) {
+      approvalChip.hidden = false;
+      approvalChip.textContent = `${name} ✓`;
+    } else {
+      approvalChip.hidden = true;
     }
   }
 }

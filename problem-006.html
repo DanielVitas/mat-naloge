@@ -29,6 +29,7 @@
   <div class="gh-status-row">
     <span class="label">GitHub:</span>
     <span class="pending" id="gh-token-status">no token</span>
+    <span class="pending" id="gh-name-status" hidden></span>
     <span class="pending" id="gh-pending">no pending edits</span>
     <span style="flex:1"></span>
     <button id="gh-edit-token">Edit token</button>
@@ -36,16 +37,22 @@
     <button id="gh-push" class="primary">⬆ Push to GitHub</button>
   </div>
   <div class="gh-token-row">
+    <input id="gh-token-name-input" type="text" autocomplete="off"
+           placeholder="Token name (e.g. mat-naloge-john)" style="flex:0 1 16em">
     <input id="gh-token-input" type="password" autocomplete="off"
-           placeholder="Paste your GitHub fine-grained PAT (Contents: write on this repo)">
-    <button id="gh-set-token">Save token</button>
+           placeholder="Paste your fine-grained PAT (Contents: write)">
+    <button id="gh-set-token">Save</button>
   </div>
 </div>
 
 
   <div class="status-bar">
     <button id="mark-outdated">Toggle “transcript needs redoing”</button>
+    <label class="approve-label">
+      <input type="checkbox" id="approve-cb"> Approve
+    </label>
     <span class="status-badge ok" id="status-badge">✓ up to date</span>
+    <span class="approval-chip" id="approval-chip" hidden></span>
     <span style="flex:1"></span>
     <button id="export-changes">⬇ Export this problem (JSON)</button>
   </div>
