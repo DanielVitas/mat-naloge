@@ -31,12 +31,6 @@ function setName(n) {
   if (n) localStorage.setItem('gh-name', n);
   else   localStorage.removeItem('gh-name');
 }
-// Derive a short reviewer-name from the GitHub token's display name.
-// "mat-naloge-john" -> "john";  "john" -> "john".
-function deriveName(tokenDisplayName) {
-  const parts = (tokenDisplayName || '').split('-').map(s => s.trim()).filter(Boolean);
-  return parts.length ? parts[parts.length - 1] : '';
-}
 
 async function fetchRemoteData() {
   // Read data.json directly off the deployed site (no auth needed).
@@ -166,11 +160,13 @@ async function fetchGithubLogin(token) {
   } catch { return null; }
 }
 
-// If we have a token but no name yet, fetch it asynchronously.
+// Always (re)fetch the reviewer name from GitHub /user. This ensures the
+// name shown in the UI and used for approvals is the authoritative GitHub
+// login, even if a stale value is cached from a previous version of the app.
 async function ensureNameFromToken() {
-  if (getName() || !getToken()) return;
+  if (!getToken()) return;
   const login = await fetchGithubLogin(getToken());
-  if (login) setName(login);
+  if (login && login !== getName()) setName(login);
 }
 
 // Wire up the GitHub-sync UI block (shared between index and problem pages).
