@@ -225,6 +225,8 @@ function initSyncBar() {
   refresh();
   // Refresh pending count whenever any storage changes happen
   window.addEventListener('storage', refresh);
+  // expose so other handlers (Approve, mark-outdated) can request a refresh.
+  bar._refresh = refresh;
 }
 
 // ---------------- LaTeX -> HTML (with TikZ SVG substitution) ---------------
@@ -501,17 +503,25 @@ async function initProblemPage(meta) {
     s.outdated = !s.outdated;
     saveState(id, s);
     updateBadge(s.outdated);
+    const bar = document.getElementById('gh-sync');
+    if (bar && typeof bar._refresh === 'function') bar._refresh();
   });
 
   // -------- Approve --------
   approveCb.addEventListener('change', () => {
     const s = loadState(id);
     if (approveCb.checked) {
-      const myName = getName();
+      let myName = getName();
       if (!myName) {
-        alert('Save your token name (e.g. mat-naloge-john) in the GitHub bar first — the approver name is derived from it.');
-        approveCb.checked = false;
-        return;
+        // Fall back to a prompt so we can save the approval right away even if
+        // the user saved their token before the name field existed.
+        const raw = prompt(
+          'Reviewer name for approvals (e.g. derived from token "mat-naloge-john" → "john"):'
+        );
+        const cleaned = (raw || '').trim();
+        if (!cleaned) { approveCb.checked = false; return; }
+        myName = deriveName(cleaned) || cleaned;
+        setName(myName);
       }
       s.approved_by = myName;
     } else {
@@ -519,6 +529,9 @@ async function initProblemPage(meta) {
     }
     saveState(id, s);
     updateApprovalChip(s.approved_by);
+    // Refresh the sync bar so the "N pending" counter updates immediately.
+    const bar = document.getElementById('gh-sync');
+    if (bar && typeof bar._refresh === 'function') bar._refresh();
   });
 
   // Mark outdated when bbox changes (after save) — but not on every keystroke
