@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="sl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Naloga 4 — Matura 2025</title>
+<link rel="stylesheet" href="styles.css">
+<script>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$']],
+      displayMath: [['$$', '$$']],
+      processEscapes: true,
+      processEnvironments: false
+    },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+  };
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<div class="container">
+  <div class="back-link"><a href="problem-003.html">← previous</a> · <a href="index.html">all problems</a> · <a href="problem-005.html">next →</a></div>
+  <h1>Naloga 4</h1>
+  <div class="tags"><span class="tag year">2025</span><span class="tag season">Spomladanski rok</span><span class="tag pola">Izpitna pola 1</span><span class="tag level">OR</span><span class="tag section">A</span><span class="tag points">3 točke</span></div>
+
+  <div class="status-bar">
+    <button id="mark-outdated">Toggle “transcript needs redoing”</button>
+    <span class="status-badge ok" id="status-badge">✓ up to date</span>
+    <span style="flex:1"></span>
+    <button id="export-changes">⬇ Export this problem (JSON)</button>
+  </div>
+
+  <div class="problem-body">
+    <div class="pane">
+      <h3>LaTeX transcript</h3>
+      <textarea id="latex-source" spellcheck="false"></textarea>
+      <h4 style="margin-bottom:0.3rem">Preview</h4>
+      <div class="preview-box" id="preview"></div>
+      <p class="hint">Edits auto-save in your browser. Use “Export” to download what you’ve changed.</p>
+    </div>
+    <div class="pane right-pane">
+      <div class="crop-view" id="crop-view">
+        <h3>Original (cropped from exam page)</h3>
+        <canvas id="crop-canvas" class="crop-display"></canvas>
+        <div class="image-controls">
+          <button id="edit-crop">✎ Edit crop</button>
+          <button id="reset-crop">Reset to default</button>
+        </div>
+      </div>
+      <div class="crop-editor" id="crop-editor" hidden>
+        <h3>Drag a rectangle on the page to select a new crop region</h3>
+        <div class="canvas-wrap">
+          <canvas id="full-page-canvas"></canvas>
+          <div id="selection-box" class="selection-box"></div>
+        </div>
+        <div class="editor-actions">
+          <button id="save-crop" class="primary">Save crop</button>
+          <button id="cancel-crop">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+<script src="app.js"></script>
+<script>
+  const PROBLEM = {"n": 4, "latex": "Izračunajte abscisi presečišč premice $y=2x$ in krožnice $x^{2}+y^{2}=5$.", "tikz_count": 0, "page_image": "pages/2025_Spomladanski_Pola1_OR_page-10.png", "page_size": [1654, 2339], "bbox_default": [157, 949, 1514, 1414]};
+  initProblemPage(PROBLEM);
+</script>
+</body>
+</html>
