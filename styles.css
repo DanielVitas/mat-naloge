@@ -609,6 +609,37 @@ canvas.crop-display {
   display: inline-flex; align-items: center; gap: 0.3rem;
   cursor: pointer; user-select: none;
 }
+
+/* Chip-toggle filter group (Source/Pola/Level/Section). Each chip starts
+   selected (filled with its tag color) and can be clicked to deselect
+   (turns into a struck-through outlined chip). */
+.filter-chip-group {
+  display: flex; flex-wrap: wrap; gap: 0.4rem;
+}
+.filter-chip {
+  display: inline-block;
+  padding: 0.22rem 0.7rem;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 500;
+  border: 1px solid var(--card-border);
+  background: white;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+.filter-chip[aria-pressed="false"] {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+.filter-chip[aria-pressed="true"] { border-color: transparent; }
+.filter-chip-source[aria-pressed="true"]  { background: var(--tag-source-bg);  color: var(--tag-source-fg); }
+.filter-chip-pola[aria-pressed="true"]    { background: var(--tag-pola-bg);    color: var(--tag-pola-fg); }
+.filter-chip-level[aria-pressed="true"]   { background: var(--tag-level-bg);   color: var(--tag-level-fg); }
+.filter-chip-section[aria-pressed="true"] { background: var(--tag-section-bg); color: var(--tag-section-fg); }
+.filter-chip:hover { filter: brightness(0.97); }
 .topics-cell { margin-top: 0.2rem; }
 .topics-actions { display: flex; gap: 0.6rem; }
 .link-btn {

@@ -1101,33 +1101,33 @@ async function initSearchPage() {
       </div>
       <div class="filter-cell">
         <label class="filter-label">Source</label>
-        <div class="checkbox-group" id="f-sources">
+        <div class="filter-chip-group" id="f-sources">
           ${allSources.map(s =>
-            `<label><input type="checkbox" data-val="${escapeHtml(s)}" checked> ${escapeHtml(s)}</label>`
+            `<button type="button" class="filter-chip filter-chip-source" data-val="${escapeHtml(s)}" aria-pressed="true">${escapeHtml(s)}</button>`
           ).join('')}
         </div>
       </div>
       <div class="filter-cell">
         <label class="filter-label">Pola</label>
-        <div class="checkbox-group" id="f-polas">
+        <div class="filter-chip-group" id="f-polas">
           ${allPolas.map(p =>
-            `<label><input type="checkbox" data-val="${escapeHtml(p)}" checked> Pola ${escapeHtml(p)}</label>`
+            `<button type="button" class="filter-chip filter-chip-pola" data-val="${escapeHtml(p)}" aria-pressed="true">Pola ${escapeHtml(p)}</button>`
           ).join('')}
         </div>
       </div>
       <div class="filter-cell">
         <label class="filter-label">Level</label>
-        <div class="checkbox-group" id="f-levels">
+        <div class="filter-chip-group" id="f-levels">
           ${allLevels.map(l =>
-            `<label><input type="checkbox" data-val="${escapeHtml(l)}" checked> ${escapeHtml(l)}</label>`
+            `<button type="button" class="filter-chip filter-chip-level" data-val="${escapeHtml(l)}" aria-pressed="true">${escapeHtml(l)}</button>`
           ).join('')}
         </div>
       </div>
       <div class="filter-cell">
         <label class="filter-label">Section</label>
-        <div class="checkbox-group" id="f-sections">
+        <div class="filter-chip-group" id="f-sections">
           ${allSections.map(s =>
-            `<label><input type="checkbox" data-val="${escapeHtml(s)}" checked> ${escapeHtml(s)}</label>`
+            `<button type="button" class="filter-chip filter-chip-section" data-val="${escapeHtml(s)}" aria-pressed="true">${escapeHtml(s)}</button>`
           ).join('')}
         </div>
       </div>
@@ -1149,10 +1149,16 @@ async function initSearchPage() {
   `;
 
   // Wire up listeners
-  function readGroup(containerId, into) {
-    into.clear();
-    document.querySelectorAll(`#${containerId} input[type=checkbox]`).forEach(cb => {
-      if (cb.checked) into.add(cb.dataset.val);
+  function wireChipGroup(containerId, set) {
+    document.getElementById(containerId).addEventListener('click', (e) => {
+      const btn = e.target.closest('.filter-chip');
+      if (!btn) return;
+      e.preventDefault();
+      const val = btn.dataset.val;
+      const next = btn.getAttribute('aria-pressed') !== 'true';
+      btn.setAttribute('aria-pressed', String(next));
+      if (next) set.add(val); else set.delete(val);
+      render();
     });
   }
 
@@ -1165,12 +1171,10 @@ async function initSearchPage() {
       render();
     });
   });
-  ['f-sources','f-polas','f-levels','f-sections'].forEach(group => {
-    document.getElementById(group).addEventListener('change', () => {
-      readGroup(group, state[group.split('-')[1]]);
-      render();
-    });
-  });
+  wireChipGroup('f-sources',  state.sources);
+  wireChipGroup('f-polas',    state.polas);
+  wireChipGroup('f-levels',   state.levels);
+  wireChipGroup('f-sections', state.sections);
   document.getElementById('f-topics').addEventListener('click', (e) => {
     const btn = e.target.closest('.filter-topic-chip');
     if (!btn) return;
