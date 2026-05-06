@@ -1032,13 +1032,13 @@ canvas.crop-display {
 
 .menu-h-secondary { margin-top: 0.5rem; }
 
-/* Exam page */
-.exam-tabs {
+/* Generic page-level tabs (Problems: Matura/Textbook · Exam: Selection/Finishing) */
+.page-tabs, .exam-tabs {
   display: flex; gap: 0.4rem;
   margin: 0.5rem 0 1rem;
   border-bottom: 1px solid var(--card-border);
 }
-.exam-tab {
+.page-tab, .exam-tab {
   background: transparent;
   border: 0;
   padding: 0.55rem 1rem;
@@ -1048,12 +1048,19 @@ canvas.crop-display {
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
 }
-.exam-tab:hover { color: var(--accent); }
-.exam-tab.active {
+.page-tab:hover, .exam-tab:hover { color: var(--accent); }
+.page-tab.active, .exam-tab.active {
   color: var(--accent);
   border-bottom-color: var(--accent);
   font-weight: 600;
 }
+.page-tab .count {
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 0.85em;
+  margin-left: 0.18em;
+}
+.page-tab.active .count { color: var(--accent); }
 .exam-options {
   display: flex; flex-wrap: wrap; align-items: center;
   gap: 0.7rem 1.5rem;

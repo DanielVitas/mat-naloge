@@ -578,28 +578,68 @@ function initMenuBar() {
   });
 }
 
-// On the index page, if the URL has a hash like #matura or
-// #matura/2025/spomladanski-rok/or, find the deepest matching <details>,
-// open it and all ancestor <details>, then scroll it into view.
+// Generic page-level tab switcher. Updates aria/state on .page-tab buttons
+// and shows the matching .page-panel section.
+function switchTab(name) {
+  if (!name) return false;
+  const tabs   = document.querySelectorAll('.page-tab, .exam-tab');
+  const panels = document.querySelectorAll('.page-panel, .exam-panel');
+  let any = false;
+  tabs.forEach(t => {
+    const matches = t.dataset.tab === name;
+    t.classList.toggle('active', matches);
+    if (matches) any = true;
+  });
+  if (!any) return false;
+  panels.forEach(p => { p.hidden = p.dataset.panel !== name; });
+  return true;
+}
+
+// On the index page, if the URL has a hash like #matura, #textbook or
+// #matura/2025/spomladanski-rok/or, switch to the matching tab and open
+// any nested year/season/level <details>.
 function handleSectionHash() {
   const hash = (location.hash || '').replace('#', '').trim();
   if (!hash) return;
-  // Try the exact path first; if not found, walk up by stripping segments.
   const parts = hash.split('/');
-  let target = null;
-  while (parts.length && !target) {
-    const path = parts.join('/');
-    target = document.querySelector(`details.collection[data-target="${path}"]`);
-    if (!target) parts.pop();
+  // First segment selects the tab.
+  switchTab(parts[0]);
+  // Walk deeper segments to open nested details (year/season/level).
+  if (parts.length > 1) {
+    const sub = parts.slice();
+    let target = null;
+    while (sub.length > 1 && !target) {
+      const path = sub.join('/');
+      target = document.querySelector(`details.collection[data-target="${path}"]`);
+      if (!target) sub.pop();
+    }
+    if (target) {
+      let cur = target;
+      while (cur) {
+        if (cur.tagName === 'DETAILS') cur.open = true;
+        cur = cur.parentElement;
+      }
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
-  if (!target) return;
-  // Walk up the DOM, opening every ancestor <details>.
-  let cur = target;
-  while (cur) {
-    if (cur.tagName === 'DETAILS') cur.open = true;
-    cur = cur.parentElement;
-  }
-  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Wire up tab click → switch + update hash. `defaultName` is used when
+// there's no hash on initial load.
+function bindPageTabs(defaultName) {
+  const tabs = document.querySelectorAll('.page-tab, .exam-tab');
+  tabs.forEach(t => {
+    t.addEventListener('click', (e) => {
+      e.preventDefault();
+      const name = t.dataset.tab;
+      if (switchTab(name)) {
+        // Update hash (without scrolling jump)
+        history.replaceState(null, '', '#' + name);
+      }
+    });
+  });
+  const initial = (location.hash || '').replace('#', '').split('/')[0];
+  switchTab(initial || defaultName);
 }
 
 // Wire up the GitHub-sync UI block (shared between index and problem pages).
@@ -1739,14 +1779,15 @@ async function initExamPage() {
   const byN = {};
   for (const p of PROBLEMS) byN[p.n] = p;
 
-  // Tab switching
-  const tabs = document.querySelectorAll('.exam-tab');
-  const panels = document.querySelectorAll('.exam-panel');
+  // Tab switching uses the shared switchTab/bindPageTabs helpers.
+  bindPageTabs('selection');
   function showTab(name) {
-    tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === name));
-    panels.forEach(p => { p.hidden = p.dataset.panel !== name; });
+    if (switchTab(name)) history.replaceState(null, '', '#' + name);
   }
-  tabs.forEach(t => t.addEventListener('click', () => showTab(t.dataset.tab)));
+  window.addEventListener('hashchange', () => {
+    const h = (location.hash || '').replace('#', '').trim();
+    if (h) switchTab(h);
+  });
 
   function renderProblemRow(p, actions) {
     // actions: array of { label, onClick, kind (optional), title }
@@ -1905,6 +1946,7 @@ async function initIndexPage() {
   initMenuBar();
   initSyncBar();
   initCollectionBar();
+  bindPageTabs('matura');
   handleSectionHash();
   window.addEventListener('hashchange', handleSectionHash);
   // Make sure we have the latest reviewer name from /user before colouring.
