@@ -81,6 +81,21 @@ a:hover { text-decoration: underline; }
   font-size: 0.9rem;
 }
 
+/* Nested collections inside Matura: year > season > level */
+.collection .collection {
+  border: 0;
+  background: transparent;
+  border-radius: 0;
+  margin: 0;
+}
+.collection .collection > summary {
+  font-weight: 600;
+}
+.collection .collection-l1 > summary { font-size: 1rem;   padding-left: 2rem;   }
+.collection .collection-l2 > summary { font-size: 0.95rem; padding-left: 3rem;   font-weight: 500; }
+.collection .collection-l3 > summary { font-size: 0.92rem; padding-left: 4rem;   font-weight: 500; color: var(--muted); }
+.collection .collection-l3 > .problem-list { padding: 0.3rem 1rem 0.8rem 4rem; }
+
 .problem-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -418,16 +433,26 @@ canvas.crop-display {
   text-decoration: none;
 }
 .menu-bar .menu-link.l1 { padding-left: 0.9rem; }
+.menu-bar .menu-link.l2 { padding-left: 1.7rem; font-size: 0.88rem; }
+.menu-bar .menu-link.l3 { padding-left: 2.5rem; font-size: 0.86rem; color: var(--muted); }
+.menu-bar .menu-link.l4 { padding-left: 3.3rem; font-size: 0.84rem; color: var(--muted); font-weight: 500; }
+.menu-bar .menu-link.l3:hover,
+.menu-bar .menu-link.l4:hover { color: var(--accent); }
 .menu-bar .menu-link:hover {
   background: #f3f4f6; color: var(--accent);
   text-decoration: none;
 }
 .menu-bar .menu-current {
-  display: block;
-  padding: 0.18rem 0.55rem 0.18rem 1.9rem;
+  display: flex; align-items: center; gap: 0.4rem;
+  padding: 0.22rem 0.55rem 0.22rem 1.9rem;
   font-size: 0.85rem;
   color: var(--accent);
   font-weight: 600;
+}
+.menu-bar .menu-current.l5 { padding-left: 4rem; }
+.menu-bar .menu-tags { display: inline-flex; gap: 0.2rem; flex-wrap: wrap; }
+.menu-bar .menu-tags .tag {
+  font-size: 0.66rem; padding: 0.06rem 0.4rem;
 }
 
 /* The status badge is now a clickable toggle */

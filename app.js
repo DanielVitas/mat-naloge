@@ -248,16 +248,28 @@ function initMenuBar() {
   });
 }
 
-// On the index page, if the URL has a #matura / #textbook hash, open that
-// section and scroll it into view.
+// On the index page, if the URL has a hash like #matura or
+// #matura/2025/spomladanski-rok/or, find the deepest matching <details>,
+// open it and all ancestor <details>, then scroll it into view.
 function handleSectionHash() {
   const hash = (location.hash || '').replace('#', '').trim();
   if (!hash) return;
-  const sec = document.querySelector(`details.collection[data-source="${hash}"]`);
-  if (sec) {
-    sec.open = true;
-    sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Try the exact path first; if not found, walk up by stripping segments.
+  const parts = hash.split('/');
+  let target = null;
+  while (parts.length && !target) {
+    const path = parts.join('/');
+    target = document.querySelector(`details.collection[data-target="${path}"]`);
+    if (!target) parts.pop();
   }
+  if (!target) return;
+  // Walk up the DOM, opening every ancestor <details>.
+  let cur = target;
+  while (cur) {
+    if (cur.tagName === 'DETAILS') cur.open = true;
+    cur = cur.parentElement;
+  }
+  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 // Wire up the GitHub-sync UI block (shared between index and problem pages).
