@@ -46,12 +46,21 @@ const ALL_TOPICS = [...TOPIC_MAIN, ...Object.keys(TOPIC_PARENT)];
 function isMainTopic(t) { return TOPIC_MAIN_SET.has(t); }
 function topicKindClass(t) { return isMainTopic(t) ? 'topic-main' : 'topic-sub'; }
 
-// Strip "4.x." or "4.x.y." numeric prefix AND any trailing " funkcija/e"
-// for display (so "4.10.5 Eksponentna funkcija" → "Eksponentna").
+// Strip "4.x." or "4.x.y." numeric prefix; rename 'Številske množice' →
+// 'Števila'; trim trailing " funkcija/e" or " števila" so e.g.
+// "4.10.5 Eksponentna funkcija" → "Eksponentna",
+// "4.3.1 Naravna in cela števila" → "Naravna in cela",
+// "4.3 Številske množice" → "Števila".
 const _PREFIX_RE = /^4\.\d+(\.\d+)?\s+/;
 const _FUNKCIJA_SUFFIX_RE = /\s+funkcij[ae]$/i;
+const _STEVILA_SUFFIX_RE  = /\s+števila$/i;
+const _TOPIC_NAME_OVERRIDE = { "Številske množice": "Števila" };
 function displayTopicName(t) {
-  return (t || '').replace(_PREFIX_RE, '').replace(_FUNKCIJA_SUFFIX_RE, '');
+  let s = (t || '').replace(_PREFIX_RE, '');
+  if (Object.prototype.hasOwnProperty.call(_TOPIC_NAME_OVERRIDE, s)) {
+    return _TOPIC_NAME_OVERRIDE[s];
+  }
+  return s.replace(_FUNKCIJA_SUFFIX_RE, '').replace(_STEVILA_SUFFIX_RE, '');
 }
 
 // Group topics so subs sit under their parent main: returns
@@ -105,7 +114,8 @@ function renderTopicChipGroups(container, topics, editable) {
     div.className = 'topic-group' + (editable ? ' editable' : '');
     const mainSpan = document.createElement('span');
     mainSpan.className = 'topic-group-main';
-    mainSpan.appendChild(document.createTextNode(displayTopicName(g.main)));
+    const label = displayTopicName(g.main) + (g.subs.length > 0 ? ':' : '');
+    mainSpan.appendChild(document.createTextNode(label));
     if (editable) mainSpan.appendChild(makeRemove(g.main));
     div.appendChild(mainSpan);
     for (const s of g.subs) div.appendChild(makeSubPill(s));
@@ -1371,7 +1381,7 @@ async function initSearchPage() {
       mainBtn.className = 'filter-chip-main';
       mainBtn.dataset.topic = g.main;
       mainBtn.setAttribute('aria-pressed', parentSelected(g.main) ? 'true' : 'false');
-      mainBtn.textContent = displayTopicName(g.main);
+      mainBtn.textContent = displayTopicName(g.main) + (g.subs.length > 0 ? ':' : '');
       mainBtn.addEventListener('click', (e) => {
         e.preventDefault(); e.stopPropagation();
         setParent(g.main, !parentSelected(g.main));

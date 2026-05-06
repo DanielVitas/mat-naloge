@@ -11,9 +11,9 @@
   --tag-level-bg: #fed7aa; --tag-level-fg: #9a3412;
   --tag-section-bg: #fef3c7; --tag-section-fg: #92400e;
   --tag-points-bg: #e5e7eb; --tag-points-fg: #374151;
-  --tag-topic-bg: #ccfbf1; --tag-topic-fg: #115e59;
+  --tag-topic-bg: #e0f2fe; --tag-topic-fg: #0369a1;
   --tag-topic-main-bg: #e0e7ff; --tag-topic-main-fg: #3730a3; --tag-topic-main-border: #c7d2fe;
-  --tag-topic-sub-bg:  #ccfbf1; --tag-topic-sub-fg:  #115e59; --tag-topic-sub-border:  #99f6e4;
+  --tag-topic-sub-bg:  #e0f2fe; --tag-topic-sub-fg:  #0369a1; --tag-topic-sub-border:  #bae6fd;
 }
 * { box-sizing: border-box; }
 body {
@@ -40,7 +40,7 @@ a:hover { text-decoration: underline; }
 .tag.points  { background: var(--tag-points-bg);  color: var(--tag-points-fg); }
 .tag.topic   {
   background: var(--tag-topic-bg);  color: var(--tag-topic-fg);
-  border: 1px solid #99f6e4;
+  border: 1px solid var(--tag-topic-sub-border);
 }
 .tag.topic.topic-main {
   background: var(--tag-topic-main-bg);
@@ -74,10 +74,10 @@ a:hover { text-decoration: underline; }
   display: inline-flex; align-items: center; gap: 0.3rem;
   white-space: nowrap;
 }
-/* Sub pills inside the rectangular main container — soft teal so they
+/* Sub pills inside the rectangular main container — soft sky-blue so they
    contrast with the indigo group background but aren't stark white. */
 .topic-group .tag.topic.topic-sub {
-  background: #f0fdfa;          /* teal-50 */
+  background: #f0f9ff;          /* sky-50 */
   color: var(--tag-topic-sub-fg);
   border: 1px solid var(--tag-topic-sub-border);
   font-weight: 500;
@@ -111,8 +111,8 @@ a:hover { text-decoration: underline; }
   width: 1.05rem; height: 1.05rem;
   display: inline-flex; align-items: center; justify-content: center;
   border: 0;
-  background: rgba(15, 118, 110, 0.18);
-  color: #0f766e;            /* teal-700, default for sub chips */
+  background: rgba(3, 105, 161, 0.18);
+  color: #0369a1;            /* sky-700, default for sub chips */
   border-radius: 999px;
   font-size: 0.78rem; line-height: 1;
   padding: 0;
@@ -120,8 +120,8 @@ a:hover { text-decoration: underline; }
   font-weight: 700;
 }
 .topic-remove:hover {
-  background: rgba(15, 118, 110, 0.34);
-  color: #134e4a;
+  background: rgba(3, 105, 161, 0.34);
+  color: #075985;
 }
 /* Main-section chip: tint the × in indigo to match. */
 .tag.topic.topic-main .topic-remove {
@@ -776,7 +776,7 @@ canvas.crop-display {
   display: inline-block;
   padding: 0.06rem 0.55rem;
   border-radius: 999px;
-  background: #f0fdfa;        /* teal-50 — soft sub default */
+  background: #f0f9ff;        /* sky-50 — soft sub default */
   color: var(--tag-topic-sub-fg);
   border: 1px solid var(--tag-topic-sub-border);
   font: inherit;
