@@ -35,7 +35,13 @@
       1499,
       719
     ],
-    "outdated": false
+    "outdated": false,
+    "topics": [
+      "4.6 Geometrija",
+      "4.6.2 Koti",
+      "4.7 Liki",
+      "4.7.2 Večkotnik"
+    ]
   },
   "7": {
     "bbox": [
