@@ -927,7 +927,6 @@ function openTopicPicker(meta, anchorBtn) {
 
 // On the index page, rebuild each card's topic chips from effective state
 // (so edits made on a problem page are reflected after navigation/push).
-// Also show/hide the horizontal divider between meta tags and topics.
 function applyIndexTopics() {
   document.querySelectorAll('.problem-card').forEach(card => {
     const id = card.dataset.id;
@@ -935,10 +934,31 @@ function applyIndexTopics() {
     try { defaults = JSON.parse(card.dataset.topics || '[]'); } catch {}
     const eff = effectiveTopics(id, defaults);
     const topicsEl = card.querySelector('.tags-topics');
-    const divider  = card.querySelector('.card-divider');
     if (!topicsEl) return;
     renderTopicChipGroups(topicsEl, eff, /*editable*/ false);
-    if (divider) divider.hidden = eff.length === 0;
+  });
+}
+
+// Global state for the index-card collapsible sections. Both Oznake (tags)
+// and Vsebina (topics) start collapsed. Clicking any card's toggle flips
+// the corresponding flag for ALL cards at once.
+const cardSectionsState = { tags: false, topics: false };
+function applyCardSectionsState() {
+  document.querySelectorAll('.problem-card .card-section').forEach(sec => {
+    const which = sec.querySelector('.card-toggle')?.dataset.section;
+    if (!which) return;
+    sec.dataset.expanded = String(!!cardSectionsState[which]);
+  });
+}
+function bindCardSectionToggles() {
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.problem-card .card-toggle');
+    if (!btn) return;
+    e.preventDefault(); e.stopPropagation();
+    const section = btn.dataset.section;
+    if (!(section in cardSectionsState)) return;
+    cardSectionsState[section] = !cardSectionsState[section];
+    applyCardSectionsState();
   });
 }
 
@@ -1571,6 +1591,8 @@ async function initIndexPage() {
   await ensureNameFromToken();
   applyIndexTopics();
   applyIndexStatuses();
+  applyCardSectionsState();
+  bindCardSectionToggles();
   const exportAllBtn = document.getElementById('export-all');
   if (exportAllBtn) {
     exportAllBtn.addEventListener('click', () => {
