@@ -332,40 +332,43 @@ a:hover { text-decoration: underline; }
 }
 .problem-card .tag { font-size: 0.72rem; padding: 0.1rem 0.45rem; }
 
-/* Collapsible Oznake / Vsebina sections on the index card */
+/* Inline-chip preview on each index card. Collapsed: chips fill one line;
+   any that don't fit are hidden via max-height + overflow:hidden. A ">"
+   chevron sits at the right end. Click → expand all cards' chips and
+   flip to "<". */
 .problem-card .card-section {
-  display: flex; flex-wrap: wrap; align-items: center;
-  gap: 0.4rem;
+  display: flex; align-items: center; gap: 0.4rem;
   width: 100%;
 }
-.problem-card .card-toggle {
-  display: inline-flex; align-items: center; gap: 0.22rem;
-  background: transparent;
-  border: 0;
-  padding: 0;
-  margin: 0;
-  font: inherit;
-  font-size: 0.82rem;
-  font-weight: 500;
-  color: var(--fg);
-  cursor: pointer;
-  user-select: none;
-}
-.problem-card .card-toggle:hover { color: var(--accent); }
-.problem-card .card-chevron {
-  display: inline-block;
-  font-weight: 700;
-  font-size: 0.82rem;
-}
-.problem-card .card-section[data-expanded="false"] .card-chevron::after { content: '>'; }
-.problem-card .card-section[data-expanded="true"]  .card-chevron::after { content: '<'; }
-.problem-card .card-section[data-expanded="false"] .tags {
-  display: none;
+.problem-card .card-section .tags {
+  flex: 1; min-width: 0;
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: 0.3rem;
+  overflow: hidden;
+  max-height: 1.55em;            /* clip to one line of chips */
+  line-height: 1.4;
 }
 .problem-card .card-section[data-expanded="true"] .tags {
-  display: flex;
-  flex-basis: 100%;       /* wrap chips below the toggle on a new line */
+  max-height: none;
+  overflow: visible;
 }
+.problem-card .card-toggle {
+  flex-shrink: 0;
+  background: transparent;
+  border: 0;
+  padding: 0 0.15rem;
+  margin: 0;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
+  line-height: 1;
+}
+.problem-card .card-toggle:hover { color: var(--accent); }
+.problem-card .card-chevron::after { content: '>'; }
+.problem-card .card-section[data-expanded="true"] .card-chevron::after { content: '<'; }
 
 /* status-driven background colours.
    * single status: solid colour
