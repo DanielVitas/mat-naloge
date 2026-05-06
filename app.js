@@ -46,6 +46,69 @@ const ALL_TOPICS = [...TOPIC_MAIN, ...Object.keys(TOPIC_PARENT)];
 function isMainTopic(t) { return TOPIC_MAIN_SET.has(t); }
 function topicKindClass(t) { return isMainTopic(t) ? 'topic-main' : 'topic-sub'; }
 
+// Strip "4.x." or "4.x.y." numeric prefix for display.
+const _PREFIX_RE = /^4\.\d+(\.\d+)?\s+/;
+function displayTopicName(t) { return (t || '').replace(_PREFIX_RE, ''); }
+
+// Group topics so subs sit under their parent main: returns
+// [{main, subs:[]}, ...]. Orphan subs (no parent in list) get { main:null }.
+function buildTopicGroups(topics) {
+  const sorted = sortTopics(topics);
+  const groups = [];
+  const mainIdx = {};
+  for (const t of sorted) {
+    if (isMainTopic(t)) {
+      mainIdx[t] = groups.length;
+      groups.push({ main: t, subs: [] });
+    } else {
+      const parent = TOPIC_PARENT[t];
+      if (parent in mainIdx) {
+        groups[mainIdx[parent]].subs.push(t);
+      } else {
+        groups.push({ main: null, subs: [t] });
+      }
+    }
+  }
+  return groups;
+}
+
+// Render topic chip groups into a container. Mains become rectangular boxes
+// containing their sub pills. When `editable` is true each chip + the main
+// label gets a × button. Orphan subs render as bare pills.
+function renderTopicChipGroups(container, topics, editable) {
+  container.innerHTML = '';
+  function makeRemove(t) {
+    const x = document.createElement('button');
+    x.className = 'topic-remove';
+    x.dataset.topic = t;
+    x.setAttribute('aria-label', 'remove topic');
+    x.textContent = '×';
+    return x;
+  }
+  function makeSubPill(t) {
+    const span = document.createElement('span');
+    span.className = 'tag topic topic-sub' + (editable ? ' editable' : '');
+    span.appendChild(document.createTextNode(displayTopicName(t)));
+    if (editable) span.appendChild(makeRemove(t));
+    return span;
+  }
+  for (const g of buildTopicGroups(topics)) {
+    if (g.main === null) {
+      for (const s of g.subs) container.appendChild(makeSubPill(s));
+      continue;
+    }
+    const div = document.createElement('div');
+    div.className = 'topic-group' + (editable ? ' editable' : '');
+    const mainSpan = document.createElement('span');
+    mainSpan.className = 'topic-group-main';
+    mainSpan.appendChild(document.createTextNode(displayTopicName(g.main)));
+    if (editable) mainSpan.appendChild(makeRemove(g.main));
+    div.appendChild(mainSpan);
+    for (const s of g.subs) div.appendChild(makeSubPill(s));
+    container.appendChild(div);
+  }
+}
+
 // Sort topics so mains appear in master order, with each main's subs
 // immediately following in their declared order.
 function sortTopics(topics) {
@@ -632,17 +695,17 @@ function latexToHtml(src, problemId, tikzCount) {
 function renderTopicsEditor(meta) {
   const row = document.getElementById('topics-tags');
   if (!row) return;
-  const current = sortTopics(effectiveTopics(meta.n, meta.topics));
-  let html = '';
-  for (const t of current) {
-    html += '<span class="tag topic editable ' + topicKindClass(t) + '">'
-         +    escapeHtml(t)
-         +    '<button class="topic-remove" data-topic="' + escapeHtml(t)
-         +      '" aria-label="remove topic">×</button>'
-         +  '</span>';
-  }
-  html += '<button class="topic-add" id="topic-add" aria-label="add topic" title="Add a topic">+</button>';
-  row.innerHTML = html;
+  const current = effectiveTopics(meta.n, meta.topics);
+  renderTopicChipGroups(row, current, /*editable*/ true);
+  // Append the + button at the end of the row.
+  const addBtn = document.createElement('button');
+  addBtn.className = 'topic-add';
+  addBtn.id = 'topic-add';
+  addBtn.setAttribute('aria-label', 'add topic');
+  addBtn.title = 'Add a topic';
+  addBtn.textContent = '+';
+  row.appendChild(addBtn);
+  // Wire × buttons.
   row.querySelectorAll('.topic-remove').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault(); e.stopPropagation();
@@ -657,7 +720,6 @@ function renderTopicsEditor(meta) {
       if (bar && typeof bar._refresh === 'function') bar._refresh();
     });
   });
-  const addBtn = row.querySelector('#topic-add');
   addBtn.addEventListener('click', (e) => {
     e.preventDefault(); e.stopPropagation();
     openTopicPicker(meta, addBtn);
@@ -695,8 +757,9 @@ function openTopicPicker(meta, anchorBtn) {
   function renderList(filter) {
     list.innerHTML = '';
     const f = filter.toLowerCase();
-    const available = ALL_TOPICS.filter(t => !current.has(t)
-      && t.toLowerCase().includes(f));
+    const available = sortTopics(ALL_TOPICS.filter(t => !current.has(t)
+      && (t.toLowerCase().includes(f)
+          || displayTopicName(t).toLowerCase().includes(f))));
     if (available.length === 0) {
       const empty = document.createElement('div');
       empty.className = 'topic-picker-empty';
@@ -705,9 +768,10 @@ function openTopicPicker(meta, anchorBtn) {
     } else {
       for (const t of available) {
         const btn = document.createElement('button');
-        btn.className = 'topic-picker-item';
+        btn.className = 'topic-picker-item ' + topicKindClass(t);
         btn.type = 'button';
-        btn.textContent = t;
+        btn.textContent = displayTopicName(t);
+        btn.dataset.topic = t;
         btn.addEventListener('click', (e) => {
           e.preventDefault(); e.stopPropagation();
           addTopic(t);
@@ -786,15 +850,8 @@ function applyIndexTopics() {
     const topicsEl = card.querySelector('.tags-topics');
     const divider  = card.querySelector('.card-divider');
     if (!topicsEl) return;
-    topicsEl.innerHTML = '';
-    const sorted = sortTopics(eff);
-    for (const t of sorted) {
-      const span = document.createElement('span');
-      span.className = 'tag topic ' + topicKindClass(t);
-      span.textContent = t;
-      topicsEl.appendChild(span);
-    }
-    if (divider) divider.hidden = sorted.length === 0;
+    renderTopicChipGroups(topicsEl, eff, /*editable*/ false);
+    if (divider) divider.hidden = eff.length === 0;
   });
 }
 
@@ -1227,7 +1284,7 @@ async function initSearchPage() {
       </div>
       <div class="filter-topic-chips" id="f-topics">
         ${sortTopics(allTopicsArr).map(t =>
-          `<button type="button" class="filter-topic-chip ${topicKindClass(t)}" data-topic="${escapeHtml(t)}" aria-pressed="true">${escapeHtml(t)}</button>`
+          `<button type="button" class="filter-topic-chip ${topicKindClass(t)}" data-topic="${escapeHtml(t)}" aria-pressed="true">${escapeHtml(displayTopicName(t))}</button>`
         ).join('')}
       </div>
     </div>
