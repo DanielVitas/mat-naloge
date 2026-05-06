@@ -1037,6 +1037,217 @@ async function initProblemPage(meta) {
   }
 }
 
+// ---------- Search page ----------------------------------------------------
+// Live filter UI over window.PROBLEMS (embedded in search.html). Every filter
+// input triggers re-render — there's no submit button.
+async function initSearchPage() {
+  await fetchRemoteData();
+  initMenuBar();
+  initSyncBar();
+  await ensureNameFromToken();
+
+  const PROBLEMS = (window.PROBLEMS || []).slice();
+  if (PROBLEMS.length === 0) return;
+
+  // Compute available ranges/options from data
+  const yearMin = Math.min(...PROBLEMS.map(p => parseInt(p.year, 10)));
+  const yearMax = Math.max(...PROBLEMS.map(p => parseInt(p.year, 10)));
+  const pointsMin = Math.min(...PROBLEMS.map(p => p.points_n || 0));
+  const pointsMax = Math.max(...PROBLEMS.map(p => p.points_n || 0));
+  const allSources  = [...new Set(PROBLEMS.map(p => p.source).filter(Boolean))];
+  const allPolas    = [...new Set(PROBLEMS.map(p => p.pola_n).filter(Boolean))]
+                        .sort();
+  const allLevels   = [...new Set(PROBLEMS.map(p => p.level).filter(Boolean))]
+                        .sort((a, b) => (LEVEL_ORDER_JS[a]||9) - (LEVEL_ORDER_JS[b]||9));
+  const allSections = [...new Set(PROBLEMS.map(p => p.section_letter).filter(Boolean))]
+                        .sort();
+  // Topics vocabulary = union of master + actually-used (incl any custom)
+  const usedTopics = new Set();
+  PROBLEMS.forEach(p => {
+    effectiveTopics(p.n, p.topics).forEach(t => usedTopics.add(t));
+  });
+  const allTopicsArr = [...new Set([...ALL_TOPICS, ...Array.from(usedTopics)])];
+
+  // Filter state — defaults to "everything selected"
+  const state = {
+    yearMin, yearMax, pointsMin, pointsMax,
+    sources:  new Set(allSources),
+    polas:    new Set(allPolas),
+    levels:   new Set(allLevels),
+    sections: new Set(allSections),
+    topics:   new Set(allTopicsArr),
+  };
+
+  // Build filter UI
+  const root = document.getElementById('filters');
+  if (!root) return;
+  root.innerHTML = `
+    <div class="filter-grid">
+      <div class="filter-cell">
+        <label class="filter-label">Year</label>
+        <div class="range-inputs">
+          <input type="number" id="f-year-min" value="${yearMin}" min="${yearMin}" max="${yearMax}">
+          <span>–</span>
+          <input type="number" id="f-year-max" value="${yearMax}" min="${yearMin}" max="${yearMax}">
+        </div>
+      </div>
+      <div class="filter-cell">
+        <label class="filter-label">Points</label>
+        <div class="range-inputs">
+          <input type="number" id="f-points-min" value="${pointsMin}" min="${pointsMin}" max="${pointsMax}">
+          <span>–</span>
+          <input type="number" id="f-points-max" value="${pointsMax}" min="${pointsMin}" max="${pointsMax}">
+        </div>
+      </div>
+      <div class="filter-cell">
+        <label class="filter-label">Source</label>
+        <div class="checkbox-group" id="f-sources">
+          ${allSources.map(s =>
+            `<label><input type="checkbox" data-val="${escapeHtml(s)}" checked> ${escapeHtml(s)}</label>`
+          ).join('')}
+        </div>
+      </div>
+      <div class="filter-cell">
+        <label class="filter-label">Pola</label>
+        <div class="checkbox-group" id="f-polas">
+          ${allPolas.map(p =>
+            `<label><input type="checkbox" data-val="${escapeHtml(p)}" checked> Pola ${escapeHtml(p)}</label>`
+          ).join('')}
+        </div>
+      </div>
+      <div class="filter-cell">
+        <label class="filter-label">Level</label>
+        <div class="checkbox-group" id="f-levels">
+          ${allLevels.map(l =>
+            `<label><input type="checkbox" data-val="${escapeHtml(l)}" checked> ${escapeHtml(l)}</label>`
+          ).join('')}
+        </div>
+      </div>
+      <div class="filter-cell">
+        <label class="filter-label">Section</label>
+        <div class="checkbox-group" id="f-sections">
+          ${allSections.map(s =>
+            `<label><input type="checkbox" data-val="${escapeHtml(s)}" checked> ${escapeHtml(s)}</label>`
+          ).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="filter-cell topics-cell">
+      <div class="filter-label-row">
+        <label class="filter-label">Topics</label>
+        <div class="topics-actions">
+          <button type="button" class="link-btn" id="topics-all">Select all</button>
+          <button type="button" class="link-btn" id="topics-none">Select none</button>
+        </div>
+      </div>
+      <div class="filter-topic-chips" id="f-topics">
+        ${allTopicsArr.map(t =>
+          `<button type="button" class="filter-topic-chip" data-topic="${escapeHtml(t)}" aria-pressed="true">${escapeHtml(t)}</button>`
+        ).join('')}
+      </div>
+    </div>
+  `;
+
+  // Wire up listeners
+  function readGroup(containerId, into) {
+    into.clear();
+    document.querySelectorAll(`#${containerId} input[type=checkbox]`).forEach(cb => {
+      if (cb.checked) into.add(cb.dataset.val);
+    });
+  }
+
+  ['f-year-min','f-year-max','f-points-min','f-points-max'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => {
+      state.yearMin   = parseInt(document.getElementById('f-year-min').value, 10);
+      state.yearMax   = parseInt(document.getElementById('f-year-max').value, 10);
+      state.pointsMin = parseInt(document.getElementById('f-points-min').value, 10);
+      state.pointsMax = parseInt(document.getElementById('f-points-max').value, 10);
+      render();
+    });
+  });
+  ['f-sources','f-polas','f-levels','f-sections'].forEach(group => {
+    document.getElementById(group).addEventListener('change', () => {
+      readGroup(group, state[group.split('-')[1]]);
+      render();
+    });
+  });
+  document.getElementById('f-topics').addEventListener('click', (e) => {
+    const btn = e.target.closest('.filter-topic-chip');
+    if (!btn) return;
+    const topic = btn.dataset.topic;
+    const active = btn.getAttribute('aria-pressed') === 'true';
+    const next = !active;
+    btn.setAttribute('aria-pressed', String(next));
+    if (next) state.topics.add(topic); else state.topics.delete(topic);
+    render();
+  });
+  document.getElementById('topics-all').addEventListener('click', () => {
+    state.topics = new Set(allTopicsArr);
+    document.querySelectorAll('#f-topics .filter-topic-chip').forEach(b =>
+      b.setAttribute('aria-pressed', 'true'));
+    render();
+  });
+  document.getElementById('topics-none').addEventListener('click', () => {
+    state.topics.clear();
+    document.querySelectorAll('#f-topics .filter-topic-chip').forEach(b =>
+      b.setAttribute('aria-pressed', 'false'));
+    render();
+  });
+
+  // Filter + render
+  function matches(p) {
+    const yr = parseInt(p.year, 10);
+    if (yr < state.yearMin || yr > state.yearMax) return false;
+    const pts = p.points_n || 0;
+    if (pts < state.pointsMin || pts > state.pointsMax) return false;
+    if (!state.sources.has(p.source)) return false;
+    if (!state.polas.has(p.pola_n)) return false;
+    if (!state.levels.has(p.level)) return false;
+    if (!state.sections.has(p.section_letter)) return false;
+    const topics = effectiveTopics(p.n, p.topics);
+    if (topics.length === 0) {
+      // No topics → only matches if every topic is selected (i.e., no filter)
+      if (state.topics.size !== allTopicsArr.length) return false;
+    } else if (!topics.some(t => state.topics.has(t))) {
+      return false;
+    }
+    return true;
+  }
+
+  const resultsEl = document.getElementById('search-results');
+  const countEl   = document.getElementById('result-count');
+
+  function render() {
+    const out = PROBLEMS.filter(matches);
+    countEl.textContent = `${out.length} of ${PROBLEMS.length} problems`;
+    resultsEl.innerHTML = out.map(p => {
+      const ed = effectiveState(p.n);
+      const latex = (ed.latex !== undefined) ? ed.latex : p.latex;
+      return `<a class="search-result" href="problem-${String(p.n).padStart(3,'0')}.html">
+        <span class="result-num">${p.n}.</span>
+        <div class="result-body" data-id="${p.n}" data-tikz="${p.tikz_count || 0}"></div>
+        <span class="result-arrow">→</span>
+      </a>`;
+    }).join('');
+    // Render the LaTeX previews
+    out.forEach(p => {
+      const body = resultsEl.querySelector(`.result-body[data-id="${p.n}"]`);
+      if (!body) return;
+      const ed = effectiveState(p.n);
+      const latex = (ed.latex !== undefined) ? ed.latex : p.latex;
+      body.innerHTML = latexToHtml(latex, p.n, p.tikz_count || 0);
+    });
+    if (window.MathJax && window.MathJax.typesetPromise) {
+      window.MathJax.typesetPromise([resultsEl]).catch(() => {});
+    }
+  }
+
+  render();
+}
+
+// JS-side level order for sorting.
+const LEVEL_ORDER_JS = { OR: 0, VR: 1 };
+
 async function initIndexPage() {
   await fetchRemoteData();
   initMenuBar();
