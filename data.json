@@ -14,6 +14,9 @@
     "outdated": false,
     "approved_by": "DanielVitas"
   },
+  "3": {
+    "topics": []
+  },
   "4": {
     "approved_by": "DanielVitas",
     "bbox": [
@@ -41,6 +44,23 @@
       1529,
       356
     ],
+    "outdated": true
+  },
+  "12": {
+    "topics": [
+      "4.10 Funkcije",
+      "4.10.6 Logaritemska funkcija"
+    ]
+  },
+  "15": {
+    "bboxes": {
+      "0": [
+        189,
+        291,
+        1509,
+        1273
+      ]
+    },
     "outdated": true
   },
   "display_names": {
