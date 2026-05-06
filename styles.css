@@ -607,8 +607,8 @@ canvas.crop-display {
 }
 .collection-dropdown {
   position: absolute; top: calc(100% + 6px); right: 0;
-  min-width: 200px; max-width: 280px;
-  max-height: 360px; overflow-y: auto;
+  min-width: 320px; max-width: 480px;
+  max-height: 420px; overflow-y: auto;
   background: white;
   border: 1px solid var(--card-border);
   border-radius: 8px;
@@ -624,19 +624,51 @@ canvas.crop-display {
   font-size: 0.85rem;
 }
 .collection-row {
-  display: flex; align-items: center; gap: 0.4rem;
-  padding: 0.18rem 0.35rem;
+  display: flex; align-items: flex-start; gap: 0.4rem;
+  padding: 0.4rem 0.5rem;
   border-radius: 4px;
+  border-bottom: 1px solid #f3f4f6;
 }
-.collection-row:hover { background: #f3f4f6; }
+.collection-row:last-child { border-bottom: 0; }
+.collection-row:hover { background: #f9fafb; }
 .collection-link {
-  flex: 1;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--fg);
+  flex: 1; min-width: 0;
+  display: flex; align-items: flex-start; gap: 0.5rem;
   text-decoration: none;
+  color: var(--fg);
 }
 .collection-link:hover { color: var(--accent); }
+.collection-num {
+  flex-shrink: 0;
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--accent);
+  min-width: 1.6rem;
+}
+.collection-preview {
+  flex: 1; min-width: 0;
+  font-size: 0.82rem;
+  color: var(--fg);
+  line-height: 1.35;
+  max-height: 4em;          /* a few lines of math/text */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  position: relative;
+}
+.collection-preview::after {
+  content: '';
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: 1em;
+  background: linear-gradient(to bottom, transparent, white);
+  pointer-events: none;
+}
+.collection-row:hover .collection-preview::after {
+  background: linear-gradient(to bottom, transparent, #f9fafb);
+}
+.collection-preview p { margin: 0.1rem 0; }
+.collection-preview .tex-tikz,
+.collection-preview .tex-figure-placeholder { display: none; }
+.collection-preview .tex-tabular { font-size: 0.78rem; }
 .collection-remove {
   background: rgba(0,0,0,0.08);
   color: var(--muted);

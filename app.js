@@ -244,13 +244,26 @@ function initCollectionBar() {
       dd.appendChild(empty);
       return;
     }
+    const latexMap = window.PROBLEMS_LATEX || {};
     for (const n of sel) {
       const row = document.createElement('div');
       row.className = 'collection-row';
       const link = document.createElement('a');
       link.href = `problem-${String(n).padStart(3,'0')}.html`;
       link.className = 'collection-link';
-      link.textContent = `${n}.`;
+      const numEl = document.createElement('span');
+      numEl.className = 'collection-num';
+      numEl.textContent = `${n}.`;
+      link.appendChild(numEl);
+      const previewEl = document.createElement('span');
+      previewEl.className = 'collection-preview';
+      const data = latexMap[n] || latexMap[String(n)];
+      if (data) {
+        previewEl.innerHTML = latexToHtml(data.latex || '', n, data.tikz_count || 0);
+      } else {
+        previewEl.textContent = '…';
+      }
+      link.appendChild(previewEl);
       row.appendChild(link);
       const x = document.createElement('button');
       x.type = 'button';
@@ -263,6 +276,9 @@ function initCollectionBar() {
       });
       row.appendChild(x);
       dd.appendChild(row);
+    }
+    if (window.MathJax && window.MathJax.typesetPromise) {
+      window.MathJax.typesetPromise([dd]).catch(() => {});
     }
   }
   btn.addEventListener('click', (e) => {
@@ -1688,8 +1704,8 @@ async function initSearchPage() {
         <span class="result-num">${p.n}.</span>
         <div class="result-body" data-id="${p.n}" data-tikz="${p.tikz_count || 0}"></div>
         <div class="result-actions">
-          <a class="result-edit" href="problem-${String(p.n).padStart(3,'0')}.html">Edit</a>
           <button type="button" class="result-add ${sel ? 'is-selected' : ''}" data-n="${p.n}">${sel ? 'Remove' : 'Add'}</button>
+          <a class="result-edit" href="problem-${String(p.n).padStart(3,'0')}.html">Edit</a>
         </div>
       </div>`;
     }).join('');
@@ -1843,8 +1859,6 @@ async function initExamPage() {
         if (!p) continue;
         const exam = new Set(getExam());
         list.appendChild(renderProblemRow(p, [
-          { label: 'Edit',
-            onClick: () => { window.location.href = `problem-${String(n).padStart(3,'0')}.html`; } },
           { label: exam.has(n) ? 'In exam' : 'Choose →',
             kind: exam.has(n) ? 'is-disabled' : 'primary',
             onClick: () => {
@@ -1882,8 +1896,6 @@ async function initExamPage() {
         const p = byN[n];
         if (!p) return;
         list.appendChild(renderProblemRow(p, [
-          { label: 'Edit',
-            onClick: () => { window.location.href = `problem-${String(n).padStart(3,'0')}.html`; } },
           { label: 'Reroll',
             kind: 'primary',
             onClick: () => {
