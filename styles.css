@@ -225,8 +225,8 @@ canvas.crop-display {
 .problem-nav .nav-arrow,
 .problem-nav .nav-menu {
   display: inline-flex; align-items: center; justify-content: center;
-  min-width: 2.1rem;
-  padding: 0.25rem 0.7rem;
+  min-width: 3.2rem;
+  padding: 0.25rem 1rem;
   font-size: 0.95rem;
   border: 1px solid var(--card-border);
   border-radius: 6px;
