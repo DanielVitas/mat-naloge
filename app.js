@@ -7,31 +7,52 @@
 // main section is stored in TOPIC_PARENT and is enforced whenever a sub
 // is added (and removed when its parent is removed).
 const TOPIC_MAIN = [
-  "4.1 Osnove logike",
+  "4.1 Logika",
   "4.2 Množice",
-  "4.3 Številske množice",
-  "4.4 Algebrski izrazi, enačbe in neenačbe",
+  "4.3 Števila",
+  "4.4 Algebra",
   "4.5 Potence in koreni",
-  "4.6 Geometrija v ravnini in prostoru",
-  "4.7 Geometrijski liki in telesa",
-  "4.8 Vektorji v ravnini in prostoru",
-  "4.9 Pravokotni koordinatni sistem v ravnini",
+  "4.6 Geometrija",
+  "4.7 Liki",
+  "4.7b Telesa",
+  "4.8 Vektorji",
+  "4.9 Koordinatni sistem",
   "4.10 Funkcije",
   "4.11 Stožnice",
-  "4.12 Zaporedja in vrste",
-  "4.13 Diferencialni račun",
+  "4.12 Zaporedja",
+  "4.12b Vrste",
+  "4.13 Odvod",
   "4.14 Integralski račun",
   "4.15 Kombinatorika",
-  "4.16 Verjetnostni račun",
+  "4.16 Verjetnost",
   "4.17 Statistika",
 ];
 const TOPIC_PARENT = {
-  "4.3.1 Naravna in cela števila": "4.3 Številske množice",
-  "4.3.2 Racionalna števila":       "4.3 Številske množice",
-  "4.3.3 Realna števila":           "4.3 Številske množice",
-  "4.3.4 Kompleksna števila":       "4.3 Številske množice",
-  "4.8.1 Ravninski vektorji":       "4.8 Vektorji v ravnini in prostoru",
-  "4.8.2 Prostorski vektorji":      "4.8 Vektorji v ravnini in prostoru",
+  "4.3.1 Naravna in cela števila":  "4.3 Števila",
+  "4.3.2 Racionalna števila":       "4.3 Števila",
+  "4.3.3 Realna števila":           "4.3 Števila",
+  "4.3.4 Kompleksna števila":       "4.3 Števila",
+  "4.4.1 Izrazi":                   "4.4 Algebra",
+  "4.4.2 Enačbe":                   "4.4 Algebra",
+  "4.4.3 Neenačbe":                 "4.4 Algebra",
+  "4.6.1 Razdalja":                 "4.6 Geometrija",
+  "4.6.2 Koti":                     "4.6 Geometrija",
+  "4.6.3 Projekcija":               "4.6 Geometrija",
+  "4.6.4 Kosinusni izrek":          "4.6 Geometrija",
+  "4.6.5 Sinusni izrek":            "4.6 Geometrija",
+  "4.6.6 Heronova formula":         "4.6 Geometrija",
+  "4.7.1 Trikotnik":                "4.7 Liki",
+  "4.7.2 Večkotnik":                "4.7 Liki",
+  "4.7.3 Paralelogram":             "4.7 Liki",
+  "4.7.4 Romb":                     "4.7 Liki",
+  "4.7.5 Trapez":                   "4.7 Liki",
+  "4.7b.1 Prizma":                  "4.7b Telesa",
+  "4.7b.2 Valj":                    "4.7b Telesa",
+  "4.7b.3 Piramida":                "4.7b Telesa",
+  "4.7b.4 Stožec":                  "4.7b Telesa",
+  "4.7b.5 Krogla":                  "4.7b Telesa",
+  "4.8.1 Ravninski vektorji":       "4.8 Vektorji",
+  "4.8.2 Prostorski vektorji":      "4.8 Vektorji",
   "4.10.1 Linearna funkcija":       "4.10 Funkcije",
   "4.10.2 Potenčna funkcija":       "4.10 Funkcije",
   "4.10.3 Korenska funkcija":       "4.10 Funkcije",
@@ -41,6 +62,15 @@ const TOPIC_PARENT = {
   "4.10.7 Polinomska funkcija":     "4.10 Funkcije",
   "4.10.8 Racionalna funkcija":     "4.10 Funkcije",
   "4.10.9 Kotne funkcije":          "4.10 Funkcije",
+  "4.11.1 Elipsa":                  "4.11 Stožnice",
+  "4.11.2 Parabola":                "4.11 Stožnice",
+  "4.11.3 Hiperbola":               "4.11 Stožnice",
+  "4.12.1 Aritmetično":             "4.12 Zaporedja",
+  "4.12.2 Geometrijsko":            "4.12 Zaporedja",
+  "4.12.3 Limita":                  "4.12 Zaporedja",
+  "4.13.1 Ekstremi":                "4.13 Odvod",
+  "4.13.2 Naraščanje":              "4.13 Odvod",
+  "4.13.3 Konveksnost":             "4.13 Odvod",
 };
 const TOPIC_MAIN_SET = new Set(TOPIC_MAIN);
 const ALL_TOPICS = [...TOPIC_MAIN, ...Object.keys(TOPIC_PARENT)];
@@ -48,31 +78,19 @@ const ALL_TOPICS = [...TOPIC_MAIN, ...Object.keys(TOPIC_PARENT)];
 function isMainTopic(t) { return TOPIC_MAIN_SET.has(t); }
 function topicKindClass(t) { return isMainTopic(t) ? 'topic-main' : 'topic-sub'; }
 
-// Strip "4.x." or "4.x.y." numeric prefix; apply override map; trim trailing
-// " funkcija/e", " števila", or " vektorji" — so e.g.
-// "4.10.5 Eksponentna funkcija" → "Eksponentna",
-// "4.3.1 Naravna in cela števila" → "Naravna in cela",
-// "4.3 Številske množice" → "Števila",
-// "4.8 Vektorji v ravnini in prostoru" → "Vektorji",
-// "4.8.1 Ravninski vektorji" → "Ravninski",
-// "4.9 Pravokotni koordinatni sistem v ravnini" → "Koordinatni sistem".
-const _PREFIX_RE = /^4\.\d+(\.\d+)?\s+/;
+// "4.X" prefix, where X is any non-space token (digits, letters, dots) so
+// IDs like "4.7b Telesa" coexist with "4.10.5 …". After stripping the
+// prefix, also trim trailing " funkcija/e", " števila", or " vektorji"
+// (e.g. "4.10.5 Eksponentna funkcija" → "Eksponentna").
+const _PREFIX_RE = /^4\.\S+\s+/;
 const _FUNKCIJA_SUFFIX_RE = /\s+funkcij[ae]$/i;
 const _STEVILA_SUFFIX_RE  = /\s+števila$/i;
 const _VEKTORJI_SUFFIX_RE = /\s+vektorji$/i;
-const _TOPIC_NAME_OVERRIDE = {
-  "Številske množice": "Števila",
-  "Pravokotni koordinatni sistem v ravnini": "Koordinatni sistem",
-  "Vektorji v ravnini in prostoru": "Vektorji",
-};
 function displayTopicName(t) {
-  let s = (t || '').replace(_PREFIX_RE, '');
-  if (Object.prototype.hasOwnProperty.call(_TOPIC_NAME_OVERRIDE, s)) {
-    return _TOPIC_NAME_OVERRIDE[s];
-  }
-  return s.replace(_FUNKCIJA_SUFFIX_RE, '')
-          .replace(_STEVILA_SUFFIX_RE, '')
-          .replace(_VEKTORJI_SUFFIX_RE, '');
+  return (t || '').replace(_PREFIX_RE, '')
+                  .replace(_FUNKCIJA_SUFFIX_RE, '')
+                  .replace(_STEVILA_SUFFIX_RE, '')
+                  .replace(_VEKTORJI_SUFFIX_RE, '');
 }
 
 // Group topics so subs sit under their parent main: returns
@@ -307,9 +325,16 @@ function effectiveState(id) {
 
 // Return the effective topics for a problem given build-time defaults.
 // Priority: localStorage.topics > remote.topics > meta.topics (defaults).
+// Unknown topics (e.g. an outdated id from an old build) are filtered out.
+// If filtering empties the override, fall through to defaults so the
+// build-time list takes over.
 function effectiveTopics(id, defaults) {
   const s = effectiveState(id);
-  if (Array.isArray(s.topics)) return s.topics.slice();
+  if (Array.isArray(s.topics)) {
+    const known = new Set(ALL_TOPICS);
+    const cleaned = s.topics.filter(t => known.has(t));
+    if (cleaned.length > 0) return cleaned.slice();
+  }
   return Array.isArray(defaults) ? defaults.slice() : [];
 }
 
