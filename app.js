@@ -22,7 +22,7 @@ const TOPIC_MAIN = [
   "4.12 Zaporedja",
   "4.12b Vrste",
   "4.13 Odvod",
-  "4.14 Integralski račun",
+  "4.14 Integral",
   "4.15 Kombinatorika",
   "4.16 Verjetnost",
   "4.17 Statistika",
