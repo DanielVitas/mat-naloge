@@ -39,6 +39,11 @@ const GH = {
   api() { return `https://api.github.com/repos/${this.owner}/${this.repo}/contents/${this.path}`; },
 };
 
+// GitHub login of the repo owner. Only this user can create brand-new topics
+// (anyone signed in can still search and assign topics that already exist).
+const OWNER_LOGIN = 'DanielVitas';
+function isOwner() { return getName() === OWNER_LOGIN; }
+
 function $(id) { return document.getElementById(id); }
 function loadState(id) {
   try { return JSON.parse(localStorage.getItem('prob-' + id) || '{}'); }
@@ -649,19 +654,28 @@ function openTopicPicker(meta, anchorBtn) {
       }
     }
     // If search has a non-empty value that isn't already in the list,
-    // offer to add it as a custom topic.
+    // offer to add it as a custom topic — but ONLY for the repo owner.
+    // Other signed-in users can still pick from the master list above.
     const query = filter.trim();
-    if (query && !current.has(query) &&
-        !ALL_TOPICS.some(t => t.toLowerCase() === query.toLowerCase())) {
-      const btn = document.createElement('button');
-      btn.className = 'topic-picker-item topic-picker-custom';
-      btn.type = 'button';
-      btn.innerHTML = 'Add new topic: <strong>' + escapeHtml(query) + '</strong>';
-      btn.addEventListener('click', (e) => {
-        e.preventDefault(); e.stopPropagation();
-        addTopic(query);
-      });
-      list.appendChild(btn);
+    const isCustom = query && !current.has(query) &&
+        !ALL_TOPICS.some(t => t.toLowerCase() === query.toLowerCase());
+    if (isCustom) {
+      if (isOwner()) {
+        const btn = document.createElement('button');
+        btn.className = 'topic-picker-item topic-picker-custom';
+        btn.type = 'button';
+        btn.innerHTML = 'Add new topic: <strong>' + escapeHtml(query) + '</strong>';
+        btn.addEventListener('click', (e) => {
+          e.preventDefault(); e.stopPropagation();
+          addTopic(query);
+        });
+        list.appendChild(btn);
+      } else {
+        const note = document.createElement('div');
+        note.className = 'topic-picker-empty';
+        note.textContent = 'Only ' + OWNER_LOGIN + ' can add new topics.';
+        list.appendChild(note);
+      }
     }
   }
   renderList('');
@@ -675,7 +689,14 @@ function openTopicPicker(meta, anchorBtn) {
       // Prefer an exact-case-insensitive match from the master list
       const match = ALL_TOPICS.find(t => t.toLowerCase() === q.toLowerCase()
         && !current.has(t));
-      addTopic(match || q);
+      if (match) {
+        addTopic(match);
+      } else if (isOwner()) {
+        // Only the owner can create a brand-new topic via Enter.
+        addTopic(q);
+      }
+      // Non-owner with no match: silently ignore — the picker already shows
+      // the "Only DanielVitas can add new topics." note explaining why.
     }
   });
 

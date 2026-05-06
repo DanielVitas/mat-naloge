@@ -47,14 +47,19 @@ a:hover { text-decoration: underline; }
 .topic-remove {
   width: 1.05rem; height: 1.05rem;
   display: inline-flex; align-items: center; justify-content: center;
-  border: 0; background: rgba(0,0,0,0.10); color: #4b5563;
+  border: 0;
+  background: rgba(15, 118, 110, 0.18);
+  color: #0f766e;            /* teal-700, complements the topic chip palette */
   border-radius: 999px;
-  font-size: 0.75rem; line-height: 1;
+  font-size: 0.78rem; line-height: 1;
   padding: 0;
   cursor: pointer;
   font-weight: 700;
 }
-.topic-remove:hover { background: rgba(0,0,0,0.22); color: #111; }
+.topic-remove:hover {
+  background: rgba(15, 118, 110, 0.34);
+  color: #134e4a;            /* teal-900 on hover */
+}
 .topic-add {
   display: inline-flex; align-items: center; justify-content: center;
   min-width: 1.6rem; height: 1.4rem;
