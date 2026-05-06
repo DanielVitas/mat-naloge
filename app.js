@@ -195,6 +195,91 @@ function removeTopicWithChildren(topics, toRemove) {
   });
 }
 
+// ---------- Exam: selection + exam-list state -----------------------------
+// Two browser-local lists, keyed by problem n:
+//   exam-selected: Set<number>   (problems the user has gathered)
+//   exam-current:  number[]      (the actual draft of the exam)
+const SELECTED_KEY = 'exam-selected';
+const EXAM_KEY     = 'exam-current';
+
+function getSelected() {
+  try {
+    const v = JSON.parse(localStorage.getItem(SELECTED_KEY) || '[]');
+    return new Set(v.map(Number));
+  } catch { return new Set(); }
+}
+function setSelected(set) {
+  localStorage.setItem(SELECTED_KEY, JSON.stringify([...set].map(Number)));
+  window.dispatchEvent(new CustomEvent('selection-changed'));
+}
+function isSelected(n) { return getSelected().has(Number(n)); }
+function addSelected(n) { const s = getSelected(); s.add(Number(n)); setSelected(s); }
+function removeSelected(n) { const s = getSelected(); s.delete(Number(n)); setSelected(s); }
+function toggleSelected(n) { isSelected(n) ? removeSelected(n) : addSelected(n); }
+
+function getExam() {
+  try { return JSON.parse(localStorage.getItem(EXAM_KEY) || '[]').map(Number); }
+  catch { return []; }
+}
+function setExam(arr) {
+  localStorage.setItem(EXAM_KEY, JSON.stringify(arr.map(Number)));
+  window.dispatchEvent(new CustomEvent('exam-changed'));
+}
+
+// Top-bar Collection dropdown (folder icon + selected-problem count).
+function initCollectionBar() {
+  const bar = document.getElementById('collection-bar');
+  if (!bar) return;
+  const btn = bar.querySelector('#collection-toggle');
+  const dd  = bar.querySelector('#collection-dropdown');
+  const cnt = bar.querySelector('#collection-count');
+  function refresh() {
+    const sel = [...getSelected()].sort((a,b) => a-b);
+    cnt.textContent = sel.length;
+    dd.innerHTML = '';
+    if (sel.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'collection-empty';
+      empty.textContent = 'Nothing selected yet.';
+      dd.appendChild(empty);
+      return;
+    }
+    for (const n of sel) {
+      const row = document.createElement('div');
+      row.className = 'collection-row';
+      const link = document.createElement('a');
+      link.href = `problem-${String(n).padStart(3,'0')}.html`;
+      link.className = 'collection-link';
+      link.textContent = `${n}.`;
+      row.appendChild(link);
+      const x = document.createElement('button');
+      x.type = 'button';
+      x.className = 'collection-remove';
+      x.textContent = '×';
+      x.title = 'Remove from selection';
+      x.addEventListener('click', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        removeSelected(n);
+      });
+      row.appendChild(x);
+      dd.appendChild(row);
+    }
+  }
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dd.hidden = !dd.hidden;
+  });
+  document.addEventListener('click', (e) => {
+    if (!bar.contains(e.target)) dd.hidden = true;
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') dd.hidden = true;
+  });
+  window.addEventListener('selection-changed', refresh);
+  window.addEventListener('storage', refresh);   // reflect cross-tab edits
+  refresh();
+}
+
 // Drop any topics from localStorage that aren't in the current vocabulary.
 // Runs once on init for every prob-N entry so legacy entries (e.g. an old
 // "Complex numbers" string) disappear without manual intervention.
@@ -1009,6 +1094,7 @@ async function initProblemPage(meta) {
   const state = effectiveState(id);
   initMenuBar();
   initSyncBar();
+  initCollectionBar();
 
   const ta            = $('latex-source');
   const preview       = $('preview');
@@ -1284,6 +1370,7 @@ async function initSearchPage() {
   migrateLocalTopics();
   initMenuBar();
   initSyncBar();
+  initCollectionBar();
   await ensureNameFromToken();
 
   const PROBLEMS = (window.PROBLEMS || []).slice();
@@ -1549,17 +1636,22 @@ async function initSearchPage() {
   const resultsEl = document.getElementById('search-results');
   const countEl   = document.getElementById('result-count');
 
+  // Save the most recent filtered set so "Add all" knows what to add.
+  let lastMatches = [];
   function render() {
     const out = PROBLEMS.filter(matches);
+    lastMatches = out;
     countEl.textContent = `${out.length} of ${PROBLEMS.length} problems`;
     resultsEl.innerHTML = out.map(p => {
-      const ed = effectiveState(p.n);
-      const latex = (ed.latex !== undefined) ? ed.latex : p.latex;
-      return `<a class="search-result" href="problem-${String(p.n).padStart(3,'0')}.html">
+      const sel = isSelected(p.n);
+      return `<div class="search-result">
         <span class="result-num">${p.n}.</span>
         <div class="result-body" data-id="${p.n}" data-tikz="${p.tikz_count || 0}"></div>
-        <span class="result-arrow">→</span>
-      </a>`;
+        <div class="result-actions">
+          <a class="result-edit" href="problem-${String(p.n).padStart(3,'0')}.html">Edit</a>
+          <button type="button" class="result-add ${sel ? 'is-selected' : ''}" data-n="${p.n}">${sel ? 'Remove' : 'Add'}</button>
+        </div>
+      </div>`;
     }).join('');
     // Render the LaTeX previews
     out.forEach(p => {
@@ -1572,7 +1664,62 @@ async function initSearchPage() {
     if (window.MathJax && window.MathJax.typesetPromise) {
       window.MathJax.typesetPromise([resultsEl]).catch(() => {});
     }
+    refreshAddAll();
   }
+
+  function refreshAddAll() {
+    const btn = document.getElementById('add-all-btn');
+    if (!btn) return;
+    const sel = getSelected();
+    const remaining = lastMatches.filter(p => !sel.has(p.n)).length;
+    if (remaining === 0 && lastMatches.length > 0) {
+      btn.textContent = `All ${lastMatches.length} already in selection`;
+      btn.disabled = true;
+    } else {
+      btn.textContent = `+ Add all to selection (${remaining})`;
+      btn.disabled = lastMatches.length === 0;
+    }
+  }
+
+  // Event delegation for Add/Remove buttons.
+  resultsEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.result-add');
+    if (!btn) return;
+    e.preventDefault();
+    const n = Number(btn.dataset.n);
+    toggleSelected(n);
+    // Re-render this single button's state without rebuilding everything.
+    const nowSel = isSelected(n);
+    btn.classList.toggle('is-selected', nowSel);
+    btn.textContent = nowSel ? 'Remove' : 'Add';
+    refreshAddAll();
+  });
+
+  // Add-all button
+  const addAllBtn = document.getElementById('add-all-btn');
+  if (addAllBtn) {
+    addAllBtn.addEventListener('click', () => {
+      const sel = getSelected();
+      lastMatches.forEach(p => sel.add(p.n));
+      setSelected(sel);
+      // Update visible buttons
+      resultsEl.querySelectorAll('.result-add').forEach(b => {
+        b.classList.add('is-selected');
+        b.textContent = 'Remove';
+      });
+      refreshAddAll();
+    });
+  }
+  // Update Add/Remove button text when selection changes anywhere else.
+  window.addEventListener('selection-changed', () => {
+    resultsEl.querySelectorAll('.result-add').forEach(b => {
+      const n = Number(b.dataset.n);
+      const sel = isSelected(n);
+      b.classList.toggle('is-selected', sel);
+      b.textContent = sel ? 'Remove' : 'Add';
+    });
+    refreshAddAll();
+  });
 
   render();
 }
@@ -1580,11 +1727,184 @@ async function initSearchPage() {
 // JS-side level order for sorting.
 const LEVEL_ORDER_JS = { OR: 0, VR: 1 };
 
+// ---------- Exam page -----------------------------------------------------
+async function initExamPage() {
+  await fetchRemoteData();
+  initMenuBar();
+  initSyncBar();
+  initCollectionBar();
+  await ensureNameFromToken();
+
+  const PROBLEMS = (window.PROBLEMS || []).slice();
+  const byN = {};
+  for (const p of PROBLEMS) byN[p.n] = p;
+
+  // Tab switching
+  const tabs = document.querySelectorAll('.exam-tab');
+  const panels = document.querySelectorAll('.exam-panel');
+  function showTab(name) {
+    tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+    panels.forEach(p => { p.hidden = p.dataset.panel !== name; });
+  }
+  tabs.forEach(t => t.addEventListener('click', () => showTab(t.dataset.tab)));
+
+  function renderProblemRow(p, actions) {
+    // actions: array of { label, onClick, kind (optional), title }
+    const row = document.createElement('div');
+    row.className = 'exam-row';
+    const num = document.createElement('span');
+    num.className = 'result-num';
+    num.textContent = p.n + '.';
+    row.appendChild(num);
+    const body = document.createElement('div');
+    body.className = 'result-body';
+    body.innerHTML = (() => {
+      const ed = effectiveState(p.n);
+      const latex = (ed.latex !== undefined) ? ed.latex : p.latex;
+      return latexToHtml(latex, p.n, p.tikz_count || 0);
+    })();
+    row.appendChild(body);
+    const acts = document.createElement('div');
+    acts.className = 'result-actions';
+    for (const a of actions) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'exam-action ' + (a.kind || '');
+      btn.textContent = a.label;
+      if (a.title) btn.title = a.title;
+      btn.addEventListener('click', a.onClick);
+      acts.appendChild(btn);
+    }
+    row.appendChild(acts);
+    return row;
+  }
+
+  function pickRandomFromSelected(excludeSet) {
+    const sel = [...getSelected()].filter(n => !excludeSet.has(n));
+    if (sel.length === 0) return null;
+    return sel[Math.floor(Math.random() * sel.length)];
+  }
+
+  function renderSelected() {
+    const list = document.getElementById('selected-list');
+    const cnt  = document.getElementById('selected-count');
+    list.innerHTML = '';
+    const sel = [...getSelected()].sort((a,b) => a-b);
+    cnt.textContent = sel.length;
+    if (sel.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'exam-empty';
+      empty.textContent = 'No problems selected. Use the Search tab to add some.';
+      list.appendChild(empty);
+    } else {
+      for (const n of sel) {
+        const p = byN[n];
+        if (!p) continue;
+        const exam = new Set(getExam());
+        list.appendChild(renderProblemRow(p, [
+          { label: 'Edit',
+            onClick: () => { window.location.href = `problem-${String(n).padStart(3,'0')}.html`; } },
+          { label: exam.has(n) ? 'In exam' : 'Choose →',
+            kind: exam.has(n) ? 'is-disabled' : 'primary',
+            onClick: () => {
+              const cur = getExam();
+              if (cur.includes(n)) return;
+              cur.push(n);
+              setExam(cur);
+              renderAll();
+            } },
+          { label: 'Remove',
+            kind: 'warn',
+            title: 'Remove from selection',
+            onClick: () => { removeSelected(n); } },
+        ]));
+      }
+    }
+    if (window.MathJax && window.MathJax.typesetPromise) {
+      window.MathJax.typesetPromise([list]).catch(() => {});
+    }
+  }
+
+  function renderExam() {
+    const list = document.getElementById('exam-list');
+    const cnt  = document.getElementById('exam-count');
+    list.innerHTML = '';
+    const exam = getExam();
+    cnt.textContent = exam.length;
+    if (exam.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'exam-empty';
+      empty.textContent = 'Empty. Use "Choose N random" or each problem\\'s Choose button.';
+      list.appendChild(empty);
+    } else {
+      exam.forEach((n, idx) => {
+        const p = byN[n];
+        if (!p) return;
+        list.appendChild(renderProblemRow(p, [
+          { label: 'Edit',
+            onClick: () => { window.location.href = `problem-${String(n).padStart(3,'0')}.html`; } },
+          { label: 'Reroll',
+            kind: 'primary',
+            onClick: () => {
+              const cur = getExam();
+              const exclude = new Set(cur.filter((_, i) => i !== idx));
+              const replacement = pickRandomFromSelected(exclude);
+              if (replacement === null) return;
+              cur[idx] = replacement;
+              setExam(cur);
+              renderAll();
+            } },
+          { label: 'Remove',
+            kind: 'warn',
+            title: 'Remove from exam',
+            onClick: () => {
+              const cur = getExam().filter((_, i) => i !== idx);
+              setExam(cur);
+              renderAll();
+            } },
+        ]));
+      });
+    }
+    if (window.MathJax && window.MathJax.typesetPromise) {
+      window.MathJax.typesetPromise([list]).catch(() => {});
+    }
+  }
+
+  function renderAll() {
+    renderSelected();
+    renderExam();
+  }
+  window.addEventListener('selection-changed', renderAll);
+  window.addEventListener('exam-changed', renderAll);
+
+  // "Choose N random problems"
+  document.getElementById('random-btn').addEventListener('click', () => {
+    const n = Math.max(1, parseInt(document.getElementById('random-n').value, 10) || 1);
+    const sel = [...getSelected()];
+    if (sel.length === 0) { alert('No selected problems to choose from.'); return; }
+    // Fisher-Yates shuffle, then take first n
+    for (let i = sel.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [sel[i], sel[j]] = [sel[j], sel[i]];
+    }
+    setExam(sel.slice(0, Math.min(n, sel.length)));
+    renderAll();
+  });
+
+  // "Create an exam" → switch to Finishing tab
+  document.getElementById('create-exam-btn').addEventListener('click', () => {
+    showTab('finishing');
+  });
+
+  renderAll();
+}
+
 async function initIndexPage() {
   await fetchRemoteData();
   migrateLocalTopics();
   initMenuBar();
   initSyncBar();
+  initCollectionBar();
   handleSectionHash();
   window.addEventListener('hashchange', handleSectionHash);
   // Make sure we have the latest reviewer name from /user before colouring.

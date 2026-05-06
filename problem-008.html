@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Naloga 8 — Matura 2025</title>
-<link rel="stylesheet" href="styles.css?v=97576622">
+<link rel="stylesheet" href="styles.css?v=fac8b55a">
 <script>
   window.MathJax = {
     tex: {
@@ -41,10 +41,24 @@
     <div class="menu-tree">
       <a class="menu-link l1" href="search.html">Search</a>
     </div>
+    <div class="menu-h menu-h-secondary">Exam</div>
+    <div class="menu-tree">
+      <a class="menu-link l1" href="exam.html">Exam</a>
+    </div>
   </div>
 </div>
 
     <span style="flex:1"></span>
+    
+<div class="collection-bar" id="collection-bar">
+  <button id="collection-toggle" class="collection-btn" type="button" aria-label="Collection">
+    <span class="collection-icon">📁</span>
+    <span class="collection-label">Collection</span>
+    <span class="collection-count" id="collection-count">0</span>
+  </button>
+  <div class="collection-dropdown" id="collection-dropdown" hidden></div>
+</div>
+
     
 <div class="gh-sync" id="gh-sync">
   <!-- Signed-out state -->
@@ -119,7 +133,7 @@
       <div class="instance-block" data-instance="0">  <div class="crop-view" id="crop-view-0">    <div class="pane-header">      <h3>OR · Izpitna pola 1 · Spomladanski rok</h3>      <span style="flex:1"></span>      <button class="edit-crop-btn" data-instance="0">✎ Edit</button>      <button class="reset-crop-btn" data-instance="0">Reset</button>    </div>    <canvas class="crop-display" id="crop-canvas-0"></canvas>  </div>  <div class="crop-editor" id="crop-editor-0" hidden>    <div class="pane-header">      <h3>Select an area</h3>      <span style="flex:1"></span>      <button class="save-crop-btn primary" data-instance="0">Save</button>      <button class="cancel-crop-btn" data-instance="0">Cancel</button>    </div>    <div class="canvas-wrap">      <canvas id="full-page-canvas-0"></canvas>      <div id="selection-box-0" class="selection-box"></div>    </div>  </div></div>
     </div>
   </div>
-<script src="app.js?v=fdbfee8c"></script>
+<script src="app.js?v=a7fc1e00"></script>
 <script>
   const PROBLEM = {"n": 8, "latex": "Izračunajte ploščino osenčenega lika na sliki.\n\n\\begin{center}\n\\begin{tikzpicture}[scale=0.9,>=latex]\n  \\draw[gray!40] (0,0) grid (5,4);\n  \\draw[->] (0,0) -- (5.4,0);\n  \\draw[->] (0,0) -- (0,4.4);\n  \\foreach \\x in {0,1,2,3,4,5} \\node[below] at (\\x,0) {\\x};\n  \\foreach \\y in {1,2,3,4} \\node[left] at (0,\\y) {\\y};\n  \\filldraw[fill=gray!40, draw=black, thick]\n    (0,3) -- (4,4) -- (5,2) -- (2,0) -- cycle;\n\\end{tikzpicture}\n\\end{center}", "topics": ["4.7 Liki", "4.7.2 Večkotnik", "4.9 Koordinatni sistem"], "tikz_count": 1, "instances": [{"paper_id": "2025_Spomladanski_Pola1_OR", "paper_prob_n": 8, "season": "Spomladanski rok", "pola": "Izpitna pola 1", "level": "OR", "section": "A kratka naloga", "points": "2 točki", "page": 12, "page_image": "pages/2025_Spomladanski_Pola1_OR_page-12.png", "page_size": [1654, 2339], "bbox_default": [157, 326, 1514, 1703]}]};
   initProblemPage(PROBLEM);

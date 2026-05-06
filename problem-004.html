@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Naloga 4 — Matura 2025</title>
-<link rel="stylesheet" href="styles.css?v=97576622">
+<link rel="stylesheet" href="styles.css?v=fac8b55a">
 <script>
   window.MathJax = {
     tex: {
@@ -41,10 +41,24 @@
     <div class="menu-tree">
       <a class="menu-link l1" href="search.html">Search</a>
     </div>
+    <div class="menu-h menu-h-secondary">Exam</div>
+    <div class="menu-tree">
+      <a class="menu-link l1" href="exam.html">Exam</a>
+    </div>
   </div>
 </div>
 
     <span style="flex:1"></span>
+    
+<div class="collection-bar" id="collection-bar">
+  <button id="collection-toggle" class="collection-btn" type="button" aria-label="Collection">
+    <span class="collection-icon">📁</span>
+    <span class="collection-label">Collection</span>
+    <span class="collection-count" id="collection-count">0</span>
+  </button>
+  <div class="collection-dropdown" id="collection-dropdown" hidden></div>
+</div>
+
     
 <div class="gh-sync" id="gh-sync">
   <!-- Signed-out state -->
@@ -119,7 +133,7 @@
       <div class="instance-block" data-instance="0">  <div class="crop-view" id="crop-view-0">    <div class="pane-header">      <h3>OR · Izpitna pola 1 · Spomladanski rok</h3>      <span style="flex:1"></span>      <button class="edit-crop-btn" data-instance="0">✎ Edit</button>      <button class="reset-crop-btn" data-instance="0">Reset</button>    </div>    <canvas class="crop-display" id="crop-canvas-0"></canvas>  </div>  <div class="crop-editor" id="crop-editor-0" hidden>    <div class="pane-header">      <h3>Select an area</h3>      <span style="flex:1"></span>      <button class="save-crop-btn primary" data-instance="0">Save</button>      <button class="cancel-crop-btn" data-instance="0">Cancel</button>    </div>    <div class="canvas-wrap">      <canvas id="full-page-canvas-0"></canvas>      <div id="selection-box-0" class="selection-box"></div>    </div>  </div></div>
     </div>
   </div>
-<script src="app.js?v=fdbfee8c"></script>
+<script src="app.js?v=a7fc1e00"></script>
 <script>
   const PROBLEM = {"n": 4, "latex": "Izračunajte abscisi presečišč premice $y=2x$ in krožnice $x^{2}+y^{2}=5$.", "topics": ["4.9 Koordinatni sistem", "4.10 Funkcije", "4.10.1 Linearna funkcija", "4.11 Stožnice"], "tikz_count": 0, "instances": [{"paper_id": "2025_Spomladanski_Pola1_OR", "paper_prob_n": 4, "season": "Spomladanski rok", "pola": "Izpitna pola 1", "level": "OR", "section": "A kratka naloga", "points": "3 točke", "page": 10, "page_image": "pages/2025_Spomladanski_Pola1_OR_page-10.png", "page_size": [1654, 2339], "bbox_default": [157, 949, 1514, 1414]}]};
   initProblemPage(PROBLEM);
