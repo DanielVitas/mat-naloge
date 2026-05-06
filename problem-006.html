@@ -21,7 +21,6 @@
 <body>
 <div class="container">
   <div class="top-bar">
-    <div class="back-link"><a href="problem-005.html">← previous</a> · <a href="index.html">all problems</a> · <a href="problem-007.html">next →</a></div>
     <span style="flex:1"></span>
     
 <div class="gh-sync" id="gh-sync">
@@ -39,11 +38,10 @@
   </div>
   <!-- Signed-in state -->
   <div class="gh-state gh-signed-in" id="gh-signed-in" hidden>
-    <button id="gh-push" class="primary">⬆ Push</button>
+    <button id="gh-push" class="primary" disabled>⬆ Push</button>
     <button id="gh-menu-btn" class="dropdown-toggle" aria-label="Account menu">▾</button>
     <div class="gh-dropdown gh-user-dropdown" id="gh-user-dropdown" hidden>
       <div class="gh-row">Signed in as <strong id="gh-username">…</strong></div>
-      <div class="gh-row"><span class="pending none" id="gh-pending">no pending edits</span></div>
       <hr>
       <button id="gh-edit-token" class="dropdown-item">Edit token</button>
       <button id="gh-clear-token" class="dropdown-item">Sign out</button>
@@ -53,6 +51,7 @@
 
   </div>
   <h1>Naloga 6</h1>
+  <nav class="problem-nav"><a class="nav-arrow" href="problem-005.html" aria-label="previous problem">←</a><a class="nav-menu" href="index.html">menu</a><a class="nav-arrow" href="problem-007.html" aria-label="next problem">→</a></nav>
   <div class="tags"><span class="tag year">2025</span><span class="tag season">Spomladanski rok</span><span class="tag pola">Izpitna pola 1</span><span class="tag level">OR</span><span class="tag section">A</span><span class="tag points">3 točke</span></div>
 
   <div class="status-bar">

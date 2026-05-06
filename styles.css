@@ -160,10 +160,38 @@ canvas.crop-display {
   margin-top: 0.7rem; display: flex; gap: 0.5rem; flex-wrap: wrap;
 }
 
-/* Top bar that holds the back-link on the left and the GitHub controls on the right */
+/* Top bar that holds the GitHub controls on the right */
 .top-bar {
   display: flex; align-items: center; gap: 0.75rem;
   margin-bottom: 0.5rem; flex-wrap: wrap;
+  min-height: 2.2rem;
+}
+
+/* Problem navigation under the H1 — just arrows + menu */
+.problem-nav {
+  display: flex; gap: 0.4rem; align-items: center;
+  margin: 0.3rem 0 0.9rem;
+}
+.problem-nav .nav-arrow,
+.problem-nav .nav-menu {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 2.1rem;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.95rem;
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  color: var(--fg);
+  text-decoration: none;
+  background: white;
+}
+.problem-nav .nav-arrow:hover,
+.problem-nav .nav-menu:hover {
+  border-color: var(--accent); color: var(--accent);
+  text-decoration: none;
+}
+.problem-nav .nav-arrow.disabled {
+  color: #ccc; background: #f7f7f7;
+  cursor: default;
 }
 
 /* GitHub sync — compact button + dropdown in the top-right */
@@ -171,8 +199,8 @@ canvas.crop-display {
 .gh-sync .gh-state { position: relative; display: inline-flex; gap: 0.3rem; }
 .gh-sync .gh-state[hidden] { display: none !important; }
 .gh-sync .dropdown-toggle {
-  width: 2.1rem; padding: 0.35rem 0;
-  font-size: 0.85rem;
+  width: 2.3rem; padding: 0.1rem 0;
+  font-size: 1.5rem; line-height: 1;
 }
 .gh-sync .gh-dropdown {
   position: absolute; top: calc(100% + 6px); right: 0;

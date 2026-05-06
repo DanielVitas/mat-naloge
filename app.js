@@ -189,7 +189,6 @@ function initSyncBar() {
   const menuBtn         = bar.querySelector('#gh-menu-btn');
   const userDropdown    = bar.querySelector('#gh-user-dropdown');
   const usernameSpan    = bar.querySelector('#gh-username');
-  const pendingTag      = bar.querySelector('#gh-pending');
   const editTokenBtn    = bar.querySelector('#gh-edit-token');
   const clearBtn        = bar.querySelector('#gh-clear-token');
 
@@ -206,8 +205,10 @@ function initSyncBar() {
       usernameSpan.textContent = name;
     }
     const n = Object.keys(pendingChanges()).length;
-    pendingTag.textContent = n === 0 ? 'no pending edits' : `${n} pending edit${n === 1 ? '' : 's'}`;
-    pendingTag.className   = 'pending ' + (n === 0 ? 'none' : '');
+    pushBtn.disabled = !has || n === 0;
+    pushBtn.textContent = n === 0
+      ? '⬆ Push'
+      : `⬆ Push (${n} edit${n === 1 ? '' : 's'})`;
   }
 
   // ----- Sign in flow -----
@@ -272,10 +273,7 @@ function initSyncBar() {
     pushBtn.disabled = true;
     pushBtn.textContent = 'Pushing…';
     const ok = await pushChanges();
-    if (!ok) {
-      pushBtn.disabled = false;
-      pushBtn.textContent = '⬆ Push';
-    }
+    if (!ok) refresh();
   });
 
   // Click outside the bar closes any dropdown
