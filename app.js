@@ -714,23 +714,24 @@ function openTopicPicker(meta, anchorBtn) {
 
 // On the index page, rebuild each card's topic chips from effective state
 // (so edits made on a problem page are reflected after navigation/push).
+// Also show/hide the horizontal divider between meta tags and topics.
 function applyIndexTopics() {
   document.querySelectorAll('.problem-card').forEach(card => {
     const id = card.dataset.id;
     let defaults = [];
     try { defaults = JSON.parse(card.dataset.topics || '[]'); } catch {}
     const eff = effectiveTopics(id, defaults);
-    const tagsEl = card.querySelector('.tags');
-    if (!tagsEl) return;
-    // Remove existing topic chips (they were rendered server-side after
-    // the regular tag chips). Topic chips are <span class="tag topic">.
-    tagsEl.querySelectorAll('.tag.topic').forEach(el => el.remove());
+    const topicsEl = card.querySelector('.tags-topics');
+    const divider  = card.querySelector('.card-divider');
+    if (!topicsEl) return;
+    topicsEl.innerHTML = '';
     for (const t of eff) {
       const span = document.createElement('span');
       span.className = 'tag topic';
       span.textContent = t;
-      tagsEl.appendChild(span);
+      topicsEl.appendChild(span);
     }
+    if (divider) divider.hidden = eff.length === 0;
   });
 }
 
