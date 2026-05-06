@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Naloga 10 — Matura 2025</title>
-<link rel="stylesheet" href="styles.css?v=09bfc447">
+<link rel="stylesheet" href="styles.css?v=b49df958">
 <script>
   window.MathJax = {
     tex: {
@@ -54,17 +54,18 @@
     <h1>10.</h1>
     <div class="tags"><span class="tag year">2025</span><span class="tag season">Spomladanski rok</span><span class="tag pola">Izpitna pola 1</span><span class="tag level">OR</span><span class="tag section">B</span><span class="tag points">7 točk</span></div>
   </div>
-  <nav class="problem-nav"><a class="nav-arrow" href="problem-009.html" aria-label="previous problem">←</a><a class="nav-menu" href="index.html">Menu</a><a class="nav-arrow" href="problem-011.html" aria-label="next problem">→</a></nav>
-
-  <div class="status-bar">
-    <button id="status-badge" class="status-badge ok"
-            title="Click to toggle">✓ up to date</button>
-    <label class="approve-label">
-      <input type="checkbox" id="approve-cb"> Approve
-    </label>
-    <span class="approval-chip" id="approval-chip" hidden></span>
-    <span style="flex:1"></span>
-    <button id="export-changes">⬇ Export this problem (JSON)</button>
+  <div class="action-row">
+    <nav class="problem-nav"><a class="nav-arrow" href="problem-009.html" aria-label="previous problem">←</a><a class="nav-menu" href="index.html">Menu</a><a class="nav-arrow" href="problem-011.html" aria-label="next problem">→</a></nav>
+    <div class="status-bar">
+      <button id="status-badge" class="status-badge ok"
+              title="Click to toggle">✓ up to date</button>
+      <label class="approve-label">
+        <input type="checkbox" id="approve-cb"> Approve
+      </label>
+      <span class="approval-chip" id="approval-chip" hidden></span>
+      <span style="flex:1"></span>
+      <button id="export-changes">⬇ Export (JSON)</button>
+    </div>
   </div>
 
   <div class="problem-body">
@@ -75,7 +76,6 @@
       <textarea id="latex-source" spellcheck="false"></textarea>
       <h4 style="margin-bottom:0.3rem">Preview</h4>
       <div class="preview-box" id="preview"></div>
-      <p class="hint">Edits auto-save in your browser. Use Push/Export to upload/download what you’ve changed.</p>
     </div>
     <div class="pane right-pane">
       <div class="crop-view" id="crop-view">

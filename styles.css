@@ -88,10 +88,19 @@ a:hover { text-decoration: underline; }
 .problem-card.status-approved-me .card-num { color: #064e3b; }
 
 .status-bar {
-  display: flex; align-items: center; gap: 0.75rem; margin: 1rem 0;
-  padding: 0.7rem 1rem; background: var(--card-bg);
-  border: 1px solid var(--card-border); border-radius: 8px;
+  display: flex; align-items: center; gap: 0.75rem; margin: 0;
+  padding: 0.5rem 0.9rem; background: var(--card-bg);
+  border: 1px solid var(--card-border); border-radius: 6px;
 }
+
+/* nav + status-bar share one horizontal row */
+.action-row {
+  display: flex; align-items: stretch; gap: 0.7rem;
+  flex-wrap: wrap;
+  margin: 0.5rem 0 1rem;
+}
+.action-row .problem-nav { margin: 0; }
+.action-row .status-bar  { flex: 1; min-width: 0; }
 .status-badge { font-size: 0.85rem; padding: 0.2rem 0.7rem; border-radius: 999px; }
 .status-badge.ok       { background: var(--ok-bg);   color: var(--ok); }
 .status-badge.outdated { background: var(--warn-bg); color: var(--warn); }
