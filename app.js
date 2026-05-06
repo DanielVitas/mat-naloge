@@ -1834,7 +1834,7 @@ async function initExamPage() {
     if (exam.length === 0) {
       const empty = document.createElement('div');
       empty.className = 'exam-empty';
-      empty.textContent = 'Empty. Use "Choose N random" or each problem\\'s Choose button.';
+      empty.textContent = 'Empty. Use Choose N random or a problem’s Choose button.';
       list.appendChild(empty);
     } else {
       exam.forEach((n, idx) => {
