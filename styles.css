@@ -192,6 +192,49 @@ a:hover { text-decoration: underline; }
 }
 .topic-picker-custom { color: var(--accent); }
 
+/* Grouped layout inside the topic picker: each row is a main + its
+   still-available subs, mimicking the search filter & problem-page chips. */
+.topic-picker .picker-group {
+  display: flex; align-items: center; flex-wrap: wrap;
+  gap: 0.3rem;
+  padding: 0.22rem 0.45rem;
+  border-radius: 6px;
+  border: 1px solid var(--tag-topic-main-border);
+  background: var(--tag-topic-main-bg);
+  color: var(--tag-topic-main-fg);
+  font-size: 0.84rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+.topic-picker .picker-main {
+  background: transparent; border: 0; padding: 0;
+  font: inherit; font-weight: inherit; color: inherit;
+  cursor: pointer; white-space: nowrap;
+}
+.topic-picker .picker-main:hover { text-decoration: underline; }
+.topic-picker .picker-main-static {
+  /* Already-added main shown as a non-clickable header. */
+  opacity: 0.6;
+  white-space: nowrap;
+}
+.topic-picker .picker-subs {
+  display: inline-flex; align-items: center; flex-wrap: wrap;
+  gap: 0.3rem;
+}
+.topic-picker .picker-sub {
+  display: inline-block;
+  padding: 0.06rem 0.55rem;
+  border-radius: 999px;
+  background: #f0f9ff;
+  color: var(--tag-topic-sub-fg);
+  border: 1px solid var(--tag-topic-sub-border);
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.topic-picker .picker-sub:hover { filter: brightness(0.96); }
+
 /* Collapsible source-collection sections on the index page */
 .collection {
   margin-top: 1.2rem;

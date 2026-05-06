@@ -30,6 +30,8 @@ const TOPIC_PARENT = {
   "4.3.2 Racionalna števila":       "4.3 Številske množice",
   "4.3.3 Realna števila":           "4.3 Številske množice",
   "4.3.4 Kompleksna števila":       "4.3 Številske množice",
+  "4.8.1 Ravninski vektorji":       "4.8 Vektorji v ravnini in prostoru",
+  "4.8.2 Prostorski vektorji":      "4.8 Vektorji v ravnini in prostoru",
   "4.10.1 Linearna funkcija":       "4.10 Funkcije",
   "4.10.2 Potenčna funkcija":       "4.10 Funkcije",
   "4.10.3 Korenska funkcija":       "4.10 Funkcije",
@@ -46,21 +48,31 @@ const ALL_TOPICS = [...TOPIC_MAIN, ...Object.keys(TOPIC_PARENT)];
 function isMainTopic(t) { return TOPIC_MAIN_SET.has(t); }
 function topicKindClass(t) { return isMainTopic(t) ? 'topic-main' : 'topic-sub'; }
 
-// Strip "4.x." or "4.x.y." numeric prefix; rename 'Številske množice' →
-// 'Števila'; trim trailing " funkcija/e" or " števila" so e.g.
+// Strip "4.x." or "4.x.y." numeric prefix; apply override map; trim trailing
+// " funkcija/e", " števila", or " vektorji" — so e.g.
 // "4.10.5 Eksponentna funkcija" → "Eksponentna",
 // "4.3.1 Naravna in cela števila" → "Naravna in cela",
-// "4.3 Številske množice" → "Števila".
+// "4.3 Številske množice" → "Števila",
+// "4.8 Vektorji v ravnini in prostoru" → "Vektorji",
+// "4.8.1 Ravninski vektorji" → "Ravninski",
+// "4.9 Pravokotni koordinatni sistem v ravnini" → "Koordinatni sistem".
 const _PREFIX_RE = /^4\.\d+(\.\d+)?\s+/;
 const _FUNKCIJA_SUFFIX_RE = /\s+funkcij[ae]$/i;
 const _STEVILA_SUFFIX_RE  = /\s+števila$/i;
-const _TOPIC_NAME_OVERRIDE = { "Številske množice": "Števila" };
+const _VEKTORJI_SUFFIX_RE = /\s+vektorji$/i;
+const _TOPIC_NAME_OVERRIDE = {
+  "Številske množice": "Števila",
+  "Pravokotni koordinatni sistem v ravnini": "Koordinatni sistem",
+  "Vektorji v ravnini in prostoru": "Vektorji",
+};
 function displayTopicName(t) {
   let s = (t || '').replace(_PREFIX_RE, '');
   if (Object.prototype.hasOwnProperty.call(_TOPIC_NAME_OVERRIDE, s)) {
     return _TOPIC_NAME_OVERRIDE[s];
   }
-  return s.replace(_FUNKCIJA_SUFFIX_RE, '').replace(_STEVILA_SUFFIX_RE, '');
+  return s.replace(_FUNKCIJA_SUFFIX_RE, '')
+          .replace(_STEVILA_SUFFIX_RE, '')
+          .replace(_VEKTORJI_SUFFIX_RE, '');
 }
 
 // Group topics so subs sit under their parent main: returns
@@ -163,6 +175,25 @@ function removeTopicWithChildren(topics, toRemove) {
     if (TOPIC_PARENT[t] === toRemove) return false;
     return true;
   });
+}
+
+// Drop any topics from localStorage that aren't in the current vocabulary.
+// Runs once on init for every prob-N entry so legacy entries (e.g. an old
+// "Complex numbers" string) disappear without manual intervention.
+function migrateLocalTopics() {
+  const known = new Set(ALL_TOPICS);
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (!k || !k.startsWith('prob-')) continue;
+    let s;
+    try { s = JSON.parse(localStorage.getItem(k)); } catch { continue; }
+    if (!s || !Array.isArray(s.topics)) continue;
+    const cleaned = s.topics.filter(t => known.has(t));
+    if (cleaned.length === s.topics.length) continue;   // already clean
+    if (cleaned.length === 0) delete s.topics;
+    else                      s.topics = cleaned;
+    localStorage.setItem(k, JSON.stringify(s));
+  }
 }
 
 const GH = {
@@ -771,31 +802,71 @@ function openTopicPicker(meta, anchorBtn) {
   function renderList(filter) {
     list.innerHTML = '';
     const f = filter.toLowerCase();
-    const available = sortTopics(ALL_TOPICS.filter(t => !current.has(t)
-      && (t.toLowerCase().includes(f)
-          || displayTopicName(t).toLowerCase().includes(f))));
-    if (available.length === 0) {
+    function matches(t) {
+      return t.toLowerCase().includes(f) ||
+             displayTopicName(t).toLowerCase().includes(f);
+    }
+    let any = false;
+    // Build groups: every main + its subs (only those not yet selected).
+    for (const main of TOPIC_MAIN) {
+      const subs = Object.keys(TOPIC_PARENT)
+                         .filter(s => TOPIC_PARENT[s] === main);
+      const mainOpen = !current.has(main) && matches(main);
+      const subsOpen = subs.filter(s => !current.has(s) && matches(s));
+      // Skip if both the main is already chosen and all matching subs are.
+      if (!mainOpen && subsOpen.length === 0) continue;
+      any = true;
+      const div = document.createElement('div');
+      div.className = 'picker-group';
+      // The main label: clickable when not yet picked, otherwise a static
+      // header (visually muted) so the user knows the group context.
+      if (mainOpen) {
+        const mb = document.createElement('button');
+        mb.type = 'button';
+        mb.className = 'picker-main';
+        mb.dataset.topic = main;
+        mb.textContent = displayTopicName(main)
+                       + (subsOpen.length > 0 ? ':' : '');
+        mb.addEventListener('click', (e) => {
+          e.preventDefault(); e.stopPropagation();
+          addTopic(main);
+        });
+        div.appendChild(mb);
+      } else {
+        const hdr = document.createElement('span');
+        hdr.className = 'picker-main-static';
+        hdr.textContent = displayTopicName(main)
+                        + (subsOpen.length > 0 ? ':' : '');
+        div.appendChild(hdr);
+      }
+      // Sub pills (only ones still unselected and matching the filter).
+      if (subsOpen.length > 0) {
+        const wrap = document.createElement('span');
+        wrap.className = 'picker-subs';
+        for (const s of subsOpen) {
+          const sb = document.createElement('button');
+          sb.type = 'button';
+          sb.className = 'picker-sub';
+          sb.dataset.topic = s;
+          sb.textContent = displayTopicName(s);
+          sb.addEventListener('click', (e) => {
+            e.preventDefault(); e.stopPropagation();
+            addTopic(s);
+          });
+          wrap.appendChild(sb);
+        }
+        div.appendChild(wrap);
+      }
+      list.appendChild(div);
+    }
+    if (!any) {
       const empty = document.createElement('div');
       empty.className = 'topic-picker-empty';
       empty.textContent = 'No matches.';
       list.appendChild(empty);
-    } else {
-      for (const t of available) {
-        const btn = document.createElement('button');
-        btn.className = 'topic-picker-item ' + topicKindClass(t);
-        btn.type = 'button';
-        btn.textContent = displayTopicName(t);
-        btn.dataset.topic = t;
-        btn.addEventListener('click', (e) => {
-          e.preventDefault(); e.stopPropagation();
-          addTopic(t);
-        });
-        list.appendChild(btn);
-      }
     }
-    // If search has a non-empty value that isn't already in the list,
-    // offer to add it as a custom topic — but ONLY for the repo owner.
-    // Non-owners just see no extra entry.
+    // If the search has a non-empty value not in the master list, offer to
+    // add it as a custom topic — but ONLY for the repo owner.
     const query = filter.trim();
     const isCustom = query && !current.has(query) &&
         !ALL_TOPICS.some(t => t.toLowerCase() === query.toLowerCase());
@@ -911,6 +982,7 @@ function drawCropFromImage(canvas, img, bbox, [imgW, imgH]) {
 
 async function initProblemPage(meta) {
   await fetchRemoteData();
+  migrateLocalTopics();
   const id    = meta.n;
   const state = effectiveState(id);
   initMenuBar();
@@ -1187,6 +1259,7 @@ async function initProblemPage(meta) {
 // input triggers re-render — there's no submit button.
 async function initSearchPage() {
   await fetchRemoteData();
+  migrateLocalTopics();
   initMenuBar();
   initSyncBar();
   await ensureNameFromToken();
@@ -1487,6 +1560,7 @@ const LEVEL_ORDER_JS = { OR: 0, VR: 1 };
 
 async function initIndexPage() {
   await fetchRemoteData();
+  migrateLocalTopics();
   initMenuBar();
   initSyncBar();
   handleSectionHash();
