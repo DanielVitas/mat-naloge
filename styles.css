@@ -160,35 +160,78 @@ canvas.crop-display {
   margin-top: 0.7rem; display: flex; gap: 0.5rem; flex-wrap: wrap;
 }
 
-/* GitHub sync bar */
-.gh-sync {
-  background: var(--card-bg);
+/* Top bar that holds the back-link on the left and the GitHub controls on the right */
+.top-bar {
+  display: flex; align-items: center; gap: 0.75rem;
+  margin-bottom: 0.5rem; flex-wrap: wrap;
+}
+
+/* GitHub sync — compact button + dropdown in the top-right */
+.gh-sync { position: relative; display: inline-flex; gap: 0.3rem; }
+.gh-sync .gh-state { position: relative; display: inline-flex; gap: 0.3rem; }
+.gh-sync .gh-state[hidden] { display: none !important; }
+.gh-sync .dropdown-toggle {
+  width: 2.1rem; padding: 0.35rem 0;
+  font-size: 0.85rem;
+}
+.gh-sync .gh-dropdown {
+  position: absolute; top: calc(100% + 6px); right: 0;
+  min-width: 240px;
+  background: white;
   border: 1px solid var(--card-border);
   border-radius: 8px;
-  padding: 0.7rem 1rem;
-  margin: 1rem 0;
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  flex-wrap: wrap;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.10);
+  padding: 0.6rem;
+  z-index: 100;
 }
-.gh-sync .label { font-size: 0.85rem; color: var(--muted); }
+.gh-sync .gh-dropdown[hidden] { display: none; }
+.gh-sync .gh-row {
+  font-size: 0.85rem; padding: 0.25rem 0.4rem;
+}
+.gh-sync .gh-hint {
+  font-size: 0.78rem; color: var(--muted);
+  margin: 0 0 0.5rem 0;
+}
+.gh-sync .gh-hint code {
+  background: #f3f4f6; padding: 0 0.3em; border-radius: 3px;
+}
+.gh-sync input[type=password] {
+  font: inherit; font-size: 0.85rem;
+  width: 100%;
+  padding: 0.35rem 0.55rem;
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+}
+.gh-sync .gh-actions {
+  display: flex; gap: 0.4rem; margin-top: 0.5rem;
+}
 .gh-sync .pending {
   background: var(--warn-bg); color: var(--warn);
   font-size: 0.75rem; padding: 0.15rem 0.55rem; border-radius: 999px;
 }
 .gh-sync .pending.none { background: var(--ok-bg); color: var(--ok); }
-.gh-sync input[type=password],
-.gh-sync input[type=text] {
-  font: inherit; font-size: 0.85rem;
-  padding: 0.3rem 0.55rem;
-  border: 1px solid var(--card-border);
-  border-radius: 6px;
-  min-width: 0; flex: 1;
+.gh-sync hr {
+  border: 0; border-top: 1px solid var(--card-border);
+  margin: 0.4rem 0;
 }
-.gh-sync .gh-token-row {
-  display: flex; gap: 0.5rem; flex-wrap: wrap;
-  width: 100%;
+.gh-sync .dropdown-item {
+  display: block; width: 100%;
+  text-align: left;
+  padding: 0.35rem 0.55rem;
+  background: transparent; border: 0;
+  font-size: 0.88rem;
+  border-radius: 4px;
+  cursor: pointer;
 }
-.gh-sync .gh-token-row.collapsed { display: none; }
-.gh-sync .gh-status-row { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; flex: 1; }
+.gh-sync .dropdown-item:hover { background: #f3f4f6; color: var(--accent); }
+
+/* The status badge is now a clickable toggle */
+button.status-badge {
+  cursor: pointer;
+  border: 0;
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+}
+button.status-badge:hover { filter: brightness(0.97); }

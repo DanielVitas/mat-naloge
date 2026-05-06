@@ -153,79 +153,144 @@ async function pushChanges() {
   return true;
 }
 
+// Validate a token by fetching /user; returns the GitHub login on success.
+async function fetchGithubLogin(token) {
+  try {
+    const r = await fetch('https://api.github.com/user', {
+      headers: { 'Accept': 'application/vnd.github+json',
+                 'Authorization': `Bearer ${token}` },
+    });
+    if (!r.ok) return null;
+    const j = await r.json();
+    return j.login || null;
+  } catch { return null; }
+}
+
+// If we have a token but no name yet, fetch it asynchronously.
+async function ensureNameFromToken() {
+  if (getName() || !getToken()) return;
+  const login = await fetchGithubLogin(getToken());
+  if (login) setName(login);
+}
+
 // Wire up the GitHub-sync UI block (shared between index and problem pages).
 function initSyncBar() {
   const bar = document.getElementById('gh-sync');
   if (!bar) return;
-  const tokenInput     = bar.querySelector('#gh-token-input');
-  const tokenNameInput = bar.querySelector('#gh-token-name-input');
-  const tokenRow       = bar.querySelector('.gh-token-row');
-  const pendingTag     = bar.querySelector('#gh-pending');
-  const tokenStatus    = bar.querySelector('#gh-token-status');
-  const nameStatus     = bar.querySelector('#gh-name-status');
-  const setBtn         = bar.querySelector('#gh-set-token');
-  const clearBtn       = bar.querySelector('#gh-clear-token');
-  const pushBtn        = bar.querySelector('#gh-push');
-  const editTokenBtn   = bar.querySelector('#gh-edit-token');
 
+  const signedOut       = bar.querySelector('#gh-signed-out');
+  const signedIn        = bar.querySelector('#gh-signed-in');
+  const signinBtn       = bar.querySelector('#gh-signin-btn');
+  const signinDropdown  = bar.querySelector('#gh-signin-dropdown');
+  const tokenInput      = bar.querySelector('#gh-token-input');
+  const setBtn          = bar.querySelector('#gh-set-token');
+  const cancelSigninBtn = bar.querySelector('#gh-cancel-signin');
+  const pushBtn         = bar.querySelector('#gh-push');
+  const menuBtn         = bar.querySelector('#gh-menu-btn');
+  const userDropdown    = bar.querySelector('#gh-user-dropdown');
+  const usernameSpan    = bar.querySelector('#gh-username');
+  const pendingTag      = bar.querySelector('#gh-pending');
+  const editTokenBtn    = bar.querySelector('#gh-edit-token');
+  const clearBtn        = bar.querySelector('#gh-clear-token');
+
+  function closeDropdowns() {
+    signinDropdown.hidden = true;
+    userDropdown.hidden = true;
+  }
   function refresh() {
     const has = !!getToken();
-    tokenStatus.textContent = has ? 'token set' : 'no token';
-    tokenStatus.className   = 'pending ' + (has ? 'none' : '');
-
-    const name = getName();
-    if (has && name) {
-      nameStatus.hidden = false;
-      nameStatus.textContent = `approving as ${name}`;
-      nameStatus.className   = 'pending none';
-    } else {
-      nameStatus.hidden = true;
+    signedOut.hidden = has;
+    signedIn.hidden  = !has;
+    if (has) {
+      const name = getName() || '…';
+      usernameSpan.textContent = name;
     }
-
-    if (has) tokenRow.classList.add('collapsed'); else tokenRow.classList.remove('collapsed');
-    pushBtn.disabled = !has;
     const n = Object.keys(pendingChanges()).length;
-    pendingTag.textContent = n === 0 ? 'no pending edits' : `${n} pending`;
+    pendingTag.textContent = n === 0 ? 'no pending edits' : `${n} pending edit${n === 1 ? '' : 's'}`;
     pendingTag.className   = 'pending ' + (n === 0 ? 'none' : '');
   }
 
-  setBtn.addEventListener('click', () => {
-    const v = tokenInput.value.trim();
-    const tn = tokenNameInput.value.trim();
-    if (!v) { alert('Paste your token in the password field.'); return; }
-    if (!tn) { alert('Enter the token name (e.g. mat-naloge-john) so the approver name can be derived.'); return; }
-    setToken(v);
-    setName(deriveName(tn));
+  // ----- Sign in flow -----
+  signinBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const open = !signinDropdown.hidden;
+    closeDropdowns();
+    signinDropdown.hidden = open;          // toggle
+    if (!signinDropdown.hidden) tokenInput.focus();
+  });
+  cancelSigninBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    signinDropdown.hidden = true;
     tokenInput.value = '';
-    tokenNameInput.value = '';
+  });
+  setBtn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const v = tokenInput.value.trim();
+    if (!v) { alert('Paste your token first.'); return; }
+    setBtn.disabled = true;
+    setBtn.textContent = 'Verifying…';
+    const login = await fetchGithubLogin(v);
+    setBtn.disabled = false;
+    setBtn.textContent = 'Sign in';
+    if (!login) {
+      alert('Could not validate token (GitHub /user returned an error). Check the token and try again.');
+      return;
+    }
+    setToken(v);
+    setName(login);
+    tokenInput.value = '';
+    closeDropdowns();
     refresh();
   });
-  clearBtn.addEventListener('click', () => {
-    if (!confirm('Forget GitHub token + name from this browser?')) return;
-    setToken('');
-    setName('');
+
+  // ----- Signed-in menu -----
+  menuBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const open = !userDropdown.hidden;
+    closeDropdowns();
+    userDropdown.hidden = open;          // toggle
+  });
+  editTokenBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeDropdowns();
+    // Switch to signed-out state and reveal token input.
+    setToken(''); setName('');
+    refresh();
+    signinDropdown.hidden = false;
+    tokenInput.focus();
+  });
+  clearBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (!confirm('Sign out and forget GitHub token from this browser?')) return;
+    setToken(''); setName('');
+    closeDropdowns();
     refresh();
   });
-  if (editTokenBtn) {
-    editTokenBtn.addEventListener('click', () => {
-      tokenRow.classList.remove('collapsed');
-      tokenInput.focus();
-    });
-  }
-  pushBtn.addEventListener('click', async () => {
+  pushBtn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    closeDropdowns();
     pushBtn.disabled = true;
     pushBtn.textContent = 'Pushing…';
     const ok = await pushChanges();
     if (!ok) {
       pushBtn.disabled = false;
-      pushBtn.textContent = '⬆ Push to GitHub';
+      pushBtn.textContent = '⬆ Push';
     }
   });
 
+  // Click outside the bar closes any dropdown
+  document.addEventListener('click', (e) => {
+    if (!bar.contains(e.target)) closeDropdowns();
+  });
+  // Escape closes too
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeDropdowns();
+  });
+
   refresh();
-  // Refresh pending count whenever any storage changes happen
+  ensureNameFromToken().then(refresh);
+
   window.addEventListener('storage', refresh);
-  // expose so other handlers (Approve, mark-outdated) can request a refresh.
   bar._refresh = refresh;
 }
 
@@ -334,7 +399,6 @@ async function initProblemPage(meta) {
   const resetBtn      = $('reset-crop');
   const saveBtn       = $('save-crop');
   const cancelBtn     = $('cancel-crop');
-  const markBtn       = $('mark-outdated');
   const badge         = $('status-badge');
   const approveCb     = $('approve-cb');
   const approvalChip  = $('approval-chip');
@@ -497,8 +561,8 @@ async function initProblemPage(meta) {
   }, { passive: true });
   window.addEventListener('touchend', () => { dragStart = null; });
 
-  // -------- Outdated flag --------
-  markBtn.addEventListener('click', () => {
+  // -------- Outdated flag (click the status badge to toggle) --------
+  badge.addEventListener('click', () => {
     const s = loadState(id);
     s.outdated = !s.outdated;
     saveState(id, s);
@@ -508,20 +572,19 @@ async function initProblemPage(meta) {
   });
 
   // -------- Approve --------
-  approveCb.addEventListener('change', () => {
+  approveCb.addEventListener('change', async () => {
     const s = loadState(id);
     if (approveCb.checked) {
       let myName = getName();
       if (!myName) {
-        // Fall back to a prompt so we can save the approval right away even if
-        // the user saved their token before the name field existed.
-        const raw = prompt(
-          'Reviewer name for approvals (e.g. derived from token "mat-naloge-john" → "john"):'
-        );
-        const cleaned = (raw || '').trim();
-        if (!cleaned) { approveCb.checked = false; return; }
-        myName = deriveName(cleaned) || cleaned;
-        setName(myName);
+        // No name yet — try to fetch it from GitHub /user using the token.
+        if (getToken()) await ensureNameFromToken();
+        myName = getName();
+      }
+      if (!myName) {
+        alert('Please sign in to GitHub first (Sign in button in the top-right).');
+        approveCb.checked = false;
+        return;
       }
       s.approved_by = myName;
     } else {
@@ -529,7 +592,6 @@ async function initProblemPage(meta) {
     }
     saveState(id, s);
     updateApprovalChip(s.approved_by);
-    // Refresh the sync bar so the "N pending" counter updates immediately.
     const bar = document.getElementById('gh-sync');
     if (bar && typeof bar._refresh === 'function') bar._refresh();
   });

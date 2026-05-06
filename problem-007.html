@@ -20,38 +20,47 @@
 </head>
 <body>
 <div class="container">
-  <div class="back-link"><a href="problem-006.html">← previous</a> · <a href="index.html">all problems</a> · <a href="problem-008.html">next →</a></div>
-  <h1>Naloga 7</h1>
-  <div class="tags"><span class="tag year">2025</span><span class="tag season">Spomladanski rok</span><span class="tag pola">Izpitna pola 1</span><span class="tag level">OR</span><span class="tag section">A</span><span class="tag points">3 točke</span></div>
-
-  
-<div class="gh-sync" id="gh-sync">
-  <div class="gh-status-row">
-    <span class="label">GitHub:</span>
-    <span class="pending" id="gh-token-status">no token</span>
-    <span class="pending" id="gh-name-status" hidden></span>
-    <span class="pending" id="gh-pending">no pending edits</span>
+  <div class="top-bar">
+    <div class="back-link"><a href="problem-006.html">← previous</a> · <a href="index.html">all problems</a> · <a href="problem-008.html">next →</a></div>
     <span style="flex:1"></span>
-    <button id="gh-edit-token">Edit token</button>
-    <button id="gh-clear-token">Forget</button>
-    <button id="gh-push" class="primary">⬆ Push to GitHub</button>
+    
+<div class="gh-sync" id="gh-sync">
+  <!-- Signed-out state -->
+  <div class="gh-state gh-signed-out" id="gh-signed-out">
+    <button id="gh-signin-btn" class="primary">Sign in</button>
+    <div class="gh-dropdown gh-signin-dropdown" id="gh-signin-dropdown" hidden>
+      <p class="gh-hint">Paste a fine-grained PAT for <code>DanielVitas/mat-naloge</code> with <strong>Contents: write</strong>.</p>
+      <input id="gh-token-input" type="password" autocomplete="off" placeholder="github_pat_…">
+      <div class="gh-actions">
+        <button id="gh-set-token" class="primary">Sign in</button>
+        <button id="gh-cancel-signin">Cancel</button>
+      </div>
+    </div>
   </div>
-  <div class="gh-token-row">
-    <input id="gh-token-name-input" type="text" autocomplete="off"
-           placeholder="Token name (e.g. mat-naloge-john)" style="flex:0 1 16em">
-    <input id="gh-token-input" type="password" autocomplete="off"
-           placeholder="Paste your fine-grained PAT (Contents: write)">
-    <button id="gh-set-token">Save</button>
+  <!-- Signed-in state -->
+  <div class="gh-state gh-signed-in" id="gh-signed-in" hidden>
+    <button id="gh-push" class="primary">⬆ Push</button>
+    <button id="gh-menu-btn" class="dropdown-toggle" aria-label="Account menu">▾</button>
+    <div class="gh-dropdown gh-user-dropdown" id="gh-user-dropdown" hidden>
+      <div class="gh-row">Signed in as <strong id="gh-username">…</strong></div>
+      <div class="gh-row"><span class="pending none" id="gh-pending">no pending edits</span></div>
+      <hr>
+      <button id="gh-edit-token" class="dropdown-item">Edit token</button>
+      <button id="gh-clear-token" class="dropdown-item">Sign out</button>
+    </div>
   </div>
 </div>
 
+  </div>
+  <h1>Naloga 7</h1>
+  <div class="tags"><span class="tag year">2025</span><span class="tag season">Spomladanski rok</span><span class="tag pola">Izpitna pola 1</span><span class="tag level">OR</span><span class="tag section">A</span><span class="tag points">3 točke</span></div>
 
   <div class="status-bar">
-    <button id="mark-outdated">Toggle “transcript needs redoing”</button>
+    <button id="status-badge" class="status-badge ok"
+            title="Click to toggle">✓ up to date</button>
     <label class="approve-label">
       <input type="checkbox" id="approve-cb"> Approve
     </label>
-    <span class="status-badge ok" id="status-badge">✓ up to date</span>
     <span class="approval-chip" id="approval-chip" hidden></span>
     <span style="flex:1"></span>
     <button id="export-changes">⬇ Export this problem (JSON)</button>
