@@ -1318,33 +1318,58 @@ canvas.crop-display {
   margin: -0.2rem 0 0.3rem;
 }
 
-/* Print: clean PDF — only the rendered problem bodies, no chrome.
-   @page margin:0 lets us bypass browser-added headers/footers in most
-   modern browsers; we provide the visual margin via padding instead. */
-@page { size: A4; margin: 0; }
+/* Print: clean PDF — keep #finishing-preview in normal document flow
+   (NOT absolute-positioned) so page-break-before/inside work. Suppress
+   chrome by display:none so it doesn't take layout space. @page provides
+   the print margins. (User should disable "Headers and footers" in the
+   browser print dialog to suppress the date/title/page-X-of-Y line.) */
+@page { size: A4; margin: 1.5cm; }
 @media print {
-  body.print-finishing { background: white; margin: 0; padding: 0; }
-  body.print-finishing * { visibility: hidden; }
-  body.print-finishing #finishing-preview,
-  body.print-finishing #finishing-preview * { visibility: visible; }
+  body.print-finishing { background: white !important; margin: 0; padding: 0; }
+  /* Hide every direct child of <body> except the finishing preview chain. */
+  body.print-finishing .top-bar,
+  body.print-finishing > .container > .page-tabs,
+  body.print-finishing > .container > .exam-tabs,
+  body.print-finishing > .container > .export-row,
+  body.print-finishing > .container > h1,
+  body.print-finishing section[data-panel="selection"],
+  body.print-finishing .finishing-toolbar,
+  body.print-finishing .finishing-left,
+  body.print-finishing .pane-header { display: none !important; }
+  /* Force the body grid to a single column so the preview takes full width. */
+  body.print-finishing .finishing-body {
+    display: block !important;
+    grid-template-columns: 1fr !important;
+    gap: 0 !important;
+  }
+  body.print-finishing .finishing-right {
+    border: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
   body.print-finishing #finishing-preview {
-    position: absolute; left: 0; top: 0; right: 0;
-    width: 100%;
-    background: white;
-    border: 0;
+    border: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
     max-height: none !important;
     overflow: visible !important;
-    padding: 1.8cm 1.5cm;
-    margin: 0;
+    background: white !important;
+    box-shadow: none !important;
   }
+  /* Each problem block: clean styling, avoid splitting across pages. */
   body.print-finishing .finishing-block {
     border: 0 !important;
     padding: 0 !important;
+    margin: 0;
     page-break-inside: avoid;
-    margin-bottom: 0;
+    break-inside: avoid;
   }
-  body.print-finishing .finishing-block.is-page-break { page-break-before: always; }
+  body.print-finishing .finishing-block.is-page-break {
+    page-break-before: always !important;
+    break-before: page !important;
+  }
   body.print-finishing .finishing-block.is-page-break::before { content: none; }
+  /* Hide all the interactive widgets in the separator/header. */
   body.print-finishing .finishing-block-head .drag-handle,
   body.print-finishing .finishing-separator .page-break-toggle,
   body.print-finishing .finishing-separator .finishing-grip {
