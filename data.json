@@ -9,7 +9,14 @@
     "outdated": false
   },
   "4": {
-    "approved_by": "Daniel"
+    "approved_by": "Daniel",
+    "bbox": [
+      175,
+      1278,
+      1519,
+      1425
+    ],
+    "outdated": false
   },
   "5": {
     "approved_by": null
