@@ -4,6 +4,7 @@
   --accent: #2563eb; --accent-hover: #1d4ed8;
   --warn: #d97706; --warn-bg: #fef3c7;
   --ok: #047857; --ok-bg: #d1fae5;
+  --tag-source-bg: #fce7f3; --tag-source-fg: #9d174d;
   --tag-year-bg: #dbeafe; --tag-year-fg: #1e40af;
   --tag-season-bg: #d1fae5; --tag-season-fg: #065f46;
   --tag-pola-bg: #ede9fe; --tag-pola-fg: #5b21b6;
@@ -27,12 +28,58 @@ a:hover { text-decoration: underline; }
 .tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.5rem 0; }
 .tag { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px;
        font-size: 0.78rem; font-weight: 500; white-space: nowrap; }
+.tag.source  { background: var(--tag-source-bg);  color: var(--tag-source-fg); }
 .tag.year    { background: var(--tag-year-bg);    color: var(--tag-year-fg); }
 .tag.season  { background: var(--tag-season-bg);  color: var(--tag-season-fg); }
 .tag.pola    { background: var(--tag-pola-bg);    color: var(--tag-pola-fg); }
 .tag.level   { background: var(--tag-level-bg);   color: var(--tag-level-fg); }
 .tag.section { background: var(--tag-section-bg); color: var(--tag-section-fg); }
 .tag.points  { background: var(--tag-points-bg);  color: var(--tag-points-fg); }
+
+/* Collapsible source-collection sections on the index page */
+.collection {
+  margin-top: 1.2rem;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  background: var(--card-bg);
+  overflow: hidden;
+}
+.collection > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 0.7rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  user-select: none;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+.collection > summary::-webkit-details-marker { display: none; }
+.collection > summary::before {
+  content: '▸';
+  display: inline-block;
+  transition: transform 0.15s ease;
+  width: 1em;
+  color: var(--muted);
+  font-weight: 400;
+}
+.collection[open] > summary::before { transform: rotate(90deg); }
+.collection > summary .count {
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 0.9rem;
+}
+.collection > .problem-list {
+  margin: 0;
+  padding: 0.4rem 1rem 1rem;
+}
+.collection-empty {
+  padding: 0.5rem 1rem 1rem;
+  color: var(--muted);
+  font-style: italic;
+  font-size: 0.9rem;
+}
 
 .problem-list {
   display: grid;
