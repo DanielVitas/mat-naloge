@@ -35,7 +35,7 @@
       1499,
       719
     ],
-    "outdated": true
+    "outdated": false
   },
   "7": {
     "bbox": [
@@ -44,7 +44,7 @@
       1529,
       356
     ],
-    "outdated": true
+    "outdated": false
   },
   "12": {
     "topics": [
@@ -61,7 +61,7 @@
         1273
       ]
     },
-    "outdated": true
+    "outdated": false
   },
   "display_names": {
     "DanielVitas": "BigD"
