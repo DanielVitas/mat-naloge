@@ -2,34 +2,91 @@
 // Stored fields: latex (string), bbox ([x1,y1,x2,y2]), outdated (bool),
 //                topics (array of strings), approved_by (string|null).
 
-// Master vocabulary of high-school math topics, used by the topic picker.
-// Order roughly groups by area; the picker shows a search field for quick filter.
-const ALL_TOPICS = [
-  // Algebra
-  "Algebra", "Powers", "Roots", "Equations", "Inequalities",
-  "Systems of equations", "Polynomials",
-  // Functions
-  "Linear function", "Quadratic function", "Polynomial function",
-  "Rational function", "Exponential function", "Logarithmic function",
-  "Trigonometric functions", "Inverse function", "Composite function",
-  // Geometry — plane
-  "Geometry", "Polygons", "Triangle", "Right triangle", "Quadrilateral",
-  "Parallelogram", "Trapezoid", "Circle", "Area", "Perimeter",
-  "Similarity", "Congruence",
-  // Geometry — solids
-  "Solids", "Cylinder", "Cone", "Sphere", "Pyramid", "Prism", "Volume",
-  // Conic sections
-  "Conic sections", "Parabola", "Ellipse", "Hyperbola",
-  // Trig & vectors
-  "Trigonometry", "Vectors", "Analytic geometry",
-  // Calculus
-  "Calculus", "Limits", "Continuity", "Derivative", "Integration",
-  "Applications of derivatives", "Optimization",
-  // Discrete & misc
-  "Logic", "Set Theory", "Number Theory", "Combinatorics", "Probability",
-  "Statistics", "Sequences", "Arithmetic sequence", "Geometric sequence",
-  "Series", "Complex numbers", "Logarithms",
+// Master topic vocabulary — sections from the M-MAT-2026 syllabus.
+// Main sections (4.x.) and subsections (4.x.y.). Each subsection's parent
+// main section is stored in TOPIC_PARENT and is enforced whenever a sub
+// is added (and removed when its parent is removed).
+const TOPIC_MAIN = [
+  "4.1 Osnove logike",
+  "4.2 Množice",
+  "4.3 Številske množice",
+  "4.4 Algebrski izrazi, enačbe in neenačbe",
+  "4.5 Potence in koreni",
+  "4.6 Geometrija v ravnini in prostoru",
+  "4.7 Geometrijski liki in telesa",
+  "4.8 Vektorji v ravnini in prostoru",
+  "4.9 Pravokotni koordinatni sistem v ravnini",
+  "4.10 Funkcije",
+  "4.11 Stožnice",
+  "4.12 Zaporedja in vrste",
+  "4.13 Diferencialni račun",
+  "4.14 Integralski račun",
+  "4.15 Kombinatorika",
+  "4.16 Verjetnostni račun",
+  "4.17 Statistika",
 ];
+const TOPIC_PARENT = {
+  "4.3.1 Naravna in cela števila": "4.3 Številske množice",
+  "4.3.2 Racionalna števila":       "4.3 Številske množice",
+  "4.3.3 Realna števila":           "4.3 Številske množice",
+  "4.3.4 Kompleksna števila":       "4.3 Številske množice",
+  "4.10.1 Linearna funkcija":       "4.10 Funkcije",
+  "4.10.2 Potenčna funkcija":       "4.10 Funkcije",
+  "4.10.3 Korenska funkcija":       "4.10 Funkcije",
+  "4.10.4 Kvadratna funkcija":      "4.10 Funkcije",
+  "4.10.5 Eksponentna funkcija":    "4.10 Funkcije",
+  "4.10.6 Logaritemska funkcija":   "4.10 Funkcije",
+  "4.10.7 Polinomska funkcija":     "4.10 Funkcije",
+  "4.10.8 Racionalna funkcija":     "4.10 Funkcije",
+  "4.10.9 Kotne funkcije":          "4.10 Funkcije",
+};
+const TOPIC_MAIN_SET = new Set(TOPIC_MAIN);
+const ALL_TOPICS = [...TOPIC_MAIN, ...Object.keys(TOPIC_PARENT)];
+
+function isMainTopic(t) { return TOPIC_MAIN_SET.has(t); }
+function topicKindClass(t) { return isMainTopic(t) ? 'topic-main' : 'topic-sub'; }
+
+// Sort topics so mains appear in master order, with each main's subs
+// immediately following in their declared order.
+function sortTopics(topics) {
+  const mainIdx = {};
+  TOPIC_MAIN.forEach((t, i) => { mainIdx[t] = i; });
+  const subList = Object.keys(TOPIC_PARENT);
+  const subIdx = {};
+  subList.forEach((t, i) => { subIdx[t] = i; });
+  const seen = new Set(topics);
+  return [...seen].sort((a, b) => {
+    const aMain = isMainTopic(a) ? a : TOPIC_PARENT[a];
+    const bMain = isMainTopic(b) ? b : TOPIC_PARENT[b];
+    const am = mainIdx[aMain] ?? 99;
+    const bm = mainIdx[bMain] ?? 99;
+    if (am !== bm) return am - bm;
+    // same main bucket: main first, then subs by sub-index
+    const ai = isMainTopic(a) ? -1 : (subIdx[a] ?? 999);
+    const bi = isMainTopic(b) ? -1 : (subIdx[b] ?? 999);
+    return ai - bi;
+  });
+}
+
+// Enforce parent-child constraint: every sub must have its parent.
+function ensureParents(topics) {
+  const out = new Set(topics);
+  for (const t of [...out]) {
+    const parent = TOPIC_PARENT[t];
+    if (parent) out.add(parent);
+  }
+  return sortTopics([...out]);
+}
+
+// When removing a topic, also drop any of its currently-present children
+// (so the "sub always has parent" invariant holds).
+function removeTopicWithChildren(topics, toRemove) {
+  return topics.filter(t => {
+    if (t === toRemove) return false;
+    if (TOPIC_PARENT[t] === toRemove) return false;
+    return true;
+  });
+}
 
 const GH = {
   owner: 'DanielVitas',
@@ -152,10 +209,11 @@ function effectiveTopics(id, defaults) {
   return Array.isArray(defaults) ? defaults.slice() : [];
 }
 
-// Persist a new topics list for a problem to localStorage.
+// Persist a new topics list for a problem to localStorage. Always normalizes
+// (auto-includes parent main sections for any sub) and sorts.
 function setTopics(id, topics) {
   const s = loadState(id);
-  s.topics = (topics || []).slice();
+  s.topics = ensureParents(topics || []);
   saveState(id, s);
 }
 
@@ -574,10 +632,10 @@ function latexToHtml(src, problemId, tikzCount) {
 function renderTopicsEditor(meta) {
   const row = document.getElementById('topics-tags');
   if (!row) return;
-  const current = effectiveTopics(meta.n, meta.topics);
+  const current = sortTopics(effectiveTopics(meta.n, meta.topics));
   let html = '';
   for (const t of current) {
-    html += '<span class="tag topic editable">'
+    html += '<span class="tag topic editable ' + topicKindClass(t) + '">'
          +    escapeHtml(t)
          +    '<button class="topic-remove" data-topic="' + escapeHtml(t)
          +      '" aria-label="remove topic">×</button>'
@@ -589,7 +647,10 @@ function renderTopicsEditor(meta) {
     btn.addEventListener('click', (e) => {
       e.preventDefault(); e.stopPropagation();
       const t = btn.dataset.topic;
-      const next = effectiveTopics(meta.n, meta.topics).filter(x => x !== t);
+      // Removing a main section also drops all of its currently-present subs
+      // so the "sub always has parent" invariant holds.
+      const next = removeTopicWithChildren(
+        effectiveTopics(meta.n, meta.topics), t);
       setTopics(meta.n, next);
       renderTopicsEditor(meta);
       const bar = document.getElementById('gh-sync');
@@ -726,13 +787,14 @@ function applyIndexTopics() {
     const divider  = card.querySelector('.card-divider');
     if (!topicsEl) return;
     topicsEl.innerHTML = '';
-    for (const t of eff) {
+    const sorted = sortTopics(eff);
+    for (const t of sorted) {
       const span = document.createElement('span');
-      span.className = 'tag topic';
+      span.className = 'tag topic ' + topicKindClass(t);
       span.textContent = t;
       topicsEl.appendChild(span);
     }
-    if (divider) divider.hidden = eff.length === 0;
+    if (divider) divider.hidden = sorted.length === 0;
   });
 }
 
@@ -1164,8 +1226,8 @@ async function initSearchPage() {
         </div>
       </div>
       <div class="filter-topic-chips" id="f-topics">
-        ${allTopicsArr.map(t =>
-          `<button type="button" class="filter-topic-chip" data-topic="${escapeHtml(t)}" aria-pressed="true">${escapeHtml(t)}</button>`
+        ${sortTopics(allTopicsArr).map(t =>
+          `<button type="button" class="filter-topic-chip ${topicKindClass(t)}" data-topic="${escapeHtml(t)}" aria-pressed="true">${escapeHtml(t)}</button>`
         ).join('')}
       </div>
     </div>

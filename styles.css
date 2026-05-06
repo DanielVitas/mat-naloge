@@ -12,6 +12,8 @@
   --tag-section-bg: #fef3c7; --tag-section-fg: #92400e;
   --tag-points-bg: #e5e7eb; --tag-points-fg: #374151;
   --tag-topic-bg: #ccfbf1; --tag-topic-fg: #115e59;
+  --tag-topic-main-bg: #e0e7ff; --tag-topic-main-fg: #3730a3; --tag-topic-main-border: #c7d2fe;
+  --tag-topic-sub-bg:  #ccfbf1; --tag-topic-sub-fg:  #115e59; --tag-topic-sub-border:  #99f6e4;
 }
 * { box-sizing: border-box; }
 body {
@@ -40,6 +42,17 @@ a:hover { text-decoration: underline; }
   background: var(--tag-topic-bg);  color: var(--tag-topic-fg);
   border: 1px solid #99f6e4;
 }
+.tag.topic.topic-main {
+  background: var(--tag-topic-main-bg);
+  color:      var(--tag-topic-main-fg);
+  border-color: var(--tag-topic-main-border);
+  font-weight: 600;
+}
+.tag.topic.topic-sub {
+  background: var(--tag-topic-sub-bg);
+  color:      var(--tag-topic-sub-fg);
+  border-color: var(--tag-topic-sub-border);
+}
 .tag.topic.editable {
   display: inline-flex; align-items: center; gap: 0.32rem;
   padding-right: 0.28rem;
@@ -49,7 +62,7 @@ a:hover { text-decoration: underline; }
   display: inline-flex; align-items: center; justify-content: center;
   border: 0;
   background: rgba(15, 118, 110, 0.18);
-  color: #0f766e;            /* teal-700, complements the topic chip palette */
+  color: #0f766e;            /* teal-700, default for sub chips */
   border-radius: 999px;
   font-size: 0.78rem; line-height: 1;
   padding: 0;
@@ -58,7 +71,16 @@ a:hover { text-decoration: underline; }
 }
 .topic-remove:hover {
   background: rgba(15, 118, 110, 0.34);
-  color: #134e4a;            /* teal-900 on hover */
+  color: #134e4a;
+}
+/* Main-section chip: tint the × in indigo to match. */
+.tag.topic.topic-main .topic-remove {
+  background: rgba(67, 56, 202, 0.18);
+  color: #3730a3;
+}
+.tag.topic.topic-main .topic-remove:hover {
+  background: rgba(67, 56, 202, 0.32);
+  color: #312e81;
 }
 .topic-add {
   display: inline-flex; align-items: center; justify-content: center;
@@ -667,14 +689,21 @@ canvas.crop-display {
 .filter-topic-chip {
   display: inline-block;
   padding: 0.2rem 0.65rem;
-  background: var(--tag-topic-bg); color: var(--tag-topic-fg);
-  border: 1px solid #99f6e4;
   border-radius: 999px;
   font-size: 0.78rem;
   cursor: pointer;
   user-select: none;
   font: inherit;
   font-weight: 500;
+  background: var(--tag-topic-sub-bg);
+  color: var(--tag-topic-sub-fg);
+  border: 1px solid var(--tag-topic-sub-border);
+}
+.filter-topic-chip.topic-main {
+  background: var(--tag-topic-main-bg);
+  color: var(--tag-topic-main-fg);
+  border-color: var(--tag-topic-main-border);
+  font-weight: 600;
 }
 .filter-topic-chip[aria-pressed="false"] {
   background: white;
@@ -682,6 +711,7 @@ canvas.crop-display {
   border-color: var(--card-border);
   text-decoration: line-through;
   opacity: 0.7;
+  font-weight: 500;
 }
 
 .search-summary {
