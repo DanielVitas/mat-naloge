@@ -1348,6 +1348,8 @@ canvas.crop-display {
     background: white !important;
   }
   body.print-finishing #finishing-preview {
+    /* Block layout (NOT flex) so page-break-before on children works. */
+    display: block !important;
     border: 0 !important;
     padding: 0 !important;
     margin: 0 !important;
@@ -1358,6 +1360,7 @@ canvas.crop-display {
   }
   /* Each problem block: clean styling, avoid splitting across pages. */
   body.print-finishing .finishing-block {
+    display: block !important;
     border: 0 !important;
     padding: 0 !important;
     margin: 0;
