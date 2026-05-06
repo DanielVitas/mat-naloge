@@ -84,7 +84,19 @@ button:disabled { opacity: 0.5; cursor: default; }
 @media (max-width: 800px) { .problem-body { grid-template-columns: 1fr; } }
 
 .pane { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 1rem; }
-.pane h3 { margin-top: 0; font-size: 1rem; }
+.pane h3 { margin: 0; font-size: 1rem; }
+.pane-header {
+  display: flex; align-items: center; gap: 0.5rem;
+  margin-bottom: 0.7rem; flex-wrap: wrap;
+}
+
+/* Title row: H1 and tags side-by-side */
+.title-row {
+  display: flex; align-items: baseline; gap: 0.9rem;
+  flex-wrap: wrap; margin: 0.2rem 0 0.4rem;
+}
+.title-row h1 { margin: 0; }
+.title-row .tags { margin: 0; }
 
 textarea#latex-source {
   width: 100%; min-height: 280px;
@@ -199,7 +211,8 @@ canvas.crop-display {
 .gh-sync .gh-state { position: relative; display: inline-flex; gap: 0.3rem; }
 .gh-sync .gh-state[hidden] { display: none !important; }
 .gh-sync .dropdown-toggle {
-  width: 2.3rem; padding: 0.1rem 0;
+  width: 2.3rem;
+  padding: 0 0 0.32rem 0;
   font-size: 1.5rem; line-height: 1;
 }
 .gh-sync .gh-dropdown {

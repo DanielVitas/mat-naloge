@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Naloga 5 — Matura 2025</title>
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=5dd3645b">
 <script>
   window.MathJax = {
     tex: {
@@ -50,9 +50,11 @@
 </div>
 
   </div>
-  <h1>Naloga 5</h1>
-  <nav class="problem-nav"><a class="nav-arrow" href="problem-004.html" aria-label="previous problem">←</a><a class="nav-menu" href="index.html">menu</a><a class="nav-arrow" href="problem-006.html" aria-label="next problem">→</a></nav>
-  <div class="tags"><span class="tag year">2025</span><span class="tag season">Spomladanski rok</span><span class="tag pola">Izpitna pola 1</span><span class="tag level">OR</span><span class="tag section">A</span><span class="tag points">2 točki</span></div>
+  <div class="title-row">
+    <h1>Naloga 5</h1>
+    <div class="tags"><span class="tag year">2025</span><span class="tag season">Spomladanski rok</span><span class="tag pola">Izpitna pola 1</span><span class="tag level">OR</span><span class="tag section">A</span><span class="tag points">2 točki</span></div>
+  </div>
+  <nav class="problem-nav"><a class="nav-arrow" href="problem-004.html" aria-label="previous problem">←</a><a class="nav-menu" href="index.html">Menu</a><a class="nav-arrow" href="problem-006.html" aria-label="next problem">→</a></nav>
 
   <div class="status-bar">
     <button id="status-badge" class="status-badge ok"
@@ -67,7 +69,9 @@
 
   <div class="problem-body">
     <div class="pane">
-      <h3>LaTeX transcript</h3>
+      <div class="pane-header">
+        <h3>LaTeX</h3>
+      </div>
       <textarea id="latex-source" spellcheck="false"></textarea>
       <h4 style="margin-bottom:0.3rem">Preview</h4>
       <div class="preview-box" id="preview"></div>
@@ -75,27 +79,29 @@
     </div>
     <div class="pane right-pane">
       <div class="crop-view" id="crop-view">
-        <h3>Original (cropped from exam page)</h3>
-        <canvas id="crop-canvas" class="crop-display"></canvas>
-        <div class="image-controls">
+        <div class="pane-header">
+          <h3>Original</h3>
+          <span style="flex:1"></span>
           <button id="edit-crop">✎ Edit crop</button>
           <button id="reset-crop">Reset to default</button>
         </div>
+        <canvas id="crop-canvas" class="crop-display"></canvas>
       </div>
       <div class="crop-editor" id="crop-editor" hidden>
-        <h3>Drag a rectangle on the page to select a new crop region</h3>
+        <div class="pane-header">
+          <h3>Drag a rectangle on the page to select a new crop region</h3>
+          <span style="flex:1"></span>
+          <button id="save-crop" class="primary">Save</button>
+          <button id="cancel-crop">Cancel</button>
+        </div>
         <div class="canvas-wrap">
           <canvas id="full-page-canvas"></canvas>
           <div id="selection-box" class="selection-box"></div>
         </div>
-        <div class="editor-actions">
-          <button id="save-crop" class="primary">Save crop</button>
-          <button id="cancel-crop">Cancel</button>
-        </div>
       </div>
     </div>
   </div>
-<script src="app.js"></script>
+<script src="app.js?v=468527ee"></script>
 <script>
   const PROBLEM = {"n": 5, "latex": "Na skici spodaj je štirikotnik $ABCD$. Izračunajte kota $\\beta$ in $\\gamma$, če je $\\gamma=2\\beta$.\n\n\\begin{center}\n\\begin{tikzpicture}[scale=1.0,>=latex]\n  \\coordinate (A) at (0,0);\n  \\coordinate (B) at (5.4,0);\n  \\coordinate (C) at (4.6,2.6);\n  \\coordinate (D) at (1.6,3.0);\n  \\draw[thick] (A) -- (B) -- (C) -- (D) -- cycle;\n  \\node[below left]  at (A) {$A$};\n  \\node[below right] at (B) {$B$};\n  \\node[above right] at (C) {$C$};\n  \\node[above left]  at (D) {$D$};\n  \\pic [draw, \"$70^\\circ$\", angle radius=8mm, angle eccentricity=1.45]\n       {angle = B--A--D};\n  \\pic [draw, \"$\\beta$\", angle radius=8mm, angle eccentricity=1.6]\n       {angle = C--B--A};\n  \\pic [draw, \"$101^\\circ$\", angle radius=8mm, angle eccentricity=1.6]\n       {angle = D--C--B};\n  \\pic [draw, \"$\\gamma$\", angle radius=8mm, angle eccentricity=1.55]\n       {angle = A--D--C};\n\\end{tikzpicture}\n\\end{center}", "tikz_count": 1, "page_image": "pages/2025_Spomladanski_Pola1_OR_page-11.png", "page_size": [1654, 2339], "bbox_default": [157, 134, 1514, 663]};
   initProblemPage(PROBLEM);
