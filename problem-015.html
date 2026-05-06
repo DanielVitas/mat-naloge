@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Naloga 15 — Matura 2025</title>
-<link rel="stylesheet" href="styles.css?v=7a290a00">
+<link rel="stylesheet" href="styles.css?v=d0e2afcd">
 <script>
   window.MathJax = {
     tex: {
@@ -34,7 +34,7 @@
       <a class="menu-link l3" href="index.html#matura/2025/spomladanski-rok">Spomladanski rok</a>
       <a class="menu-link l4" href="index.html#matura/2025/spomladanski-rok/or">OR</a>
       <a class="menu-link l4" href="index.html#matura/2025/spomladanski-rok/vr">VR</a>
-      <span class="menu-current l5">15. <span class="menu-tags"><span class="tag pola">Izpitna pola 1</span><span class="tag section">B</span></span></span>
+      <span class="menu-current l5">15. <span class="menu-tags"><span class="tag pola">Izpitna pola 1</span><span class="tag section">C</span></span></span>
       <a class="menu-link l1" href="index.html#textbook">Textbook</a>
     </div>
     <div class="menu-h menu-h-secondary">Search</div>
@@ -86,14 +86,14 @@
   </div>
   <div class="title-row">
     <h1>15.</h1>
-    <div class="tags"><span class="tag source">Matura</span><span class="tag year">2025</span><span class="tag season">Spomladanski rok</span><span class="tag pola">Izpitna pola 1</span><span class="tag level">VR</span><span class="tag section">B</span><span class="tag points">7 točk</span></div>
+    <div class="tags"><span class="tag source">Matura</span><span class="tag year">2025</span><span class="tag season">Spomladanski rok</span><span class="tag pola">Izpitna pola 1</span><span class="tag level">VR</span><span class="tag section">C</span><span class="tag points">2 točki</span></div>
   </div>
   <div class="topics-row">
     <span class="topics-label">Topics:</span>
-    <div class="tags" id="topics-tags"><span class="tag topic">Quadratic function</span><span class="tag topic">Equations</span></div>
+    <div class="tags" id="topics-tags"><span class="tag topic">Vectors</span><span class="tag topic">Geometry</span><span class="tag topic">Polygons</span></div>
   </div>
   <div class="action-row">
-    <nav class="problem-nav"><a class="nav-arrow" href="problem-014.html" aria-label="previous problem">←</a><a class="nav-menu" href="index.html">Menu</a><a class="nav-arrow" href="problem-016.html" aria-label="next problem">→</a></nav>
+    <nav class="problem-nav"><a class="nav-arrow" href="problem-014.html" aria-label="previous problem">←</a><a class="nav-menu" href="index.html">Menu</a><span class="nav-arrow disabled" aria-hidden="true">→</span></nav>
     <div class="status-bar">
       <button id="status-badge" class="status-badge ok"
               title="Click to toggle">✓ up to date</button>
@@ -116,32 +116,12 @@
       <div class="preview-box" id="preview"></div>
     </div>
     <div class="pane right-pane">
-      <div class="crop-view" id="crop-view">
-        <div class="pane-header">
-          <h3>Original</h3>
-          <span style="flex:1"></span>
-          <button id="edit-crop">✎ Edit</button>
-          <button id="reset-crop">Reset to default</button>
-        </div>
-        <canvas id="crop-canvas" class="crop-display"></canvas>
-      </div>
-      <div class="crop-editor" id="crop-editor" hidden>
-        <div class="pane-header">
-          <h3>Select an area</h3>
-          <span style="flex:1"></span>
-          <button id="save-crop" class="primary">Save</button>
-          <button id="cancel-crop">Cancel</button>
-        </div>
-        <div class="canvas-wrap">
-          <canvas id="full-page-canvas"></canvas>
-          <div id="selection-box" class="selection-box"></div>
-        </div>
-      </div>
+      <div class="instance-block" data-instance="0">  <div class="crop-view" id="crop-view-0">    <div class="pane-header">      <h3>VR · Izpitna pola 1 · Spomladanski rok</h3>      <span style="flex:1"></span>      <button class="edit-crop-btn" data-instance="0">✎ Edit</button>      <button class="reset-crop-btn" data-instance="0">Reset</button>    </div>    <canvas class="crop-display" id="crop-canvas-0"></canvas>  </div>  <div class="crop-editor" id="crop-editor-0" hidden>    <div class="pane-header">      <h3>Select an area</h3>      <span style="flex:1"></span>      <button class="save-crop-btn primary" data-instance="0">Save</button>      <button class="cancel-crop-btn" data-instance="0">Cancel</button>    </div>    <div class="canvas-wrap">      <canvas id="full-page-canvas-0"></canvas>      <div id="selection-box-0" class="selection-box"></div>    </div>  </div></div>
     </div>
   </div>
-<script src="app.js?v=81d4ef4f"></script>
+<script src="app.js?v=58cf8cf9"></script>
 <script>
-  const PROBLEM = {"n": 15, "latex": "Izračunajte diskriminante in poiščite vse rešitve kvadratnih enačb. Rezultate zapišite v preglednico.\n\n\\begin{center}\n\\renewcommand{\\arraystretch}{1.6}\n\\begin{tabular}{|c|c|c|}\n\\hline\n\\textbf{Enačba} & \\textbf{Diskriminanta} & \\textbf{Rešitve enačbe}\\\\\n\\hline\n$x^{2}-6x+9=0$    & & \\\\\n\\hline\n$x^{2}-3x-10=0$   & & \\\\\n\\hline\n$x^{2}-6x+10=0$   & & \\\\\n\\hline\n\\end{tabular}\n\\end{center}", "topics": ["Quadratic function", "Equations"], "tikz_count": 0, "page_image": "pages/2025_Spomladanski_Pola1_VR_page-10.png", "page_size": [1654, 2339], "bbox_default": [157, 134, 1514, 743]};
+  const PROBLEM = {"n": 15, "latex": "Na sliki sta narisana vektorja $\\vec{a}$ in $\\vec{b}$. Lik $ABCDEF$ je pravilni šestkotnik s stranicami dolžine ena. Točka $T$ je razpolovišče daljice $DE$.\n\n\\begin{center}\n\\begin{tikzpicture}[scale=1.1,>=latex]\n  \\foreach \\i/\\name in {0/B, 1/C, 2/D, 3/F\\,doesnotmatter, 4/E, 5/F} {} % placeholder\n  \\coordinate (A) at (-1,0);\n  \\coordinate (B) at (1,0);\n  \\coordinate (C) at (2,1.732);\n  \\coordinate (D) at (1,3.464);\n  \\coordinate (E) at (-1,3.464);\n  \\coordinate (F) at (-2,1.732);\n  \\coordinate (T) at (0,3.464);\n  \\draw[thick] (A) -- (B) -- (C) -- (D) -- (E) -- (F) -- cycle;\n  \\node[below left]  at (A) {$A$};\n  \\node[below right] at (B) {$B$};\n  \\node[right]       at (C) {$C$};\n  \\node[above right] at (D) {$D$};\n  \\node[above]       at (T) {$T$};\n  \\node[above left]  at (E) {$E$};\n  \\node[left]        at (F) {$F$};\n  \\fill (T) circle (1pt);\n  \\draw[->,thick] (A) -- node[below] {$\\vec{a}$} (B);\n  \\draw[->,thick] (B) -- node[right] {$\\vec{b}$} (C);\n\\end{tikzpicture}\n\\end{center}\n\n\\textit{1.1.}\\quad Izrazite vektorja $\\vec{AC}$ in $\\vec{BT}$ kot linearni kombinaciji vektorjev $\\vec{a}$ in $\\vec{b}$ ter izračunajte dolžino daljice $|BT|$.", "topics": ["Vectors", "Geometry", "Polygons"], "tikz_count": 1, "instances": [{"paper_id": "2025_Spomladanski_Pola1_VR", "paper_prob_n": 7, "season": "Spomladanski rok", "pola": "Izpitna pola 1", "level": "VR", "section": "C strukturirana naloga", "points": "2 točki", "page": 16, "page_image": "pages/2025_Spomladanski_Pola1_VR_page-16.png", "page_size": [1654, 2339], "bbox_default": [157, 134, 1514, 968]}]};
   initProblemPage(PROBLEM);
 </script>
 </body>

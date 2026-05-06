@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Naloga 9 — Matura 2025</title>
-<link rel="stylesheet" href="styles.css?v=7a290a00">
+<link rel="stylesheet" href="styles.css?v=d0e2afcd">
 <script>
   window.MathJax = {
     tex: {
@@ -116,32 +116,12 @@
       <div class="preview-box" id="preview"></div>
     </div>
     <div class="pane right-pane">
-      <div class="crop-view" id="crop-view">
-        <div class="pane-header">
-          <h3>Original</h3>
-          <span style="flex:1"></span>
-          <button id="edit-crop">✎ Edit</button>
-          <button id="reset-crop">Reset to default</button>
-        </div>
-        <canvas id="crop-canvas" class="crop-display"></canvas>
-      </div>
-      <div class="crop-editor" id="crop-editor" hidden>
-        <div class="pane-header">
-          <h3>Select an area</h3>
-          <span style="flex:1"></span>
-          <button id="save-crop" class="primary">Save</button>
-          <button id="cancel-crop">Cancel</button>
-        </div>
-        <div class="canvas-wrap">
-          <canvas id="full-page-canvas"></canvas>
-          <div id="selection-box" class="selection-box"></div>
-        </div>
-      </div>
+      <div class="instance-block" data-instance="0">  <div class="crop-view" id="crop-view-0">    <div class="pane-header">      <h3>OR · Izpitna pola 1 · Spomladanski rok</h3>      <span style="flex:1"></span>      <button class="edit-crop-btn" data-instance="0">✎ Edit</button>      <button class="reset-crop-btn" data-instance="0">Reset</button>    </div>    <canvas class="crop-display" id="crop-canvas-0"></canvas>  </div>  <div class="crop-editor" id="crop-editor-0" hidden>    <div class="pane-header">      <h3>Select an area</h3>      <span style="flex:1"></span>      <button class="save-crop-btn primary" data-instance="0">Save</button>      <button class="cancel-crop-btn" data-instance="0">Cancel</button>    </div>    <div class="canvas-wrap">      <canvas id="full-page-canvas-0"></canvas>      <div id="selection-box-0" class="selection-box"></div>    </div>  </div></div>
     </div>
   </div>
-<script src="app.js?v=81d4ef4f"></script>
+<script src="app.js?v=58cf8cf9"></script>
 <script>
-  const PROBLEM = {"n": 9, "latex": "Naj bo $A$ množica vseh praštevil, manjših od $20$, $B$ množica vseh deliteljev števila $12$ in $C$ množica vseh večkratnikov števila $3$, manjših od $20$.\nZapišite množice $A$, $B$, $C$, $A\\cap B$ in $B\\cup C$.", "topics": ["Set Theory", "Number Theory"], "tikz_count": 0, "page_image": "pages/2025_Spomladanski_Pola1_OR_page-14.png", "page_size": [1654, 2339], "bbox_default": [157, 134, 1514, 442]};
+  const PROBLEM = {"n": 9, "latex": "Naj bo $A$ množica vseh praštevil, manjših od $20$, $B$ množica vseh deliteljev števila $12$ in $C$ množica vseh večkratnikov števila $3$, manjših od $20$.\nZapišite množice $A$, $B$, $C$, $A\\cap B$ in $B\\cup C$.", "topics": ["Set Theory", "Number Theory"], "tikz_count": 0, "instances": [{"paper_id": "2025_Spomladanski_Pola1_OR", "paper_prob_n": 9, "season": "Spomladanski rok", "pola": "Izpitna pola 1", "level": "OR", "section": "B kratka strukturirana naloga", "points": "7 točk", "page": 14, "page_image": "pages/2025_Spomladanski_Pola1_OR_page-14.png", "page_size": [1654, 2339], "bbox_default": [157, 134, 1514, 442]}]};
   initProblemPage(PROBLEM);
 </script>
 </body>

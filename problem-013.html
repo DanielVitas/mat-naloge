@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Naloga 13 — Matura 2025</title>
-<link rel="stylesheet" href="styles.css?v=7a290a00">
+<link rel="stylesheet" href="styles.css?v=d0e2afcd">
 <script>
   window.MathJax = {
     tex: {
@@ -35,6 +35,7 @@
       <a class="menu-link l4" href="index.html#matura/2025/spomladanski-rok/or">OR</a>
       <span class="menu-current l5">13. <span class="menu-tags"><span class="tag pola">Izpitna pola 1</span><span class="tag section">B</span></span></span>
       <a class="menu-link l4" href="index.html#matura/2025/spomladanski-rok/vr">VR</a>
+      <span class="menu-current l5">13. <span class="menu-tags"><span class="tag pola">Izpitna pola 1</span><span class="tag section">B</span></span></span>
       <a class="menu-link l1" href="index.html#textbook">Textbook</a>
     </div>
     <div class="menu-h menu-h-secondary">Search</div>
@@ -86,7 +87,7 @@
   </div>
   <div class="title-row">
     <h1>13.</h1>
-    <div class="tags"><span class="tag source">Matura</span><span class="tag year">2025</span><span class="tag season">Spomladanski rok</span><span class="tag pola">Izpitna pola 1</span><span class="tag level">OR</span><span class="tag section">B</span><span class="tag points">7 točk</span></div>
+    <div class="tags"><span class="tag source">Matura</span><span class="tag year">2025</span><span class="tag season">Spomladanski rok</span><span class="tag pola">Izpitna pola 1</span><span class="tag level">OR</span><span class="tag level">VR</span><span class="tag section">B</span><span class="tag points">7 točk</span></div>
   </div>
   <div class="topics-row">
     <span class="topics-label">Topics:</span>
@@ -116,32 +117,13 @@
       <div class="preview-box" id="preview"></div>
     </div>
     <div class="pane right-pane">
-      <div class="crop-view" id="crop-view">
-        <div class="pane-header">
-          <h3>Original</h3>
-          <span style="flex:1"></span>
-          <button id="edit-crop">✎ Edit</button>
-          <button id="reset-crop">Reset to default</button>
-        </div>
-        <canvas id="crop-canvas" class="crop-display"></canvas>
-      </div>
-      <div class="crop-editor" id="crop-editor" hidden>
-        <div class="pane-header">
-          <h3>Select an area</h3>
-          <span style="flex:1"></span>
-          <button id="save-crop" class="primary">Save</button>
-          <button id="cancel-crop">Cancel</button>
-        </div>
-        <div class="canvas-wrap">
-          <canvas id="full-page-canvas"></canvas>
-          <div id="selection-box" class="selection-box"></div>
-        </div>
-      </div>
+      <div class="instance-block" data-instance="0">  <div class="crop-view" id="crop-view-0">    <div class="pane-header">      <h3>OR · Izpitna pola 1 · Spomladanski rok</h3>      <span style="flex:1"></span>      <button class="edit-crop-btn" data-instance="0">✎ Edit</button>      <button class="reset-crop-btn" data-instance="0">Reset</button>    </div>    <canvas class="crop-display" id="crop-canvas-0"></canvas>  </div>  <div class="crop-editor" id="crop-editor-0" hidden>    <div class="pane-header">      <h3>Select an area</h3>      <span style="flex:1"></span>      <button class="save-crop-btn primary" data-instance="0">Save</button>      <button class="cancel-crop-btn" data-instance="0">Cancel</button>    </div>    <div class="canvas-wrap">      <canvas id="full-page-canvas-0"></canvas>      <div id="selection-box-0" class="selection-box"></div>    </div>  </div></div>
+<div class="instance-block" data-instance="1">  <div class="crop-view" id="crop-view-1">    <div class="pane-header">      <h3>VR · Izpitna pola 1 · Spomladanski rok</h3>      <span style="flex:1"></span>      <button class="edit-crop-btn" data-instance="1">✎ Edit</button>      <button class="reset-crop-btn" data-instance="1">Reset</button>    </div>    <canvas class="crop-display" id="crop-canvas-1"></canvas>  </div>  <div class="crop-editor" id="crop-editor-1" hidden>    <div class="pane-header">      <h3>Select an area</h3>      <span style="flex:1"></span>      <button class="save-crop-btn primary" data-instance="1">Save</button>      <button class="cancel-crop-btn" data-instance="1">Cancel</button>    </div>    <div class="canvas-wrap">      <canvas id="full-page-canvas-1"></canvas>      <div id="selection-box-1" class="selection-box"></div>    </div>  </div></div>
     </div>
   </div>
-<script src="app.js?v=81d4ef4f"></script>
+<script src="app.js?v=58cf8cf9"></script>
 <script>
-  const PROBLEM = {"n": 13, "latex": "Dana je funkcija $f(x)=\\dfrac{x^{2}}{x-2}$. Izračunajte stacionarni točki funkcije $f$. Zapišite enačbo tangente na graf funkcije $f$ v točki z absciso $-2$.", "topics": ["Calculus", "Derivative", "Rational function"], "tikz_count": 0, "page_image": "pages/2025_Spomladanski_Pola1_OR_page-18.png", "page_size": [1654, 2339], "bbox_default": [157, 134, 1514, 407]};
+  const PROBLEM = {"n": 13, "latex": "Dana je funkcija $f(x)=\\dfrac{x^{2}}{x-2}$. Izračunajte stacionarni točki funkcije $f$. Zapišite enačbo tangente na graf funkcije $f$ v točki z absciso $-2$.", "topics": ["Calculus", "Derivative", "Rational function"], "tikz_count": 0, "instances": [{"paper_id": "2025_Spomladanski_Pola1_OR", "paper_prob_n": 13, "season": "Spomladanski rok", "pola": "Izpitna pola 1", "level": "OR", "section": "B kratka strukturirana naloga", "points": "7 točk", "page": 18, "page_image": "pages/2025_Spomladanski_Pola1_OR_page-18.png", "page_size": [1654, 2339], "bbox_default": [157, 134, 1514, 407]}, {"paper_id": "2025_Spomladanski_Pola1_VR", "paper_prob_n": 5, "season": "Spomladanski rok", "pola": "Izpitna pola 1", "level": "VR", "section": "B kratka strukturirana naloga", "points": "7 točk", "page": 13, "page_image": "pages/2025_Spomladanski_Pola1_VR_page-13.png", "page_size": [1654, 2339], "bbox_default": [157, 134, 1514, 408]}]};
   initProblemPage(PROBLEM);
 </script>
 </body>

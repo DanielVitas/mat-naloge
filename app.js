@@ -181,6 +181,7 @@ function pendingChanges() {
     const same = (
       JSON.stringify(local.latex)        === JSON.stringify(r.latex) &&
       JSON.stringify(local.bbox)         === JSON.stringify(r.bbox)  &&
+      JSON.stringify(local.bboxes || null) === JSON.stringify(r.bboxes || null) &&
       JSON.stringify(!!local.outdated)   === JSON.stringify(!!r.outdated) &&
       JSON.stringify(local.approved_by || null) === JSON.stringify(r.approved_by || null) &&
       JSON.stringify(local.topics || null) === JSON.stringify(r.topics || null)
@@ -784,28 +785,10 @@ async function initProblemPage(meta) {
 
   const ta            = $('latex-source');
   const preview       = $('preview');
-  const cropView      = $('crop-view');
-  const cropCanvas    = $('crop-canvas');
-  const editor        = $('crop-editor');
-  const fullCanvas    = $('full-page-canvas');
-  const selectionBox  = $('selection-box');
-  const editBtn       = $('edit-crop');
-  const resetBtn      = $('reset-crop');
-  const saveBtn       = $('save-crop');
-  const cancelBtn     = $('cancel-crop');
   const badge         = $('status-badge');
   const approveCb     = $('approve-cb');
   const approvalChip  = $('approval-chip');
   const exportBtn     = $('export-changes');
-
-  function showEditor() {
-    cropView.hidden = true;
-    editor.hidden   = false;
-  }
-  function hideEditor() {
-    editor.hidden   = true;
-    cropView.hidden = false;
-  }
 
   // -------- LaTeX --------
   ta.value = state.latex !== undefined ? state.latex : meta.latex;
@@ -832,135 +815,173 @@ async function initProblemPage(meta) {
     }, 250);
   });
 
-  // -------- Crop --------
-  // Load source page image once and reuse for both display + editor.
-  const pageImg = new Image();
-  let pageLoaded = false;
-  let currentBbox = state.bbox || meta.bbox_default || [0, 0, 100, 100];
-  let pendingBbox = null;       // selection in editor before save
-
-  pageImg.addEventListener('load', () => {
-    pageLoaded = true;
-    drawCropFromImage(cropCanvas, pageImg, currentBbox, meta.page_size);
-  });
-  pageImg.addEventListener('error', () => {
-    cropCanvas.replaceWith(Object.assign(document.createElement('div'), {
-      className: 'tex-figure-placeholder',
-      textContent: '(source page image not available)',
-    }));
-  });
-  if (meta.page_image) pageImg.src = meta.page_image;
-
-  function refreshCrop() {
-    if (pageLoaded) drawCropFromImage(cropCanvas, pageImg, currentBbox, meta.page_size);
+  // -------- Crops (one editor per instance) --------
+  // localStorage layout for bboxes:
+  //   state.bboxes = { "0": [x1,y1,x2,y2], "1": [...] }
+  //   Legacy state.bbox migrates to state.bboxes["0"].
+  function getBbox(idx, fallback) {
+    const s = effectiveState(id);
+    if (s.bboxes && s.bboxes[idx]) return s.bboxes[idx].slice();
+    if (idx === 0 && Array.isArray(s.bbox)) return s.bbox.slice();
+    return fallback ? fallback.slice() : null;
   }
-
-  // -------- Editor --------
-  let editorScale = 1;       // pixels per source-pixel
-  let editorRect = null;     // bounding rect of full canvas
-  let dragStart = null;
-
-  editBtn.addEventListener('click', () => {
-    if (!pageLoaded) return;
-    pendingBbox = currentBbox.slice();
-    showEditor();
-    setupEditor();
-    saveBtn.disabled = false;
-  });
-
-  cancelBtn.addEventListener('click', () => {
-    pendingBbox = null;
-    hideEditor();
-  });
-
-  saveBtn.addEventListener('click', () => {
-    if (!pendingBbox) return;
-    currentBbox = pendingBbox.slice();
+  function setBbox(idx, bbox) {
     const s = loadState(id);
-    s.bbox = currentBbox;
-    saveState(id, s);
-    refreshCrop();
-    hideEditor();
-  });
-
-  resetBtn.addEventListener('click', () => {
-    currentBbox = (meta.bbox_default || []).slice();
-    const s = loadState(id);
+    s.bboxes = s.bboxes || {};
+    s.bboxes[idx] = bbox.slice();
+    // Drop legacy single-bbox entry once we adopt the map.
     delete s.bbox;
     saveState(id, s);
-    refreshCrop();
-  });
-
-  function setupEditor() {
-    const [imgW, imgH] = meta.page_size;
-    const maxW = Math.min(900, document.documentElement.clientWidth - 60);
-    const scale = Math.min(maxW / imgW, 700 / imgH);
-    editorScale = scale;
-    fullCanvas.width  = Math.round(imgW * scale);
-    fullCanvas.height = Math.round(imgH * scale);
-    const ctx = fullCanvas.getContext('2d');
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, fullCanvas.width, fullCanvas.height);
-    ctx.drawImage(pageImg, 0, 0, fullCanvas.width, fullCanvas.height);
-    drawSelection(pendingBbox);
+  }
+  function clearBbox(idx) {
+    const s = loadState(id);
+    if (s.bboxes) {
+      delete s.bboxes[idx];
+      if (Object.keys(s.bboxes).length === 0) delete s.bboxes;
+    }
+    if (idx === 0) delete s.bbox;
+    saveState(id, s);
   }
 
-  function drawSelection(bbox) {
-    if (!bbox) { selectionBox.style.display = 'none'; return; }
-    const [x1, y1, x2, y2] = bbox;
-    selectionBox.style.display = 'block';
-    selectionBox.style.left   = (x1 * editorScale) + 'px';
-    selectionBox.style.top    = (y1 * editorScale) + 'px';
-    selectionBox.style.width  = ((x2 - x1) * editorScale) + 'px';
-    selectionBox.style.height = ((y2 - y1) * editorScale) + 'px';
+  const instances = meta.instances || [];
+  instances.forEach((inst, idx) => initInstance(inst, idx));
+
+  function initInstance(inst, idx) {
+    const cropView   = document.getElementById(`crop-view-${idx}`);
+    const cropCanvas = document.getElementById(`crop-canvas-${idx}`);
+    const editor     = document.getElementById(`crop-editor-${idx}`);
+    const fullCanvas = document.getElementById(`full-page-canvas-${idx}`);
+    const selectionBox = document.getElementById(`selection-box-${idx}`);
+    if (!cropView || !cropCanvas) return;
+    const editBtn   = document.querySelector(`.edit-crop-btn[data-instance="${idx}"]`);
+    const resetBtn  = document.querySelector(`.reset-crop-btn[data-instance="${idx}"]`);
+    const saveBtn   = document.querySelector(`.save-crop-btn[data-instance="${idx}"]`);
+    const cancelBtn = document.querySelector(`.cancel-crop-btn[data-instance="${idx}"]`);
+
+    let currentBbox = getBbox(idx, inst.bbox_default || [0, 0, 100, 100]);
+    let pendingBbox = null;
+    let pageLoaded = false;
+    let editorScale = 1;
+    let dragStart = null;
+
+    const pageImg = new Image();
+    pageImg.addEventListener('load', () => {
+      pageLoaded = true;
+      drawCropFromImage(cropCanvas, pageImg, currentBbox, inst.page_size);
+    });
+    pageImg.addEventListener('error', () => {
+      cropCanvas.replaceWith(Object.assign(document.createElement('div'), {
+        className: 'tex-figure-placeholder',
+        textContent: '(source page image not available)',
+      }));
+    });
+    if (inst.page_image) pageImg.src = inst.page_image;
+
+    function refresh() {
+      if (pageLoaded) drawCropFromImage(cropCanvas, pageImg, currentBbox, inst.page_size);
+    }
+    function show() { cropView.hidden = true; editor.hidden = false; }
+    function hide() { editor.hidden = true; cropView.hidden = false; }
+
+    if (editBtn) editBtn.addEventListener('click', () => {
+      if (!pageLoaded) return;
+      pendingBbox = currentBbox.slice();
+      show();
+      setupEditor();
+      if (saveBtn) saveBtn.disabled = false;
+    });
+    if (cancelBtn) cancelBtn.addEventListener('click', () => {
+      pendingBbox = null;
+      hide();
+    });
+    if (saveBtn) saveBtn.addEventListener('click', () => {
+      if (!pendingBbox) return;
+      currentBbox = pendingBbox.slice();
+      setBbox(idx, currentBbox);
+      // Mark the problem as outdated since the crop changed.
+      const s = loadState(id);
+      s.outdated = true;
+      saveState(id, s);
+      updateBadge(true);
+      refresh();
+      hide();
+      const bar = document.getElementById('gh-sync');
+      if (bar && typeof bar._refresh === 'function') bar._refresh();
+    });
+    if (resetBtn) resetBtn.addEventListener('click', () => {
+      currentBbox = (inst.bbox_default || []).slice();
+      clearBbox(idx);
+      refresh();
+      const bar = document.getElementById('gh-sync');
+      if (bar && typeof bar._refresh === 'function') bar._refresh();
+    });
+
+    function setupEditor() {
+      const [imgW, imgH] = inst.page_size;
+      const maxW = Math.min(900, document.documentElement.clientWidth - 60);
+      const scale = Math.min(maxW / imgW, 700 / imgH);
+      editorScale = scale;
+      fullCanvas.width  = Math.round(imgW * scale);
+      fullCanvas.height = Math.round(imgH * scale);
+      const ctx = fullCanvas.getContext('2d');
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, fullCanvas.width, fullCanvas.height);
+      ctx.drawImage(pageImg, 0, 0, fullCanvas.width, fullCanvas.height);
+      drawSelection(pendingBbox);
+    }
+    function drawSelection(bbox) {
+      if (!bbox) { selectionBox.style.display = 'none'; return; }
+      const [x1, y1, x2, y2] = bbox;
+      selectionBox.style.display = 'block';
+      selectionBox.style.left   = (x1 * editorScale) + 'px';
+      selectionBox.style.top    = (y1 * editorScale) + 'px';
+      selectionBox.style.width  = ((x2 - x1) * editorScale) + 'px';
+      selectionBox.style.height = ((y2 - y1) * editorScale) + 'px';
+    }
+    function pointerToImage(e) {
+      const rect = fullCanvas.getBoundingClientRect();
+      const px = e.clientX - rect.left;
+      const py = e.clientY - rect.top;
+      return [
+        clamp(Math.round(px / editorScale), 0, inst.page_size[0]),
+        clamp(Math.round(py / editorScale), 0, inst.page_size[1]),
+      ];
+    }
+    fullCanvas.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      dragStart = pointerToImage(e);
+      pendingBbox = [dragStart[0], dragStart[1], dragStart[0], dragStart[1]];
+      drawSelection(pendingBbox);
+    });
+    window.addEventListener('mousemove', (e) => {
+      if (!dragStart) return;
+      const [x, y] = pointerToImage(e);
+      pendingBbox = [
+        Math.min(dragStart[0], x), Math.min(dragStart[1], y),
+        Math.max(dragStart[0], x), Math.max(dragStart[1], y),
+      ];
+      drawSelection(pendingBbox);
+    });
+    window.addEventListener('mouseup', () => { dragStart = null; });
+    fullCanvas.addEventListener('touchstart', (e) => {
+      if (!e.touches.length) return;
+      e.preventDefault();
+      dragStart = pointerToImage(e.touches[0]);
+      pendingBbox = [dragStart[0], dragStart[1], dragStart[0], dragStart[1]];
+      drawSelection(pendingBbox);
+    }, { passive: false });
+    window.addEventListener('touchmove', (e) => {
+      if (!dragStart || !e.touches.length) return;
+      const [x, y] = pointerToImage(e.touches[0]);
+      pendingBbox = [
+        Math.min(dragStart[0], x), Math.min(dragStart[1], y),
+        Math.max(dragStart[0], x), Math.max(dragStart[1], y),
+      ];
+      drawSelection(pendingBbox);
+    }, { passive: true });
+    window.addEventListener('touchend', () => { dragStart = null; });
   }
-
-  function pointerToImage(e) {
-    const rect = fullCanvas.getBoundingClientRect();
-    const px = e.clientX - rect.left;
-    const py = e.clientY - rect.top;
-    return [
-      clamp(Math.round(px / editorScale), 0, meta.page_size[0]),
-      clamp(Math.round(py / editorScale), 0, meta.page_size[1]),
-    ];
-  }
-
-  fullCanvas.addEventListener('mousedown', (e) => {
-    if (e.button !== 0) return;
-    e.preventDefault();
-    dragStart = pointerToImage(e);
-    pendingBbox = [dragStart[0], dragStart[1], dragStart[0], dragStart[1]];
-    drawSelection(pendingBbox);
-  });
-  window.addEventListener('mousemove', (e) => {
-    if (!dragStart) return;
-    const [x, y] = pointerToImage(e);
-    pendingBbox = [
-      Math.min(dragStart[0], x), Math.min(dragStart[1], y),
-      Math.max(dragStart[0], x), Math.max(dragStart[1], y),
-    ];
-    drawSelection(pendingBbox);
-  });
-  window.addEventListener('mouseup', () => { dragStart = null; });
-
-  // Touch support
-  fullCanvas.addEventListener('touchstart', (e) => {
-    if (!e.touches.length) return;
-    e.preventDefault();
-    dragStart = pointerToImage(e.touches[0]);
-    pendingBbox = [dragStart[0], dragStart[1], dragStart[0], dragStart[1]];
-    drawSelection(pendingBbox);
-  }, { passive: false });
-  window.addEventListener('touchmove', (e) => {
-    if (!dragStart || !e.touches.length) return;
-    const [x, y] = pointerToImage(e.touches[0]);
-    pendingBbox = [
-      Math.min(dragStart[0], x), Math.min(dragStart[1], y),
-      Math.max(dragStart[0], x), Math.max(dragStart[1], y),
-    ];
-    drawSelection(pendingBbox);
-  }, { passive: true });
-  window.addEventListener('touchend', () => { dragStart = null; });
 
   // -------- Outdated flag (click the status badge to toggle) --------
   badge.addEventListener('click', () => {
@@ -978,7 +999,6 @@ async function initProblemPage(meta) {
     if (approveCb.checked) {
       let myName = getName();
       if (!myName) {
-        // No name yet — try to fetch it from GitHub /user using the token.
         if (getToken()) await ensureNameFromToken();
         myName = getName();
       }
@@ -995,14 +1015,6 @@ async function initProblemPage(meta) {
     updateApprovalChip(s.approved_by);
     const bar = document.getElementById('gh-sync');
     if (bar && typeof bar._refresh === 'function') bar._refresh();
-  });
-
-  // Mark outdated when bbox changes (after save) — but not on every keystroke
-  saveBtn.addEventListener('click', () => {
-    const s = loadState(id);
-    s.outdated = true;
-    saveState(id, s);
-    updateBadge(true);
   });
 
   exportBtn.addEventListener('click', () => {
@@ -1049,18 +1061,29 @@ async function initSearchPage() {
   const PROBLEMS = (window.PROBLEMS || []).slice();
   if (PROBLEMS.length === 0) return;
 
+  // Helper: gather unique values across a multi-valued field per problem.
+  function gather(arr, field) {
+    const out = new Set();
+    arr.forEach(p => (p[field] || []).forEach(v => v && out.add(v)));
+    return [...out];
+  }
+  function flatPointsNs() {
+    const out = [];
+    PROBLEMS.forEach(p => (p.points_ns || []).forEach(n => out.push(n)));
+    return out;
+  }
+
   // Compute available ranges/options from data
   const yearMin = Math.min(...PROBLEMS.map(p => parseInt(p.year, 10)));
   const yearMax = Math.max(...PROBLEMS.map(p => parseInt(p.year, 10)));
-  const pointsMin = Math.min(...PROBLEMS.map(p => p.points_n || 0));
-  const pointsMax = Math.max(...PROBLEMS.map(p => p.points_n || 0));
+  const ptsArr  = flatPointsNs();
+  const pointsMin = ptsArr.length ? Math.min(...ptsArr) : 0;
+  const pointsMax = ptsArr.length ? Math.max(...ptsArr) : 0;
   const allSources  = [...new Set(PROBLEMS.map(p => p.source).filter(Boolean))];
-  const allPolas    = [...new Set(PROBLEMS.map(p => p.pola_n).filter(Boolean))]
-                        .sort();
-  const allLevels   = [...new Set(PROBLEMS.map(p => p.level).filter(Boolean))]
+  const allPolas    = gather(PROBLEMS, 'polas_n').sort();
+  const allLevels   = gather(PROBLEMS, 'levels')
                         .sort((a, b) => (LEVEL_ORDER_JS[a]||9) - (LEVEL_ORDER_JS[b]||9));
-  const allSections = [...new Set(PROBLEMS.map(p => p.section_letter).filter(Boolean))]
-                        .sort();
+  const allSections = gather(PROBLEMS, 'section_letters').sort();
   // Topics vocabulary = union of master + actually-used (incl any custom)
   const usedTopics = new Set();
   PROBLEMS.forEach(p => {
@@ -1198,16 +1221,20 @@ async function initSearchPage() {
     render();
   });
 
-  // Filter + render
+  // Filter + render. A problem matches if its scalar fields are in range
+  // and at least one value of each multi-valued field is selected.
   function matches(p) {
     const yr = parseInt(p.year, 10);
     if (yr < state.yearMin || yr > state.yearMax) return false;
-    const pts = p.points_n || 0;
-    if (pts < state.pointsMin || pts > state.pointsMax) return false;
+    const pointsNs = p.points_ns || [];
+    const ptsOk = pointsNs.length === 0
+      ? state.pointsMin <= 0 && 0 <= state.pointsMax
+      : pointsNs.some(n => n >= state.pointsMin && n <= state.pointsMax);
+    if (!ptsOk) return false;
     if (!state.sources.has(p.source)) return false;
-    if (!state.polas.has(p.pola_n)) return false;
-    if (!state.levels.has(p.level)) return false;
-    if (!state.sections.has(p.section_letter)) return false;
+    if (!(p.polas_n || []).some(v => state.polas.has(v))) return false;
+    if (!(p.levels  || []).some(v => state.levels.has(v))) return false;
+    if (!(p.section_letters || []).some(v => state.sections.has(v))) return false;
     const topics = effectiveTopics(p.n, p.topics);
     if (topics.length === 0) {
       // No topics → only matches if every topic is selected (i.e., no filter)

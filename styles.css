@@ -363,6 +363,16 @@ canvas.crop-display {
 }
 .image-controls { margin-top: 0.7rem; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
 
+/* Per-instance Original blocks (stacked when a problem has multiple sources) */
+.instance-block {
+  display: flex; flex-direction: column;
+}
+.instance-block + .instance-block {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--card-border);
+}
+
 /* Crop editor */
 .crop-editor {
   margin-top: 1rem; border: 1px solid var(--card-border);
