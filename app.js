@@ -6,7 +6,7 @@
 // Order roughly groups by area; the picker shows a search field for quick filter.
 const ALL_TOPICS = [
   // Algebra
-  "Algebra", "Powers and roots", "Equations", "Inequalities",
+  "Algebra", "Powers", "Roots", "Equations", "Inequalities",
   "Systems of equations", "Polynomials",
   // Functions
   "Linear function", "Quadratic function", "Polynomial function",
