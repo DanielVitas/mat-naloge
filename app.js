@@ -46,9 +46,13 @@ const ALL_TOPICS = [...TOPIC_MAIN, ...Object.keys(TOPIC_PARENT)];
 function isMainTopic(t) { return TOPIC_MAIN_SET.has(t); }
 function topicKindClass(t) { return isMainTopic(t) ? 'topic-main' : 'topic-sub'; }
 
-// Strip "4.x." or "4.x.y." numeric prefix for display.
+// Strip "4.x." or "4.x.y." numeric prefix AND any trailing " funkcija/e"
+// for display (so "4.10.5 Eksponentna funkcija" → "Eksponentna").
 const _PREFIX_RE = /^4\.\d+(\.\d+)?\s+/;
-function displayTopicName(t) { return (t || '').replace(_PREFIX_RE, ''); }
+const _FUNKCIJA_SUFFIX_RE = /\s+funkcij[ae]$/i;
+function displayTopicName(t) {
+  return (t || '').replace(_PREFIX_RE, '').replace(_FUNKCIJA_SUFFIX_RE, '');
+}
 
 // Group topics so subs sit under their parent main: returns
 // [{main, subs:[]}, ...]. Orphan subs (no parent in list) get { main:null }.
@@ -1282,11 +1286,7 @@ async function initSearchPage() {
           <button type="button" class="link-btn" id="topics-none">Select none</button>
         </div>
       </div>
-      <div class="filter-topic-chips" id="f-topics">
-        ${sortTopics(allTopicsArr).map(t =>
-          `<button type="button" class="filter-topic-chip ${topicKindClass(t)}" data-topic="${escapeHtml(t)}" aria-pressed="true">${escapeHtml(displayTopicName(t))}</button>`
-        ).join('')}
-      </div>
+      <div class="filter-topic-chips" id="f-topics"></div>
     </div>
   `;
 
@@ -1317,26 +1317,103 @@ async function initSearchPage() {
   wireChipGroup('f-polas',    state.polas);
   wireChipGroup('f-levels',   state.levels);
   wireChipGroup('f-sections', state.sections);
-  document.getElementById('f-topics').addEventListener('click', (e) => {
-    const btn = e.target.closest('.filter-topic-chip');
-    if (!btn) return;
-    const topic = btn.dataset.topic;
-    const active = btn.getAttribute('aria-pressed') === 'true';
-    const next = !active;
-    btn.setAttribute('aria-pressed', String(next));
-    if (next) state.topics.add(topic); else state.topics.delete(topic);
-    render();
-  });
+  // Topic filter: hierarchical groups with synced parent/sub toggle.
+  // - Parent is "selected" iff every one of its subs is selected (or, for a
+  //   parent with no subs, iff the parent itself is in state.topics).
+  // - Click parent → if currently all-selected, deselect parent + all subs;
+  //   else select parent + all subs.
+  // - Click a sub → toggle just that sub. Then recompute parent: if all subs
+  //   are now selected the parent becomes selected (and is added to the
+  //   filter set); otherwise the parent is removed from the filter set.
+  function subsOf(parent) {
+    return Object.keys(TOPIC_PARENT).filter(s => TOPIC_PARENT[s] === parent);
+  }
+  function parentSelected(parent) {
+    const subs = subsOf(parent);
+    if (subs.length === 0) return state.topics.has(parent);
+    return subs.every(s => state.topics.has(s));
+  }
+  function setParent(parent, selected) {
+    const subs = subsOf(parent);
+    if (selected) {
+      state.topics.add(parent);
+      for (const s of subs) state.topics.add(s);
+    } else {
+      state.topics.delete(parent);
+      for (const s of subs) state.topics.delete(s);
+    }
+  }
+  function syncParentForSub(sub) {
+    const parent = TOPIC_PARENT[sub];
+    if (!parent) return;
+    if (parentSelected(parent)) state.topics.add(parent);
+    else                        state.topics.delete(parent);
+  }
+
+  function renderTopicFilters() {
+    const root = document.getElementById('f-topics');
+    if (!root) return;
+    root.innerHTML = '';
+    // Vocab groups: every main from TOPIC_MAIN, with its subs from TOPIC_PARENT
+    const groups = [];
+    const mainIdx = {};
+    TOPIC_MAIN.forEach(m => { mainIdx[m] = groups.length; groups.push({main: m, subs: []}); });
+    Object.keys(TOPIC_PARENT).forEach(s => {
+      const p = TOPIC_PARENT[s];
+      if (p in mainIdx) groups[mainIdx[p]].subs.push(s);
+    });
+    for (const g of groups) {
+      const div = document.createElement('div');
+      div.className = 'filter-topic-group';
+      div.dataset.pressed = parentSelected(g.main) ? 'true' : 'false';
+      const mainBtn = document.createElement('button');
+      mainBtn.type = 'button';
+      mainBtn.className = 'filter-chip-main';
+      mainBtn.dataset.topic = g.main;
+      mainBtn.setAttribute('aria-pressed', parentSelected(g.main) ? 'true' : 'false');
+      mainBtn.textContent = displayTopicName(g.main);
+      mainBtn.addEventListener('click', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        setParent(g.main, !parentSelected(g.main));
+        renderTopicFilters();
+        render();
+      });
+      div.appendChild(mainBtn);
+      if (g.subs.length > 0) {
+        const subsWrap = document.createElement('span');
+        subsWrap.className = 'filter-group-subs';
+        for (const s of g.subs) {
+          const sb = document.createElement('button');
+          sb.type = 'button';
+          sb.className = 'filter-chip-sub';
+          sb.dataset.topic = s;
+          sb.setAttribute('aria-pressed', state.topics.has(s) ? 'true' : 'false');
+          sb.textContent = displayTopicName(s);
+          sb.addEventListener('click', (e) => {
+            e.preventDefault(); e.stopPropagation();
+            if (state.topics.has(s)) state.topics.delete(s);
+            else                     state.topics.add(s);
+            syncParentForSub(s);
+            renderTopicFilters();
+            render();
+          });
+          subsWrap.appendChild(sb);
+        }
+        div.appendChild(subsWrap);
+      }
+      root.appendChild(div);
+    }
+  }
+  renderTopicFilters();
+
   document.getElementById('topics-all').addEventListener('click', () => {
     state.topics = new Set(allTopicsArr);
-    document.querySelectorAll('#f-topics .filter-topic-chip').forEach(b =>
-      b.setAttribute('aria-pressed', 'true'));
+    renderTopicFilters();
     render();
   });
   document.getElementById('topics-none').addEventListener('click', () => {
     state.topics.clear();
-    document.querySelectorAll('#f-topics .filter-topic-chip').forEach(b =>
-      b.setAttribute('aria-pressed', 'false'));
+    renderTopicFilters();
     render();
   });
 
