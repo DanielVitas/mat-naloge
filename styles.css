@@ -354,19 +354,25 @@ a:hover { text-decoration: underline; }
 }
 .problem-card .card-toggle {
   flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 1.9rem; height: 1.6rem;       /* generous click target */
   background: transparent;
   border: 0;
-  padding: 0 0.15rem;
-  margin: 0;
+  padding: 0; margin: 0;
+  border-radius: 6px;
   font: inherit;
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   font-weight: 800;
   color: var(--muted);
   cursor: pointer;
   user-select: none;
   line-height: 1;
+  transition: background-color 0.08s, color 0.08s;
 }
-.problem-card .card-toggle:hover { color: var(--accent); }
+.problem-card .card-toggle:hover {
+  color: var(--accent);
+  background: rgba(0, 0, 0, 0.07);     /* visual confirmation of the hit zone */
+}
 .problem-card .card-chevron::after { content: '>'; }
 .problem-card .card-section[data-expanded="true"] .card-chevron::after { content: '<'; }
 
