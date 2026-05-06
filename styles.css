@@ -371,6 +371,65 @@ canvas.crop-display {
   border-radius: 6px;
 }
 
+/* Top-left hamburger menu */
+.menu-bar { position: relative; display: inline-flex; }
+.menu-bar .menu-toggle {
+  width: 2.6rem; height: 2.2rem;
+  padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.menu-bar .bars,
+.menu-bar .bars::before,
+.menu-bar .bars::after {
+  display: block; content: '';
+  width: 22px; height: 2px;
+  background: currentColor;
+  border-radius: 2px;
+}
+.menu-bar .bars { position: relative; }
+.menu-bar .bars::before { position: absolute; top: -7px; left: 0; }
+.menu-bar .bars::after  { position: absolute; top:  7px; left: 0; }
+.menu-bar .menu-dropdown {
+  position: absolute; top: calc(100% + 6px); left: 0;
+  min-width: 240px;
+  background: white;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.10);
+  padding: 0.5rem;
+  z-index: 100;
+}
+.menu-bar .menu-dropdown[hidden] { display: none; }
+.menu-bar .menu-h {
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  padding: 0.3rem 0.55rem 0.2rem;
+}
+.menu-bar .menu-tree { display: flex; flex-direction: column; gap: 0.05rem; }
+.menu-bar .menu-link {
+  display: block;
+  padding: 0.32rem 0.55rem;
+  font-size: 0.92rem;
+  color: var(--fg);
+  border-radius: 4px;
+  text-decoration: none;
+}
+.menu-bar .menu-link.l1 { padding-left: 0.9rem; }
+.menu-bar .menu-link:hover {
+  background: #f3f4f6; color: var(--accent);
+  text-decoration: none;
+}
+.menu-bar .menu-current {
+  display: block;
+  padding: 0.18rem 0.55rem 0.18rem 1.9rem;
+  font-size: 0.85rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
 /* The status badge is now a clickable toggle */
 button.status-badge {
   cursor: pointer;

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Naloga 17 — Matura 2025</title>
-<link rel="stylesheet" href="styles.css?v=09e3f327">
+<link rel="stylesheet" href="styles.css?v=7f25e898">
 <script>
   window.MathJax = {
     tex: {
@@ -21,6 +21,22 @@
 <body>
 <div class="container">
   <div class="top-bar">
+    
+<div class="menu-bar" id="menu-bar">
+  <button id="menu-btn" class="menu-toggle" aria-label="Menu">
+    <span class="bars"></span>
+  </button>
+  <div class="menu-dropdown" id="menu-dropdown" hidden>
+    <div class="menu-h">Problems</div>
+    <div class="menu-tree">
+      <a class="menu-link l1" href="index.html#matura">Matura</a>
+      <span class="menu-current l2">17.</span>
+      <a class="menu-link l1" href="index.html#textbook">Textbook</a>
+      
+    </div>
+  </div>
+</div>
+
     <span style="flex:1"></span>
     
 <div class="gh-sync" id="gh-sync">
@@ -112,7 +128,7 @@
       </div>
     </div>
   </div>
-<script src="app.js?v=5ad20d4a"></script>
+<script src="app.js?v=a83cd664"></script>
 <script>
   const PROBLEM = {"n": 17, "latex": "Naj bosta $a=\\log_{5} 2$ in $b=\\log_{5} 3$. Logaritme $\\log_{5} 6$, $\\log_{5} 2\\sqrt{3}$ in $\\log_{5} 0{,}\\overline{3}$ izrazite z $a$ in $b$.", "tikz_count": 0, "page_image": "pages/2025_Spomladanski_Pola1_VR_page-12.png", "page_size": [1654, 2339], "bbox_default": [157, 134, 1514, 346]};
   initProblemPage(PROBLEM);

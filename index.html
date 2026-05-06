@@ -4,11 +4,27 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Matura naloge — 2025 (vzorec)</title>
-<link rel="stylesheet" href="styles.css?v=09e3f327">
+<link rel="stylesheet" href="styles.css?v=7f25e898">
 </head>
 <body>
 <div class="container">
   <div class="top-bar">
+    
+<div class="menu-bar" id="menu-bar">
+  <button id="menu-btn" class="menu-toggle" aria-label="Menu">
+    <span class="bars"></span>
+  </button>
+  <div class="menu-dropdown" id="menu-dropdown" hidden>
+    <div class="menu-h">Problems</div>
+    <div class="menu-tree">
+      <a class="menu-link l1" href="index.html#matura">Matura</a>
+      
+      <a class="menu-link l1" href="index.html#textbook">Textbook</a>
+      
+    </div>
+  </div>
+</div>
+
     <span style="flex:1"></span>
     
 <div class="gh-sync" id="gh-sync">
@@ -59,7 +75,7 @@
     <button id="export-all">⬇ Export all changes (JSON)</button>
     <span class="hint">Push to GitHub (top right) is the usual way to publish edits.</span>
   </div>
-  <details class="collection" open><summary>Matura <span class="count">(20)</span></summary><div class="problem-list">
+  <details class="collection" data-source="matura" open><summary>Matura <span class="count">(20)</span></summary><div class="problem-list">
 <a class="problem-card" href="problem-001.html" data-id="1"><span class="card-num">1.</span><span class="tags"><span class="tag source">Matura</span><span class="tag year">2025</span><span class="tag season">Spomladanski rok</span><span class="tag pola">Izpitna pola 1</span><span class="tag level">OR</span><span class="tag section">A</span><span class="tag points">2 točki</span></span></a>
 <a class="problem-card" href="problem-002.html" data-id="2"><span class="card-num">2.</span><span class="tags"><span class="tag source">Matura</span><span class="tag year">2025</span><span class="tag season">Spomladanski rok</span><span class="tag pola">Izpitna pola 1</span><span class="tag level">OR</span><span class="tag section">A</span><span class="tag points">2 točki</span></span></a>
 <a class="problem-card" href="problem-003.html" data-id="3"><span class="card-num">3.</span><span class="tags"><span class="tag source">Matura</span><span class="tag year">2025</span><span class="tag season">Spomladanski rok</span><span class="tag pola">Izpitna pola 1</span><span class="tag level">OR</span><span class="tag section">A</span><span class="tag points">3 točke</span></span></a>
@@ -81,9 +97,9 @@
 <a class="problem-card" href="problem-019.html" data-id="19"><span class="card-num">19.</span><span class="tags"><span class="tag source">Matura</span><span class="tag year">2025</span><span class="tag season">Spomladanski rok</span><span class="tag pola">Izpitna pola 1</span><span class="tag level">VR</span><span class="tag section">B</span><span class="tag points">8 točk</span></span></a>
 <a class="problem-card" href="problem-020.html" data-id="20"><span class="card-num">20.</span><span class="tags"><span class="tag source">Matura</span><span class="tag year">2025</span><span class="tag season">Spomladanski rok</span><span class="tag pola">Izpitna pola 1</span><span class="tag level">VR</span><span class="tag section">C</span><span class="tag points">2 točki</span></span></a>
 </div></details>
-<details class="collection"><summary>Textbook <span class="count">(0)</span></summary><div class="collection-empty">No problems yet.</div></details>
+<details class="collection" data-source="textbook"><summary>Textbook <span class="count">(0)</span></summary><div class="collection-empty">No problems yet.</div></details>
 </div>
-<script src="app.js?v=5ad20d4a"></script>
+<script src="app.js?v=a83cd664"></script>
 <script>initIndexPage();</script>
 </body>
 </html>

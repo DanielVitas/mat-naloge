@@ -229,6 +229,37 @@ async function ensureNameFromToken() {
   if (login && login !== getName()) setName(login);
 }
 
+// Top-left hamburger menu (shared between index and problem pages).
+function initMenuBar() {
+  const bar = document.getElementById('menu-bar');
+  if (!bar) return;
+  const btn = bar.querySelector('#menu-btn');
+  const dd  = bar.querySelector('#menu-dropdown');
+  if (!btn || !dd) return;
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dd.hidden = !dd.hidden;
+  });
+  document.addEventListener('click', (e) => {
+    if (!bar.contains(e.target)) dd.hidden = true;
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') dd.hidden = true;
+  });
+}
+
+// On the index page, if the URL has a #matura / #textbook hash, open that
+// section and scroll it into view.
+function handleSectionHash() {
+  const hash = (location.hash || '').replace('#', '').trim();
+  if (!hash) return;
+  const sec = document.querySelector(`details.collection[data-source="${hash}"]`);
+  if (sec) {
+    sec.open = true;
+    sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
 // Wire up the GitHub-sync UI block (shared between index and problem pages).
 function initSyncBar() {
   const bar = document.getElementById('gh-sync');
@@ -511,6 +542,7 @@ async function initProblemPage(meta) {
   await fetchRemoteData();
   const id    = meta.n;
   const state = effectiveState(id);
+  initMenuBar();
   initSyncBar();
 
   const ta            = $('latex-source');
@@ -769,7 +801,10 @@ async function initProblemPage(meta) {
 
 async function initIndexPage() {
   await fetchRemoteData();
+  initMenuBar();
   initSyncBar();
+  handleSectionHash();
+  window.addEventListener('hashchange', handleSectionHash);
   // Make sure we have the latest reviewer name from /user before colouring.
   await ensureNameFromToken();
   applyIndexStatuses();
