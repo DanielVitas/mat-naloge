@@ -204,10 +204,6 @@ const GH = {
   api() { return `https://api.github.com/repos/${this.owner}/${this.repo}/contents/${this.path}`; },
 };
 
-// GitHub login of the repo owner. Only this user can create brand-new topics
-// (anyone signed in can still search and assign topics that already exist).
-const OWNER_LOGIN = 'DanielVitas';
-function isOwner() { return getName() === OWNER_LOGIN; }
 
 function $(id) { return document.getElementById(id); }
 function loadState(id) {
@@ -865,22 +861,6 @@ function openTopicPicker(meta, anchorBtn) {
       empty.textContent = 'No matches.';
       list.appendChild(empty);
     }
-    // If the search has a non-empty value not in the master list, offer to
-    // add it as a custom topic — but ONLY for the repo owner.
-    const query = filter.trim();
-    const isCustom = query && !current.has(query) &&
-        !ALL_TOPICS.some(t => t.toLowerCase() === query.toLowerCase());
-    if (isCustom && isOwner()) {
-      const btn = document.createElement('button');
-      btn.className = 'topic-picker-item topic-picker-custom';
-      btn.type = 'button';
-      btn.innerHTML = 'Add new topic: <strong>' + escapeHtml(query) + '</strong>';
-      btn.addEventListener('click', (e) => {
-        e.preventDefault(); e.stopPropagation();
-        addTopic(query);
-      });
-      list.appendChild(btn);
-    }
   }
   renderList('');
   search.addEventListener('input', () => renderList(search.value));
@@ -890,17 +870,14 @@ function openTopicPicker(meta, anchorBtn) {
       e.preventDefault();
       const q = search.value.trim();
       if (!q) return;
-      // Prefer an exact-case-insensitive match from the master list
-      const match = ALL_TOPICS.find(t => t.toLowerCase() === q.toLowerCase()
-        && !current.has(t));
-      if (match) {
-        addTopic(match);
-      } else if (isOwner()) {
-        // Only the owner can create a brand-new topic via Enter.
-        addTopic(q);
-      }
-      // Non-owner with no match: silently ignore — the picker already shows
-      // the "Only DanielVitas can add new topics." note explaining why.
+      // Add only if the query exactly matches an existing topic (display
+      // name or full id). Creating brand-new topics from the webpage is
+      // intentionally not supported — request additions in chat.
+      const match = ALL_TOPICS.find(t =>
+        !current.has(t) &&
+        (t.toLowerCase() === q.toLowerCase() ||
+         displayTopicName(t).toLowerCase() === q.toLowerCase()));
+      if (match) addTopic(match);
     }
   });
 

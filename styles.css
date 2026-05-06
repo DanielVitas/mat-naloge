@@ -190,7 +190,6 @@ a:hover { text-decoration: underline; }
   font-style: italic;
   font-size: 0.85rem;
 }
-.topic-picker-custom { color: var(--accent); }
 
 /* Grouped layout inside the topic picker: each row is a main + its
    still-available subs, mimicking the search filter & problem-page chips. */
