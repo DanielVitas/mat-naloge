@@ -354,6 +354,23 @@ function latexToHtml(src, problemId, tikzCount) {
   return src;
 }
 
+// Apply status-driven background colours to every card on the index page,
+// based on the merged remote+local state and the current reviewer name.
+function applyIndexStatuses() {
+  const me = getName();
+  document.querySelectorAll('.problem-card').forEach(card => {
+    const id = card.dataset.id;
+    const s = effectiveState(id);
+    card.classList.remove('status-outdated', 'status-approved-me', 'status-approved-other');
+    if (s.approved_by) {
+      if (me && s.approved_by === me) card.classList.add('status-approved-me');
+      else                            card.classList.add('status-approved-other');
+    } else if (s.outdated) {
+      card.classList.add('status-outdated');
+    }
+  });
+}
+
 function renderTeXPreview(srcText, target, problemId, tikzCount) {
   target.innerHTML = latexToHtml(srcText, problemId, tikzCount);
   if (window.MathJax && window.MathJax.typesetPromise) {
@@ -633,18 +650,9 @@ async function initProblemPage(meta) {
 async function initIndexPage() {
   await fetchRemoteData();
   initSyncBar();
-  document.querySelectorAll('.problem-card').forEach(card => {
-    const id = card.dataset.id;
-    const s = effectiveState(id);
-    if (s.outdated) {
-      card.classList.add('outdated');
-      const badge = document.createElement('span');
-      badge.className = 'badge outdated';
-      badge.textContent = 'needs redoing';
-      const row = card.querySelector('.row');
-      if (row) row.appendChild(badge);
-    }
-  });
+  // Make sure we have the latest reviewer name from /user before colouring.
+  await ensureNameFromToken();
+  applyIndexStatuses();
   const exportAllBtn = document.getElementById('export-all');
   if (exportAllBtn) {
     exportAllBtn.addEventListener('click', () => {
