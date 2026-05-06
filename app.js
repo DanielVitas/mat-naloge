@@ -592,6 +592,24 @@ function initMenuBar() {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') dd.hidden = true;
   });
+  refreshMenuBranches();
+  window.addEventListener('hashchange', refreshMenuBranches);
+}
+
+// Show only menu branches that are part of the current context — the URL
+// hash on the index/exam pages, or the path of the current problem on a
+// problem page (detected via the .menu-current span server-rendered into
+// the matching branch).
+function refreshMenuBranches() {
+  const hash = (location.hash || '').replace('#', '').trim();
+  document.querySelectorAll('.menu-bar .menu-branch').forEach(el => {
+    const branch = el.dataset.branch;
+    let active = false;
+    if (hash && (hash === branch || hash.startsWith(branch + '/'))) active = true;
+    if (!active && el.querySelector('.menu-current')) active = true;
+    if (active) el.dataset.active = 'true';
+    else        delete el.dataset.active;
+  });
 }
 
 // Generic page-level tab switcher. Updates aria/state on .page-tab buttons

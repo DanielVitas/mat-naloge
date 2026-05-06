@@ -556,6 +556,13 @@ canvas.crop-display {
   margin-bottom: 0.5rem; flex-wrap: wrap;
   min-height: 2.2rem;
 }
+.top-bar .page-title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--fg);
+  line-height: 1;
+}
 
 /* Problem navigation under the H1 — just arrows + menu */
 .problem-nav {
@@ -790,6 +797,9 @@ canvas.crop-display {
   padding: 0.3rem 0.55rem 0.2rem;
 }
 .menu-bar .menu-tree { display: flex; flex-direction: column; gap: 0.05rem; }
+/* Deep menu branches stay hidden until JS marks the matching path active. */
+.menu-bar .menu-branch { display: none; }
+.menu-bar .menu-branch[data-active] { display: block; }
 .menu-bar .menu-link {
   display: block;
   padding: 0.32rem 0.55rem;
