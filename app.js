@@ -1362,7 +1362,7 @@ async function initSearchPage() {
         <label class="filter-label">Pola</label>
         <div class="filter-chip-group" id="f-polas">
           ${allPolas.map(p =>
-            `<button type="button" class="filter-chip filter-chip-pola" data-val="${escapeHtml(p)}" aria-pressed="true">Pola ${escapeHtml(p)}</button>`
+            `<button type="button" class="filter-chip filter-chip-pola" data-val="${escapeHtml(p)}" aria-pressed="true">${escapeHtml(p)}. pola</button>`
           ).join('')}
         </div>
       </div>
