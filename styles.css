@@ -11,6 +11,7 @@
   --tag-level-bg: #fed7aa; --tag-level-fg: #9a3412;
   --tag-section-bg: #fef3c7; --tag-section-fg: #92400e;
   --tag-points-bg: #e5e7eb; --tag-points-fg: #374151;
+  --tag-topic-bg: #ccfbf1; --tag-topic-fg: #115e59;
 }
 * { box-sizing: border-box; }
 body {
@@ -35,6 +36,10 @@ a:hover { text-decoration: underline; }
 .tag.level   { background: var(--tag-level-bg);   color: var(--tag-level-fg); }
 .tag.section { background: var(--tag-section-bg); color: var(--tag-section-fg); }
 .tag.points  { background: var(--tag-points-bg);  color: var(--tag-points-fg); }
+.tag.topic   {
+  background: var(--tag-topic-bg);  color: var(--tag-topic-fg);
+  border: 1px solid #99f6e4;
+}
 
 /* Collapsible source-collection sections on the index page */
 .collection {
@@ -206,6 +211,18 @@ button:disabled { opacity: 0.5; cursor: default; }
 }
 .title-row h1 { margin: 0; }
 .title-row .tags { margin: 0; }
+
+/* Topics row: shown right under title-row, distinct color, optional label */
+.topics-row {
+  display: flex; align-items: center; gap: 0.5rem;
+  flex-wrap: wrap; margin: 0.1rem 0 0.6rem;
+}
+.topics-row .topics-label {
+  font-size: 0.78rem; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.05em;
+  font-weight: 600;
+}
+.topics-row .tags { margin: 0; }
 
 textarea#latex-source {
   width: 100%; min-height: 280px;
