@@ -32,6 +32,50 @@ function setName(n) {
   else   localStorage.removeItem('gh-name');
 }
 
+// ---- Display-name layer ---------------------------------------------------
+// Display names are keyed by GitHub login and live at top-level data.json
+// under `display_names: { <login>: <name> }`. Local unsynced edits live in
+// `gh-display-names` localStorage as the same shape.
+function getDisplayNamesLocal() {
+  try { return JSON.parse(localStorage.getItem('gh-display-names') || '{}'); }
+  catch { return {}; }
+}
+function setDisplayNamesLocal(map) {
+  if (map && Object.keys(map).length) {
+    localStorage.setItem('gh-display-names', JSON.stringify(map));
+  } else {
+    localStorage.removeItem('gh-display-names');
+  }
+}
+function getDisplayNamesRemote() {
+  return (REMOTE_DATA && REMOTE_DATA.display_names) || {};
+}
+// Effective merged map: remote then local-overrides.
+function effectiveDisplayNames() {
+  return { ...getDisplayNamesRemote(), ...getDisplayNamesLocal() };
+}
+// Look up the display name for a GitHub login; falls back to login itself.
+function displayNameFor(login) {
+  if (!login) return '';
+  const map = effectiveDisplayNames();
+  return map[login] || login;
+}
+function setMyDisplayName(name) {
+  const me = getName();
+  if (!me) return;
+  const local = getDisplayNamesLocal();
+  const remote = getDisplayNamesRemote();
+  const trimmed = (name || '').trim();
+  // If the new name equals the remote value (or is empty and there's no
+  // remote value), drop the local override so we don't generate a phantom diff.
+  if (trimmed === (remote[me] || '') || (!trimmed && !remote[me])) {
+    delete local[me];
+  } else {
+    local[me] = trimmed;
+  }
+  setDisplayNamesLocal(local);
+}
+
 async function fetchRemoteData() {
   // Read data.json directly off the deployed site (no auth needed).
   try {
@@ -86,6 +130,14 @@ function pendingChanges() {
     );
     if (!same) out[id] = local;
   }
+  // Display-name overrides count as pending changes too.
+  const localNames  = getDisplayNamesLocal();
+  const remoteNames = getDisplayNamesRemote();
+  for (const login of Object.keys(localNames)) {
+    if (localNames[login] !== (remoteNames[login] || '')) {
+      out['__display_name__:' + login] = { display_name: localNames[login] };
+    }
+  }
   return out;
 }
 
@@ -110,6 +162,13 @@ async function pushChanges() {
     if (!local) continue;
     merged[id] = { ...(merged[id] || {}), ...local };
   }
+  // Merge display_names map (local overrides win).
+  const mergedNames = { ...(merged.display_names || {}), ...getDisplayNamesLocal() };
+  // Drop empty strings — they mean "fall back to login".
+  for (const k of Object.keys(mergedNames)) {
+    if (!mergedNames[k]) delete mergedNames[k];
+  }
+  if (Object.keys(mergedNames).length) merged.display_names = mergedNames;
 
   const json = JSON.stringify(merged, null, 2);
   // utf-8 safe base64 encode
@@ -141,6 +200,7 @@ async function pushChanges() {
     const k = localStorage.key(i);
     if (k && k.startsWith('prob-')) localStorage.removeItem(k);
   }
+  setDisplayNamesLocal({});
   alert('Pushed. GitHub Pages will redeploy in ~30 s.');
   // give Pages a moment, then reload
   setTimeout(() => location.reload(), 1500);
@@ -184,21 +244,48 @@ function initSyncBar() {
   const pushBtn         = bar.querySelector('#gh-push');
   const menuBtn         = bar.querySelector('#gh-menu-btn');
   const userDropdown    = bar.querySelector('#gh-user-dropdown');
+  const menuView        = bar.querySelector('#gh-menu-view');
+  const displayForm     = bar.querySelector('#gh-display-form');
+  const displayInput    = bar.querySelector('#gh-display-input');
+  const displaySaveBtn  = bar.querySelector('#gh-display-save');
+  const displayCancelBtn= bar.querySelector('#gh-display-cancel');
+  const displayEditBtn  = bar.querySelector('#gh-display-edit');
+  const displayNameEl   = bar.querySelector('#gh-display-name');
+  const loginRowEl      = bar.querySelector('#gh-login-row');
   const usernameSpan    = bar.querySelector('#gh-username');
-  const editTokenBtn    = bar.querySelector('#gh-edit-token');
   const clearBtn        = bar.querySelector('#gh-clear-token');
 
+  function showMenu() {
+    if (menuView)    menuView.hidden    = false;
+    if (displayForm) displayForm.hidden = true;
+  }
+  function showDisplayForm() {
+    if (menuView)    menuView.hidden    = true;
+    if (displayForm) displayForm.hidden = false;
+    const me = getName();
+    const map = effectiveDisplayNames();
+    displayInput.value = me ? (map[me] || '') : '';
+    setTimeout(() => displayInput.focus(), 0);
+  }
   function closeDropdowns() {
     signinDropdown.hidden = true;
     userDropdown.hidden = true;
+    showMenu();
   }
   function refresh() {
     const has = !!getToken();
     signedOut.hidden = has;
     signedIn.hidden  = !has;
     if (has) {
-      const name = getName() || '…';
-      usernameSpan.textContent = name;
+      const login = getName();
+      const dn = login ? displayNameFor(login) : '…';
+      if (displayNameEl) displayNameEl.textContent = dn;
+      if (usernameSpan)  usernameSpan.textContent  = login || '…';
+      // Only show the "@login" row if the display name differs from login.
+      if (loginRowEl) {
+        const showLogin = login && dn && dn !== login;
+        loginRowEl.parentElement.style.display = showLogin ? '' : 'none';
+      }
     }
     const n = Object.keys(pendingChanges()).length;
     pushBtn.disabled = !has || n === 0;
@@ -245,17 +332,43 @@ function initSyncBar() {
     e.stopPropagation();
     const open = !userDropdown.hidden;
     closeDropdowns();
-    userDropdown.hidden = open;          // toggle
+    if (!open) {
+      userDropdown.hidden = false;
+      showMenu();
+    }
   });
-  editTokenBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    closeDropdowns();
-    // Switch to signed-out state and reveal token input.
-    setToken(''); setName('');
-    refresh();
-    signinDropdown.hidden = false;
-    tokenInput.focus();
-  });
+  if (displayEditBtn) {
+    displayEditBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showDisplayForm();
+    });
+  }
+  if (displaySaveBtn) {
+    displaySaveBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      setMyDisplayName(displayInput.value);
+      closeDropdowns();
+      refresh();
+      // Re-render any approval chip currently on screen.
+      if (typeof window.refreshApprovalChip === 'function') {
+        window.refreshApprovalChip();
+      }
+      // Re-colour index cards if we're on the index page.
+      if (typeof applyIndexStatuses === 'function') applyIndexStatuses();
+    });
+  }
+  if (displayCancelBtn) {
+    displayCancelBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showMenu();
+    });
+  }
+  if (displayInput) {
+    displayInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter')  { e.preventDefault(); displaySaveBtn.click(); }
+      if (e.key === 'Escape') { e.preventDefault(); displayCancelBtn.click(); }
+    });
+  }
   clearBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     if (!confirm('Sign out and forget GitHub token from this browser?')) return;
@@ -430,6 +543,12 @@ async function initProblemPage(meta) {
   updateBadge(state.outdated);
   approveCb.checked = !!state.approved_by;
   updateApprovalChip(state.approved_by || null);
+  // Expose a refresh hook so changes to display names elsewhere (e.g. from
+  // the dropdown) update the chip text without a reload.
+  window.refreshApprovalChip = () => {
+    const cur = (loadState(id).approved_by) || ((REMOTE_DATA && REMOTE_DATA[id]) ? REMOTE_DATA[id].approved_by : null);
+    updateApprovalChip(cur || null);
+  };
   renderTeXPreview(ta.value, preview, meta.n, meta.tikz_count);
 
   let timer;
@@ -638,10 +757,10 @@ async function initProblemPage(meta) {
     }
   }
 
-  function updateApprovalChip(name) {
-    if (name) {
+  function updateApprovalChip(login) {
+    if (login) {
       approvalChip.hidden = false;
-      approvalChip.textContent = `${name} ✓`;
+      approvalChip.textContent = `${displayNameFor(login)} ✓`;
     } else {
       approvalChip.hidden = true;
     }

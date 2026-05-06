@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Naloga 20 — Matura 2025</title>
-<link rel="stylesheet" href="styles.css?v=b49df958">
+<link rel="stylesheet" href="styles.css?v=65711d73">
 <script>
   window.MathJax = {
     tex: {
@@ -41,10 +41,21 @@
     <button id="gh-push" class="primary" disabled>⬆ Push</button>
     <button id="gh-menu-btn" class="dropdown-toggle" aria-label="Account menu">▾</button>
     <div class="gh-dropdown gh-user-dropdown" id="gh-user-dropdown" hidden>
-      <div class="gh-row">Signed in as <strong id="gh-username">…</strong></div>
-      <hr>
-      <button id="gh-edit-token" class="dropdown-item">Edit token</button>
-      <button id="gh-clear-token" class="dropdown-item">Sign out</button>
+      <div class="gh-menu-view" id="gh-menu-view">
+        <div class="gh-row">Signed in as <strong id="gh-display-name">…</strong></div>
+        <div class="gh-row gh-login-row"><span class="gh-muted" id="gh-login-row">@<span id="gh-username">…</span></span></div>
+        <hr>
+        <button id="gh-display-edit" class="dropdown-item">Display name</button>
+        <button id="gh-clear-token" class="dropdown-item">Sign out</button>
+      </div>
+      <div class="gh-display-form" id="gh-display-form" hidden>
+        <p class="gh-hint">Shown on approvals. Linked to your GitHub account, not the token.</p>
+        <input id="gh-display-input" type="text" autocomplete="off" placeholder="Display name">
+        <div class="gh-actions">
+          <button id="gh-display-save" class="primary">Save</button>
+          <button id="gh-display-cancel">Cancel</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -101,7 +112,7 @@
       </div>
     </div>
   </div>
-<script src="app.js?v=571d5442"></script>
+<script src="app.js?v=5ad20d4a"></script>
 <script>
   const PROBLEM = {"n": 20, "latex": "Na sliki sta narisana vektorja $\\vec{a}$ in $\\vec{b}$. Lik $ABCDEF$ je pravilni šestkotnik s stranicami dolžine ena. Točka $T$ je razpolovišče daljice $DE$.\n\n\\begin{center}\n\\begin{tikzpicture}[scale=1.1,>=latex]\n  \\foreach \\i/\\name in {0/B, 1/C, 2/D, 3/F\\,doesnotmatter, 4/E, 5/F} {} % placeholder\n  \\coordinate (A) at (-1,0);\n  \\coordinate (B) at (1,0);\n  \\coordinate (C) at (2,1.732);\n  \\coordinate (D) at (1,3.464);\n  \\coordinate (E) at (-1,3.464);\n  \\coordinate (F) at (-2,1.732);\n  \\coordinate (T) at (0,3.464);\n  \\draw[thick] (A) -- (B) -- (C) -- (D) -- (E) -- (F) -- cycle;\n  \\node[below left]  at (A) {$A$};\n  \\node[below right] at (B) {$B$};\n  \\node[right]       at (C) {$C$};\n  \\node[above right] at (D) {$D$};\n  \\node[above]       at (T) {$T$};\n  \\node[above left]  at (E) {$E$};\n  \\node[left]        at (F) {$F$};\n  \\fill (T) circle (1pt);\n  \\draw[->,thick] (A) -- node[below] {$\\vec{a}$} (B);\n  \\draw[->,thick] (B) -- node[right] {$\\vec{b}$} (C);\n\\end{tikzpicture}\n\\end{center}\n\n\\textit{1.1.}\\quad Izrazite vektorja $\\vec{AC}$ in $\\vec{BT}$ kot linearni kombinaciji vektorjev $\\vec{a}$ in $\\vec{b}$ ter izračunajte dolžino daljice $|BT|$.", "tikz_count": 1, "page_image": "pages/2025_Spomladanski_Pola1_VR_page-16.png", "page_size": [1654, 2339], "bbox_default": [157, 134, 1514, 968]};
   initProblemPage(PROBLEM);

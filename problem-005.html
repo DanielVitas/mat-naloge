@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Naloga 5 — Matura 2025</title>
-<link rel="stylesheet" href="styles.css?v=b49df958">
+<link rel="stylesheet" href="styles.css?v=65711d73">
 <script>
   window.MathJax = {
     tex: {
@@ -41,10 +41,21 @@
     <button id="gh-push" class="primary" disabled>⬆ Push</button>
     <button id="gh-menu-btn" class="dropdown-toggle" aria-label="Account menu">▾</button>
     <div class="gh-dropdown gh-user-dropdown" id="gh-user-dropdown" hidden>
-      <div class="gh-row">Signed in as <strong id="gh-username">…</strong></div>
-      <hr>
-      <button id="gh-edit-token" class="dropdown-item">Edit token</button>
-      <button id="gh-clear-token" class="dropdown-item">Sign out</button>
+      <div class="gh-menu-view" id="gh-menu-view">
+        <div class="gh-row">Signed in as <strong id="gh-display-name">…</strong></div>
+        <div class="gh-row gh-login-row"><span class="gh-muted" id="gh-login-row">@<span id="gh-username">…</span></span></div>
+        <hr>
+        <button id="gh-display-edit" class="dropdown-item">Display name</button>
+        <button id="gh-clear-token" class="dropdown-item">Sign out</button>
+      </div>
+      <div class="gh-display-form" id="gh-display-form" hidden>
+        <p class="gh-hint">Shown on approvals. Linked to your GitHub account, not the token.</p>
+        <input id="gh-display-input" type="text" autocomplete="off" placeholder="Display name">
+        <div class="gh-actions">
+          <button id="gh-display-save" class="primary">Save</button>
+          <button id="gh-display-cancel">Cancel</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -101,7 +112,7 @@
       </div>
     </div>
   </div>
-<script src="app.js?v=571d5442"></script>
+<script src="app.js?v=5ad20d4a"></script>
 <script>
   const PROBLEM = {"n": 5, "latex": "Na skici spodaj je štirikotnik $ABCD$. Izračunajte kota $\\beta$ in $\\gamma$, če je $\\gamma=2\\beta$.\n\n\\begin{center}\n\\begin{tikzpicture}[scale=1.0,>=latex]\n  \\coordinate (A) at (0,0);\n  \\coordinate (B) at (5.4,0);\n  \\coordinate (C) at (4.6,2.6);\n  \\coordinate (D) at (1.6,3.0);\n  \\draw[thick] (A) -- (B) -- (C) -- (D) -- cycle;\n  \\node[below left]  at (A) {$A$};\n  \\node[below right] at (B) {$B$};\n  \\node[above right] at (C) {$C$};\n  \\node[above left]  at (D) {$D$};\n  \\pic [draw, \"$70^\\circ$\", angle radius=8mm, angle eccentricity=1.45]\n       {angle = B--A--D};\n  \\pic [draw, \"$\\beta$\", angle radius=8mm, angle eccentricity=1.6]\n       {angle = C--B--A};\n  \\pic [draw, \"$101^\\circ$\", angle radius=8mm, angle eccentricity=1.6]\n       {angle = D--C--B};\n  \\pic [draw, \"$\\gamma$\", angle radius=8mm, angle eccentricity=1.55]\n       {angle = A--D--C};\n\\end{tikzpicture}\n\\end{center}", "tikz_count": 1, "page_image": "pages/2025_Spomladanski_Pola1_OR_page-11.png", "page_size": [1654, 2339], "bbox_default": [157, 134, 1514, 663]};
   initProblemPage(PROBLEM);

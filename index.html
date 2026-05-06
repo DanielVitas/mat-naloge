@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Matura naloge — 2025 (vzorec)</title>
-<link rel="stylesheet" href="styles.css?v=b49df958">
+<link rel="stylesheet" href="styles.css?v=65711d73">
 </head>
 <body>
 <div class="container">
@@ -29,10 +29,21 @@
     <button id="gh-push" class="primary" disabled>⬆ Push</button>
     <button id="gh-menu-btn" class="dropdown-toggle" aria-label="Account menu">▾</button>
     <div class="gh-dropdown gh-user-dropdown" id="gh-user-dropdown" hidden>
-      <div class="gh-row">Signed in as <strong id="gh-username">…</strong></div>
-      <hr>
-      <button id="gh-edit-token" class="dropdown-item">Edit token</button>
-      <button id="gh-clear-token" class="dropdown-item">Sign out</button>
+      <div class="gh-menu-view" id="gh-menu-view">
+        <div class="gh-row">Signed in as <strong id="gh-display-name">…</strong></div>
+        <div class="gh-row gh-login-row"><span class="gh-muted" id="gh-login-row">@<span id="gh-username">…</span></span></div>
+        <hr>
+        <button id="gh-display-edit" class="dropdown-item">Display name</button>
+        <button id="gh-clear-token" class="dropdown-item">Sign out</button>
+      </div>
+      <div class="gh-display-form" id="gh-display-form" hidden>
+        <p class="gh-hint">Shown on approvals. Linked to your GitHub account, not the token.</p>
+        <input id="gh-display-input" type="text" autocomplete="off" placeholder="Display name">
+        <div class="gh-actions">
+          <button id="gh-display-save" class="primary">Save</button>
+          <button id="gh-display-cancel">Cancel</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -71,7 +82,7 @@
 <a class="problem-card" href="problem-020.html" data-id="20"><span class="card-num">20.</span><span class="tags"><span class="tag year">2025</span><span class="tag season">Spomladanski rok</span><span class="tag pola">Izpitna pola 1</span><span class="tag level">VR</span><span class="tag section">C</span><span class="tag points">2 točki</span></span></a>
   </div>
 </div>
-<script src="app.js?v=571d5442"></script>
+<script src="app.js?v=5ad20d4a"></script>
 <script>initIndexPage();</script>
 </body>
 </html>

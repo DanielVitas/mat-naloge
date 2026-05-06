@@ -312,6 +312,17 @@ canvas.crop-display {
   cursor: pointer;
 }
 .gh-sync .dropdown-item:hover { background: #f3f4f6; color: var(--accent); }
+.gh-sync .gh-muted { color: var(--muted); }
+.gh-sync .gh-row strong { color: var(--fg); }
+.gh-sync .gh-login-row { padding-top: 0; padding-bottom: 0.4rem; font-size: 0.78rem; }
+.gh-sync .gh-display-form { padding: 0.2rem 0.2rem 0; }
+.gh-sync .gh-display-form input[type=text] {
+  font: inherit; font-size: 0.85rem;
+  width: 100%;
+  padding: 0.35rem 0.55rem;
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+}
 
 /* The status badge is now a clickable toggle */
 button.status-badge {
