@@ -1950,6 +1950,160 @@ async function initExamPage() {
   });
 
   renderAll();
+  initFinishing(byN);
+}
+
+// ---------- Exam → Finishing tab -----------------------------------------
+function initFinishing(byN) {
+  const list    = document.getElementById('finishing-list');
+  const tex     = document.getElementById('finishing-tex');
+  const preview = document.getElementById('finishing-preview');
+  if (!list || !tex || !preview) return;
+
+  function sortBySection(ns) {
+    return [...ns].sort((a, b) => {
+      const sa = ((byN[a]?.section_letters) || ['Z'])[0] || 'Z';
+      const sb = ((byN[b]?.section_letters) || ['Z'])[0] || 'Z';
+      return sa.localeCompare(sb) || (a - b);
+    });
+  }
+
+  function readOrderFromDOM() {
+    return Array.from(list.querySelectorAll('.finishing-row'))
+      .map(r => Number(r.dataset.n));
+  }
+
+  function regenerate() {
+    const order = readOrderFromDOM();
+    const parts = order.map(n => {
+      const data = byN[n] || {};
+      const ed = effectiveState(n);
+      const src = (ed.latex !== undefined) ? ed.latex : (data.latex || '');
+      return `\\item ${src.trim()}`;
+    });
+    const doc = `\\documentclass[12pt,a4paper]{article}
+\\usepackage[utf8]{inputenc}
+\\usepackage[T1]{fontenc}
+\\usepackage{lmodern}
+\\usepackage[a4paper,margin=2.3cm]{geometry}
+\\usepackage{amsmath,amssymb,amsthm}
+\\usepackage{enumitem}
+\\usepackage{tikz}
+\\usetikzlibrary{calc,angles,quotes,intersections,decorations.pathreplacing}
+\\usepackage{graphicx}
+\\title{Izpit}
+\\author{}
+\\date{}
+\\begin{document}
+\\maketitle
+\\begin{enumerate}[leftmargin=*]
+${parts.join('\n\n')}
+\\end{enumerate}
+\\end{document}
+`;
+    tex.value = doc;
+    // Render preview: each problem rendered through latexToHtml + MathJax
+    preview.innerHTML = order.map((n, i) => {
+      const data = byN[n] || {};
+      const ed = effectiveState(n);
+      const src = (ed.latex !== undefined) ? ed.latex : (data.latex || '');
+      const html = latexToHtml(src, n, data.tikz_count || 0);
+      return `<div class="finishing-preview-item">
+        <span class="result-num">${i + 1}.</span>
+        <div class="finishing-preview-body">${html}</div>
+      </div>`;
+    }).join('');
+    if (window.MathJax && window.MathJax.typesetPromise) {
+      window.MathJax.typesetPromise([preview]).catch(() => {});
+    }
+  }
+
+  function renderList(order) {
+    list.innerHTML = '';
+    if (order.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'exam-empty';
+      empty.textContent = 'No problems in the exam yet. Add some on the Selection tab.';
+      list.appendChild(empty);
+      return;
+    }
+    order.forEach((n, idx) => {
+      const data = byN[n] || {};
+      const row = document.createElement('div');
+      row.className = 'finishing-row';
+      row.draggable = true;
+      row.dataset.n = n;
+      row.dataset.idx = idx;
+      const handle = document.createElement('span');
+      handle.className = 'drag-handle';
+      handle.textContent = '⋮⋮';
+      handle.title = 'Drag to reorder';
+      row.appendChild(handle);
+      const num = document.createElement('span');
+      num.className = 'result-num';
+      num.textContent = `${n}.`;
+      row.appendChild(num);
+      const body = document.createElement('div');
+      body.className = 'result-body';
+      body.innerHTML = latexToHtml(data.latex || '', n, data.tikz_count || 0);
+      row.appendChild(body);
+      list.appendChild(row);
+    });
+    if (window.MathJax && window.MathJax.typesetPromise) {
+      window.MathJax.typesetPromise([list]).catch(() => {});
+    }
+  }
+
+  // HTML5 drag-and-drop reorder
+  list.addEventListener('dragstart', (e) => {
+    const row = e.target.closest('.finishing-row');
+    if (!row) return;
+    row.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', row.dataset.n);
+  });
+  list.addEventListener('dragend', (e) => {
+    list.querySelectorAll('.dragging').forEach(r => r.classList.remove('dragging'));
+    regenerate();
+  });
+  list.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    const dragging = list.querySelector('.dragging');
+    if (!dragging) return;
+    const row = e.target.closest('.finishing-row');
+    if (!row || row === dragging) return;
+    const rect = row.getBoundingClientRect();
+    const before = (e.clientY - rect.top) < rect.height / 2;
+    list.insertBefore(dragging, before ? row : row.nextSibling);
+  });
+
+  function refresh() {
+    const exam = getExam();
+    const order = sortBySection(exam);
+    renderList(order);
+    regenerate();
+  }
+  window.addEventListener('exam-changed', refresh);
+  refresh();
+
+  // Downloads
+  document.getElementById('download-tex').addEventListener('click', () => {
+    const blob = new Blob([tex.value], { type: 'text/x-latex;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'izpit.tex';
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  });
+  document.getElementById('download-pdf').addEventListener('click', () => {
+    // Browser-side: print the preview pane → user picks "Save as PDF".
+    // The @media print CSS hides everything except #finishing-preview.
+    document.body.classList.add('print-finishing');
+    setTimeout(() => {
+      window.print();
+      document.body.classList.remove('print-finishing');
+    }, 50);
+  });
 }
 
 async function initIndexPage() {

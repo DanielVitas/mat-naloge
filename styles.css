@@ -1175,6 +1175,105 @@ canvas.crop-display {
 .exam-action.is-disabled { color: var(--muted); cursor: default; opacity: 0.7; }
 .exam-action.is-disabled:hover { border-color: var(--card-border); color: var(--muted); }
 
+/* Finishing tab — composer layout */
+.finishing-toolbar {
+  display: flex; align-items: center; gap: 0.6rem;
+  margin-bottom: 0.8rem;
+  flex-wrap: wrap;
+}
+.finishing-toolbar .hint { color: var(--muted); font-size: 0.85rem; }
+.finishing-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+@media (max-width: 900px) {
+  .finishing-body { grid-template-columns: 1fr; }
+}
+.finishing-left, .finishing-right {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+}
+#finishing-tex {
+  width: 100%;
+  min-height: 220px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.82rem;
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  padding: 0.6rem;
+  resize: vertical;
+  background: #fafafa;
+  color: var(--fg);
+}
+.finishing-preview-box {
+  min-height: 6rem;
+  max-height: 540px;
+  overflow-y: auto;
+}
+.finishing-preview-item {
+  display: flex; gap: 0.6rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--card-border);
+}
+.finishing-preview-item:last-child { border-bottom: 0; }
+.finishing-preview-item .result-num {
+  flex-shrink: 0; font-weight: 600; color: var(--accent); min-width: 1.6rem;
+}
+.finishing-preview-item .finishing-preview-body { flex: 1; min-width: 0; }
+.finishing-preview-item .finishing-preview-body p { margin: 0.3rem 0; }
+.finishing-preview-item .finishing-preview-body .tex-tikz img { max-width: 100%; max-height: 320px; }
+
+.finishing-list { display: flex; flex-direction: column; gap: 0.4rem; }
+.finishing-row {
+  display: flex; align-items: flex-start; gap: 0.5rem;
+  padding: 0.5rem 0.55rem;
+  background: white;
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  cursor: grab;
+}
+.finishing-row.dragging { opacity: 0.45; }
+.finishing-row .drag-handle {
+  flex-shrink: 0;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0.1rem 0.2rem;
+  user-select: none;
+  cursor: grab;
+}
+.finishing-row .result-num {
+  font-weight: 600; color: var(--accent); flex-shrink: 0; min-width: 1.6rem;
+}
+.finishing-row .result-body {
+  flex: 1; min-width: 0;
+  font-size: 0.88rem; line-height: 1.4;
+  max-height: 7em;
+  overflow: hidden;
+  position: relative;
+}
+.finishing-row .result-body .tex-tikz,
+.finishing-row .result-body .tex-figure-placeholder { display: none; }
+.finishing-row .result-body p { margin: 0.15rem 0; }
+
+/* Print mode — only the preview is visible so "Save as PDF" looks clean. */
+@media print {
+  body.print-finishing { background: white; }
+  body.print-finishing * { visibility: hidden; }
+  body.print-finishing #finishing-preview,
+  body.print-finishing #finishing-preview * { visibility: visible; }
+  body.print-finishing #finishing-preview {
+    position: absolute; left: 0; top: 0; width: 100%;
+    background: white;
+    border: 0; margin: 0; padding: 1cm;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}
+
 /* The status badge is now a clickable toggle */
 button.status-badge {
   cursor: pointer;
