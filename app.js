@@ -1973,10 +1973,13 @@ async function initExamPage() {
 
 // ---------- Exam → Finishing tab -----------------------------------------
 function initFinishing(byN) {
-  const list    = document.getElementById('finishing-list');
   const tex     = document.getElementById('finishing-tex');
   const preview = document.getElementById('finishing-preview');
-  if (!list || !tex || !preview) return;
+  if (!tex || !preview) return;
+
+  // items: array of { n, spaceBefore (px), pageBreakBefore (bool) }
+  let items = [];
+  let lastExamFingerprint = '';
 
   function sortBySection(ns) {
     return [...ns].sort((a, b) => {
@@ -1986,119 +1989,186 @@ function initFinishing(byN) {
     });
   }
 
-  function readOrderFromDOM() {
-    return Array.from(list.querySelectorAll('.finishing-row'))
-      .map(r => Number(r.dataset.n));
-  }
-
   function regenerate() {
-    const order = readOrderFromDOM();
-    const parts = order.map(n => {
-      const data = byN[n] || {};
-      const ed = effectiveState(n);
+    const parts = items.map((item, i) => {
+      let pre = '';
+      if (i > 0) {
+        if (item.pageBreakBefore) pre += '\\newpage\n';
+        if (item.spaceBefore && item.spaceBefore > 0) {
+          // Convert px to pt (1pt ≈ 1.333px at 96 DPI).
+          const pt = Math.max(0, Math.round(item.spaceBefore / 1.333));
+          if (pt > 0) pre += `\\vspace*{${pt}pt}\n`;
+        }
+      }
+      const data = byN[item.n] || {};
+      const ed = effectiveState(item.n);
       const src = (ed.latex !== undefined) ? ed.latex : (data.latex || '');
-      return `\\item ${src.trim()}`;
+      return `${pre}\\item ${src.trim()}`;
     });
     const doc = `\\documentclass[12pt,a4paper]{article}
 \\usepackage[utf8]{inputenc}
 \\usepackage[T1]{fontenc}
 \\usepackage{lmodern}
-\\usepackage[a4paper,margin=2.3cm]{geometry}
+\\usepackage[a4paper,margin=2cm]{geometry}
 \\usepackage{amsmath,amssymb,amsthm}
 \\usepackage{enumitem}
 \\usepackage{tikz}
 \\usetikzlibrary{calc,angles,quotes,intersections,decorations.pathreplacing}
 \\usepackage{graphicx}
-\\title{Izpit}
-\\author{}
-\\date{}
+\\pagestyle{empty}
+\\setlength{\\parindent}{0pt}
 \\begin{document}
-\\maketitle
 \\begin{enumerate}[leftmargin=*]
 ${parts.join('\n\n')}
 \\end{enumerate}
 \\end{document}
 `;
     tex.value = doc;
-    // Render preview: each problem rendered through latexToHtml + MathJax
-    preview.innerHTML = order.map((n, i) => {
-      const data = byN[n] || {};
-      const ed = effectiveState(n);
+  }
+
+  function renderPreview() {
+    preview.innerHTML = '';
+    if (items.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'exam-empty';
+      empty.textContent = 'No problems in the exam yet. Add some on the Selection tab.';
+      preview.appendChild(empty);
+      return;
+    }
+    items.forEach((item, idx) => {
+      if (idx > 0) {
+        const sep = document.createElement('div');
+        sep.className = 'finishing-separator';
+        sep.dataset.i = idx;
+        // Page-break toggle button
+        const pb = document.createElement('button');
+        pb.type = 'button';
+        pb.className = 'page-break-toggle' + (item.pageBreakBefore ? ' is-active' : '');
+        pb.textContent = item.pageBreakBefore ? '↪ Page break ✓' : '↪ Page break';
+        pb.addEventListener('click', (e) => {
+          e.preventDefault();
+          items[idx].pageBreakBefore = !items[idx].pageBreakBefore;
+          renderPreview();
+          regenerate();
+        });
+        sep.appendChild(pb);
+        // Visible space bar (height = 8px baseline + extra)
+        const spacer = document.createElement('div');
+        spacer.className = 'finishing-space';
+        const px = item.spaceBefore || 0;
+        spacer.style.height = (8 + px) + 'px';
+        sep.appendChild(spacer);
+        // Drag handle for stretching the space
+        const grip = document.createElement('div');
+        grip.className = 'finishing-grip';
+        grip.title = 'Drag down to add space';
+        grip.textContent = '↕';
+        sep.appendChild(grip);
+        // Pointer-based drag (works with mouse + touch)
+        grip.addEventListener('pointerdown', (ev) => {
+          ev.preventDefault();
+          grip.setPointerCapture(ev.pointerId);
+          const startY = ev.clientY;
+          const startSpace = items[idx].spaceBefore || 0;
+          const onMove = (e2) => {
+            const dy = e2.clientY - startY;
+            const next = Math.max(0, Math.round(startSpace + dy));
+            items[idx].spaceBefore = next;
+            spacer.style.height = (8 + next) + 'px';
+          };
+          const onUp = (e2) => {
+            grip.releasePointerCapture(ev.pointerId);
+            grip.removeEventListener('pointermove', onMove);
+            grip.removeEventListener('pointerup',   onUp);
+            grip.removeEventListener('pointercancel', onUp);
+            regenerate();
+          };
+          grip.addEventListener('pointermove', onMove);
+          grip.addEventListener('pointerup',   onUp);
+          grip.addEventListener('pointercancel', onUp);
+        });
+        preview.appendChild(sep);
+      }
+
+      const block = document.createElement('div');
+      block.className = 'finishing-block';
+      if (item.pageBreakBefore) block.classList.add('is-page-break');
+      block.draggable = true;
+      block.dataset.i = idx;
+      const head = document.createElement('div');
+      head.className = 'finishing-block-head';
+      const dragH = document.createElement('span');
+      dragH.className = 'drag-handle';
+      dragH.textContent = '⋮⋮';
+      dragH.title = 'Drag to reorder';
+      head.appendChild(dragH);
+      const num = document.createElement('span');
+      num.className = 'result-num';
+      num.textContent = `${idx + 1}.`;
+      head.appendChild(num);
+      block.appendChild(head);
+      const body = document.createElement('div');
+      body.className = 'finishing-block-body';
+      const data = byN[item.n] || {};
+      const ed = effectiveState(item.n);
       const src = (ed.latex !== undefined) ? ed.latex : (data.latex || '');
-      const html = latexToHtml(src, n, data.tikz_count || 0);
-      return `<div class="finishing-preview-item">
-        <span class="result-num">${i + 1}.</span>
-        <div class="finishing-preview-body">${html}</div>
-      </div>`;
-    }).join('');
+      body.innerHTML = latexToHtml(src, item.n, data.tikz_count || 0);
+      block.appendChild(body);
+      preview.appendChild(block);
+    });
     if (window.MathJax && window.MathJax.typesetPromise) {
       window.MathJax.typesetPromise([preview]).catch(() => {});
     }
   }
 
-  function renderList(order) {
-    list.innerHTML = '';
-    if (order.length === 0) {
-      const empty = document.createElement('div');
-      empty.className = 'exam-empty';
-      empty.textContent = 'No problems in the exam yet. Add some on the Selection tab.';
-      list.appendChild(empty);
-      return;
-    }
-    order.forEach((n, idx) => {
-      const data = byN[n] || {};
-      const row = document.createElement('div');
-      row.className = 'finishing-row';
-      row.draggable = true;
-      row.dataset.n = n;
-      row.dataset.idx = idx;
-      const handle = document.createElement('span');
-      handle.className = 'drag-handle';
-      handle.textContent = '⋮⋮';
-      handle.title = 'Drag to reorder';
-      row.appendChild(handle);
-      const num = document.createElement('span');
-      num.className = 'result-num';
-      num.textContent = `${n}.`;
-      row.appendChild(num);
-      const body = document.createElement('div');
-      body.className = 'result-body';
-      body.innerHTML = latexToHtml(data.latex || '', n, data.tikz_count || 0);
-      row.appendChild(body);
-      list.appendChild(row);
-    });
-    if (window.MathJax && window.MathJax.typesetPromise) {
-      window.MathJax.typesetPromise([list]).catch(() => {});
-    }
-  }
-
-  // HTML5 drag-and-drop reorder
-  list.addEventListener('dragstart', (e) => {
-    const row = e.target.closest('.finishing-row');
-    if (!row) return;
-    row.classList.add('dragging');
+  // Drag-reorder for the whole problem block
+  let draggingIdx = null;
+  preview.addEventListener('dragstart', (e) => {
+    const block = e.target.closest('.finishing-block');
+    if (!block) return;
+    draggingIdx = parseInt(block.dataset.i, 10);
+    block.classList.add('dragging');
     e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', row.dataset.n);
   });
-  list.addEventListener('dragend', (e) => {
-    list.querySelectorAll('.dragging').forEach(r => r.classList.remove('dragging'));
+  preview.addEventListener('dragend', (e) => {
+    preview.querySelectorAll('.dragging').forEach(b => b.classList.remove('dragging'));
+    draggingIdx = null;
     regenerate();
   });
-  list.addEventListener('dragover', (e) => {
+  preview.addEventListener('dragover', (e) => {
+    if (draggingIdx === null) return;
+    const block = e.target.closest('.finishing-block');
+    if (!block) return;
     e.preventDefault();
-    const dragging = list.querySelector('.dragging');
-    if (!dragging) return;
-    const row = e.target.closest('.finishing-row');
-    if (!row || row === dragging) return;
-    const rect = row.getBoundingClientRect();
+    const targetIdx = parseInt(block.dataset.i, 10);
+    if (targetIdx === draggingIdx) return;
+    const rect = block.getBoundingClientRect();
     const before = (e.clientY - rect.top) < rect.height / 2;
-    list.insertBefore(dragging, before ? row : row.nextSibling);
+    let insertAt = before ? targetIdx : targetIdx + 1;
+    if (draggingIdx < insertAt) insertAt--;
+    if (insertAt === draggingIdx) return;
+    const [moved] = items.splice(draggingIdx, 1);
+    items.splice(insertAt, 0, moved);
+    draggingIdx = insertAt;
+    renderPreview();
   });
+  preview.addEventListener('drop', (e) => { e.preventDefault(); });
 
   function refresh() {
     const exam = getExam();
-    const order = sortBySection(exam);
-    renderList(order);
+    // Detect changes to the exam set vs. the last-known fingerprint. If the
+    // set is unchanged, keep the user's reorder/space/pagebreak edits.
+    const fp = exam.slice().sort((a, b) => a - b).join(',');
+    if (fp === lastExamFingerprint && items.length) {
+      // Only update visible n's that actually still exist in the exam.
+      // (Should already match — defensive.)
+    } else {
+      lastExamFingerprint = fp;
+      items = sortBySection(exam).map(n => ({
+        n, spaceBefore: 0, pageBreakBefore: false
+      }));
+    }
+    renderPreview();
     regenerate();
   }
   window.addEventListener('exam-changed', refresh);
@@ -2115,7 +2185,7 @@ ${parts.join('\n\n')}
   });
   document.getElementById('download-pdf').addEventListener('click', () => {
     // Browser-side: print the preview pane → user picks "Save as PDF".
-    // The @media print CSS hides everything except #finishing-preview.
+    // The @media print CSS hides chrome/buttons and lets only #finishing-preview show.
     document.body.classList.add('print-finishing');
     setTimeout(() => {
       window.print();

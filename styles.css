@@ -1208,7 +1208,8 @@ canvas.crop-display {
 }
 #finishing-tex {
   width: 100%;
-  min-height: 220px;
+  min-height: 540px;        /* tall LaTeX editor */
+  height: 100%;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.82rem;
   border: 1px solid var(--card-border);
@@ -1217,70 +1218,147 @@ canvas.crop-display {
   resize: vertical;
   background: #fafafa;
   color: var(--fg);
+  white-space: pre;
+  overflow-x: auto;
 }
-.finishing-preview-box {
-  min-height: 6rem;
-  max-height: 540px;
-  overflow-y: auto;
-}
-.finishing-preview-item {
-  display: flex; gap: 0.6rem;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--card-border);
-}
-.finishing-preview-item:last-child { border-bottom: 0; }
-.finishing-preview-item .result-num {
-  flex-shrink: 0; font-weight: 600; color: var(--accent); min-width: 1.6rem;
-}
-.finishing-preview-item .finishing-preview-body { flex: 1; min-width: 0; }
-.finishing-preview-item .finishing-preview-body p { margin: 0.3rem 0; }
-.finishing-preview-item .finishing-preview-body .tex-tikz img { max-width: 100%; max-height: 320px; }
 
-.finishing-list { display: flex; flex-direction: column; gap: 0.4rem; }
-.finishing-row {
-  display: flex; align-items: flex-start; gap: 0.5rem;
-  padding: 0.5rem 0.55rem;
+/* Right pane — interactive preview with drag/space/page-break */
+.finishing-preview-pane {
+  display: flex; flex-direction: column;
+  gap: 0;
   background: white;
   border: 1px solid var(--card-border);
   border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  min-height: 540px;
+  max-height: 720px;
+  overflow-y: auto;
+}
+.finishing-block {
+  position: relative;
+  padding: 0.4rem 0.5rem 0.5rem;
+  background: white;
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+}
+.finishing-block + .finishing-block { margin-top: 0; }
+.finishing-block.dragging { opacity: 0.45; }
+.finishing-block-head {
+  display: flex; align-items: center; gap: 0.4rem;
+  margin-bottom: 0.25rem;
   cursor: grab;
 }
-.finishing-row.dragging { opacity: 0.45; }
-.finishing-row .drag-handle {
-  flex-shrink: 0;
+.finishing-block-head .drag-handle {
   color: var(--muted);
-  font-size: 1rem;
-  line-height: 1;
-  padding: 0.1rem 0.2rem;
+  font-size: 1.05rem; line-height: 1;
   user-select: none;
   cursor: grab;
 }
-.finishing-row .result-num {
-  font-weight: 600; color: var(--accent); flex-shrink: 0; min-width: 1.6rem;
+.finishing-block-head .result-num {
+  font-weight: 600; color: var(--accent);
+  font-size: 0.95rem;
 }
-.finishing-row .result-body {
-  flex: 1; min-width: 0;
-  font-size: 0.88rem; line-height: 1.4;
-  max-height: 7em;
-  overflow: hidden;
-  position: relative;
-}
-.finishing-row .result-body .tex-tikz,
-.finishing-row .result-body .tex-figure-placeholder { display: none; }
-.finishing-row .result-body p { margin: 0.15rem 0; }
+.finishing-block-body { font-size: 0.92rem; line-height: 1.5; }
+.finishing-block-body p { margin: 0.25rem 0; }
+.finishing-block-body .tex-tikz img { max-width: 100%; max-height: 280px; }
 
-/* Print mode — only the preview is visible so "Save as PDF" looks clean. */
+/* Separator between two consecutive problems */
+.finishing-separator {
+  display: flex; flex-direction: column; align-items: stretch;
+  margin: 0.2rem 0;
+}
+.finishing-separator .page-break-toggle {
+  align-self: center;
+  background: white;
+  border: 1px dashed var(--card-border);
+  color: var(--muted);
+  font: inherit; font-size: 0.78rem;
+  padding: 0.18rem 0.7rem;
+  border-radius: 999px;
+  cursor: pointer;
+  margin-bottom: 0.2rem;
+}
+.finishing-separator .page-break-toggle:hover { color: var(--accent); border-color: var(--accent); }
+.finishing-separator .page-break-toggle.is-active {
+  background: var(--accent); color: white; border-color: var(--accent); border-style: solid;
+}
+.finishing-separator .finishing-space {
+  background: rgba(0,0,0,0.025);
+  border-top: 1px dashed transparent;
+  border-bottom: 1px dashed transparent;
+}
+.finishing-separator .finishing-grip {
+  align-self: center;
+  background: rgba(0,0,0,0.06);
+  color: var(--muted);
+  font-weight: 700;
+  width: 2.4rem; height: 1.1rem;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 0 0 8px 8px;
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: ns-resize;
+  user-select: none;
+  touch-action: none;
+}
+.finishing-separator .finishing-grip:hover { background: var(--accent); color: white; }
+
+/* Page-break visual indicator on the block when active */
+.finishing-block.is-page-break {
+  border-top: 2px dashed var(--accent);
+}
+.finishing-block.is-page-break::before {
+  content: '— page break —';
+  display: block;
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: -0.2rem 0 0.3rem;
+}
+
+/* Print: clean PDF — only the rendered problem bodies, no chrome.
+   @page margin:0 lets us bypass browser-added headers/footers in most
+   modern browsers; we provide the visual margin via padding instead. */
+@page { size: A4; margin: 0; }
 @media print {
-  body.print-finishing { background: white; }
+  body.print-finishing { background: white; margin: 0; padding: 0; }
   body.print-finishing * { visibility: hidden; }
   body.print-finishing #finishing-preview,
   body.print-finishing #finishing-preview * { visibility: visible; }
   body.print-finishing #finishing-preview {
-    position: absolute; left: 0; top: 0; width: 100%;
+    position: absolute; left: 0; top: 0; right: 0;
+    width: 100%;
     background: white;
-    border: 0; margin: 0; padding: 1cm;
+    border: 0;
     max-height: none !important;
     overflow: visible !important;
+    padding: 1.8cm 1.5cm;
+    margin: 0;
+  }
+  body.print-finishing .finishing-block {
+    border: 0 !important;
+    padding: 0 !important;
+    page-break-inside: avoid;
+    margin-bottom: 0;
+  }
+  body.print-finishing .finishing-block.is-page-break { page-break-before: always; }
+  body.print-finishing .finishing-block.is-page-break::before { content: none; }
+  body.print-finishing .finishing-block-head .drag-handle,
+  body.print-finishing .finishing-separator .page-break-toggle,
+  body.print-finishing .finishing-separator .finishing-grip {
+    display: none !important;
+  }
+  body.print-finishing .finishing-separator { margin: 0; }
+  body.print-finishing .finishing-separator .finishing-space {
+    background: transparent !important; border: 0 !important;
+  }
+  body.print-finishing .finishing-block-head {
+    margin: 0 0 0.1rem; padding: 0;
+  }
+  body.print-finishing .finishing-block-head .result-num {
+    color: black; font-size: 0.95rem;
   }
 }
 
