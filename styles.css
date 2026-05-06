@@ -147,3 +147,36 @@ canvas.crop-display {
 .editor-actions {
   margin-top: 0.7rem; display: flex; gap: 0.5rem; flex-wrap: wrap;
 }
+
+/* GitHub sync bar */
+.gh-sync {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 0.7rem 1rem;
+  margin: 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.gh-sync .label { font-size: 0.85rem; color: var(--muted); }
+.gh-sync .pending {
+  background: var(--warn-bg); color: var(--warn);
+  font-size: 0.75rem; padding: 0.15rem 0.55rem; border-radius: 999px;
+}
+.gh-sync .pending.none { background: var(--ok-bg); color: var(--ok); }
+.gh-sync input[type=password],
+.gh-sync input[type=text] {
+  font: inherit; font-size: 0.85rem;
+  padding: 0.3rem 0.55rem;
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  min-width: 0; flex: 1;
+}
+.gh-sync .gh-token-row {
+  display: flex; gap: 0.5rem; flex-wrap: wrap;
+  width: 100%;
+}
+.gh-sync .gh-token-row.collapsed { display: none; }
+.gh-sync .gh-status-row { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; flex: 1; }

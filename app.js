@@ -1,6 +1,14 @@
 // Per-problem state in localStorage. Key = `prob-NNN`.
 // Stored fields: latex (string), bbox ([x1,y1,x2,y2]), outdated (bool).
 
+const GH = {
+  owner: 'DanielVitas',
+  repo:  'mat-naloge',
+  branch: 'main',
+  path: 'data.json',
+  api() { return `https://api.github.com/repos/${this.owner}/${this.repo}/contents/${this.path}`; },
+};
+
 function $(id) { return document.getElementById(id); }
 function loadState(id) {
   try { return JSON.parse(localStorage.getItem('prob-' + id) || '{}'); }
@@ -8,6 +16,187 @@ function loadState(id) {
 }
 function saveState(id, s) {
   localStorage.setItem('prob-' + id, JSON.stringify(s));
+}
+// Window-global cache so each page sees the same fetched remote data.
+let REMOTE_DATA = null;       // {id: {latex, bbox, outdated}, ...}
+let REMOTE_DATA_SHA = null;
+
+function getToken() { return localStorage.getItem('gh-token') || ''; }
+function setToken(t) {
+  if (t) localStorage.setItem('gh-token', t);
+  else   localStorage.removeItem('gh-token');
+}
+
+async function fetchRemoteData() {
+  // Read data.json directly off the deployed site (no auth needed).
+  try {
+    const r = await fetch('data.json?_=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) { REMOTE_DATA = {}; return REMOTE_DATA; }
+    REMOTE_DATA = await r.json();
+  } catch { REMOTE_DATA = {}; }
+  return REMOTE_DATA;
+}
+
+async function fetchRemoteSha() {
+  // Use authenticated API to learn the file sha (needed for an update).
+  const tok = getToken();
+  if (!tok) return null;
+  try {
+    const r = await fetch(GH.api() + `?ref=${GH.branch}`, {
+      headers: { 'Accept': 'application/vnd.github+json',
+                 'Authorization': `Bearer ${tok}` },
+    });
+    if (!r.ok) return null;
+    const j = await r.json();
+    REMOTE_DATA_SHA = j.sha;
+    return j.sha;
+  } catch { return null; }
+}
+
+// Merge layers: remote -> local. Returns the effective state for problem id.
+function effectiveState(id) {
+  const r = REMOTE_DATA && REMOTE_DATA[id] ? REMOTE_DATA[id] : {};
+  const l = loadState(id);
+  return { ...r, ...l };
+}
+
+// What the user has in localStorage that's different from the remote state.
+function pendingChanges() {
+  const remote = REMOTE_DATA || {};
+  const out = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (!k || !k.startsWith('prob-')) continue;
+    const id = k.replace('prob-', '');
+    let local;
+    try { local = JSON.parse(localStorage.getItem(k)); } catch { continue; }
+    if (!local) continue;
+    const r = remote[id] || {};
+    // A local entry is "pending" if any of its fields differs from remote.
+    const same = (
+      JSON.stringify(local.latex)    === JSON.stringify(r.latex) &&
+      JSON.stringify(local.bbox)     === JSON.stringify(r.bbox)  &&
+      JSON.stringify(!!local.outdated) === JSON.stringify(!!r.outdated)
+    );
+    if (!same) out[id] = local;
+  }
+  return out;
+}
+
+async function pushChanges() {
+  const tok = getToken();
+  if (!tok) {
+    alert('Set your GitHub Personal Access Token first (the row above).');
+    return false;
+  }
+  // Make sure we have remote and its current sha
+  if (!REMOTE_DATA) await fetchRemoteData();
+  await fetchRemoteSha();
+
+  // Merge remote + local. Local wins on conflicting keys.
+  const merged = JSON.parse(JSON.stringify(REMOTE_DATA || {}));
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (!k || !k.startsWith('prob-')) continue;
+    const id = k.replace('prob-', '');
+    let local;
+    try { local = JSON.parse(localStorage.getItem(k)); } catch { continue; }
+    if (!local) continue;
+    merged[id] = { ...(merged[id] || {}), ...local };
+  }
+
+  const json = JSON.stringify(merged, null, 2);
+  // utf-8 safe base64 encode
+  const b64 = btoa(unescape(encodeURIComponent(json)));
+  const body = {
+    message: `update data.json (${new Date().toISOString().replace('T',' ').slice(0,16)})`,
+    content: b64,
+    branch: GH.branch,
+  };
+  if (REMOTE_DATA_SHA) body.sha = REMOTE_DATA_SHA;
+
+  const r = await fetch(GH.api(), {
+    method: 'PUT',
+    headers: {
+      'Accept': 'application/vnd.github+json',
+      'Authorization': `Bearer ${tok}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+  if (!r.ok) {
+    const t = await r.text();
+    alert('Push failed (' + r.status + '): ' + t.slice(0, 200));
+    return false;
+  }
+  // Success — clear local overrides; the page will reload and pull the new
+  // remote state.
+  for (let i = localStorage.length - 1; i >= 0; i--) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith('prob-')) localStorage.removeItem(k);
+  }
+  alert('Pushed. GitHub Pages will redeploy in ~30 s.');
+  // give Pages a moment, then reload
+  setTimeout(() => location.reload(), 1500);
+  return true;
+}
+
+// Wire up the GitHub-sync UI block (shared between index and problem pages).
+function initSyncBar() {
+  const bar = document.getElementById('gh-sync');
+  if (!bar) return;
+  const tokenInput = bar.querySelector('#gh-token-input');
+  const tokenRow   = bar.querySelector('.gh-token-row');
+  const statusRow  = bar.querySelector('.gh-status-row');
+  const pendingTag = bar.querySelector('#gh-pending');
+  const tokenStatus= bar.querySelector('#gh-token-status');
+  const setBtn     = bar.querySelector('#gh-set-token');
+  const clearBtn   = bar.querySelector('#gh-clear-token');
+  const pushBtn    = bar.querySelector('#gh-push');
+  const editTokenBtn = bar.querySelector('#gh-edit-token');
+
+  function refresh() {
+    const has = !!getToken();
+    tokenStatus.textContent = has ? 'token set' : 'no token';
+    tokenStatus.className   = 'pending ' + (has ? 'none' : '');
+    if (has) tokenRow.classList.add('collapsed'); else tokenRow.classList.remove('collapsed');
+    pushBtn.disabled = !has;
+    const n = Object.keys(pendingChanges()).length;
+    pendingTag.textContent = n === 0 ? 'no pending edits' : `${n} pending`;
+    pendingTag.className   = 'pending ' + (n === 0 ? 'none' : '');
+  }
+
+  setBtn.addEventListener('click', () => {
+    const v = tokenInput.value.trim();
+    if (!v) return;
+    setToken(v);
+    tokenInput.value = '';
+    refresh();
+  });
+  clearBtn.addEventListener('click', () => {
+    if (!confirm('Forget GitHub token from this browser?')) return;
+    setToken('');
+    refresh();
+  });
+  if (editTokenBtn) {
+    editTokenBtn.addEventListener('click', () => {
+      tokenRow.classList.remove('collapsed');
+      tokenInput.focus();
+    });
+  }
+  pushBtn.addEventListener('click', async () => {
+    pushBtn.disabled = true;
+    pushBtn.textContent = 'Pushing…';
+    const ok = await pushChanges();
+    if (!ok) {
+      pushBtn.disabled = false;
+      pushBtn.textContent = '⬆ Push to GitHub';
+    }
+  });
+
+  refresh();
+  // Refresh pending count whenever any storage changes happen
+  window.addEventListener('storage', refresh);
 }
 
 // ---------------- LaTeX -> HTML (with TikZ SVG substitution) ---------------
@@ -98,9 +287,11 @@ function drawCropFromImage(canvas, img, bbox, [imgW, imgH]) {
   ctx.drawImage(img, x1, y1, w, h, 0, 0, w, h);
 }
 
-function initProblemPage(meta) {
+async function initProblemPage(meta) {
+  await fetchRemoteData();
   const id    = meta.n;
-  const state = loadState(id);
+  const state = effectiveState(id);
+  initSyncBar();
 
   const ta            = $('latex-source');
   const preview       = $('preview');
@@ -311,10 +502,12 @@ function initProblemPage(meta) {
   }
 }
 
-function initIndexPage() {
+async function initIndexPage() {
+  await fetchRemoteData();
+  initSyncBar();
   document.querySelectorAll('.problem-card').forEach(card => {
     const id = card.dataset.id;
-    const s = loadState(id);
+    const s = effectiveState(id);
     if (s.outdated) {
       card.classList.add('outdated');
       const badge = document.createElement('span');

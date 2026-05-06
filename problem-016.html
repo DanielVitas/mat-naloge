@@ -24,6 +24,25 @@
   <h1>Naloga 16</h1>
   <div class="tags"><span class="tag year">2025</span><span class="tag season">Spomladanski rok</span><span class="tag pola">Izpitna pola 1</span><span class="tag level">VR</span><span class="tag section">B</span><span class="tag points">5 točk</span></div>
 
+  
+<div class="gh-sync" id="gh-sync">
+  <div class="gh-status-row">
+    <span class="label">GitHub:</span>
+    <span class="pending" id="gh-token-status">no token</span>
+    <span class="pending" id="gh-pending">no pending edits</span>
+    <span style="flex:1"></span>
+    <button id="gh-edit-token">Edit token</button>
+    <button id="gh-clear-token">Forget</button>
+    <button id="gh-push" class="primary">⬆ Push to GitHub</button>
+  </div>
+  <div class="gh-token-row">
+    <input id="gh-token-input" type="password" autocomplete="off"
+           placeholder="Paste your GitHub fine-grained PAT (Contents: write on this repo)">
+    <button id="gh-set-token">Save token</button>
+  </div>
+</div>
+
+
   <div class="status-bar">
     <button id="mark-outdated">Toggle “transcript needs redoing”</button>
     <span class="status-badge ok" id="status-badge">✓ up to date</span>
