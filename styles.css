@@ -40,6 +40,80 @@ a:hover { text-decoration: underline; }
   background: var(--tag-topic-bg);  color: var(--tag-topic-fg);
   border: 1px solid #99f6e4;
 }
+.tag.topic.editable {
+  display: inline-flex; align-items: center; gap: 0.32rem;
+  padding-right: 0.28rem;
+}
+.topic-remove {
+  width: 1.05rem; height: 1.05rem;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 0; background: rgba(0,0,0,0.10); color: #4b5563;
+  border-radius: 999px;
+  font-size: 0.75rem; line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  font-weight: 700;
+}
+.topic-remove:hover { background: rgba(0,0,0,0.22); color: #111; }
+.topic-add {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 1.6rem; height: 1.4rem;
+  padding: 0 0.45rem;
+  border: 1px dashed var(--card-border);
+  background: transparent; color: var(--muted);
+  border-radius: 999px;
+  font-size: 0.95rem; line-height: 1;
+  cursor: pointer;
+  font-weight: 600;
+}
+.topic-add:hover { color: var(--accent); border-color: var(--accent); }
+
+/* Topic picker popover */
+.topic-picker {
+  position: absolute; z-index: 200;
+  background: white;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  padding: 0.4rem;
+  min-width: 240px; max-width: 320px;
+  max-height: 320px;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.topic-picker-search {
+  width: 100%;
+  padding: 0.35rem 0.55rem;
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  margin-bottom: 0.35rem;
+  font: inherit; font-size: 0.85rem;
+}
+.topic-picker-list {
+  display: flex; flex-direction: column; gap: 0.12rem;
+  overflow-y: auto;
+}
+.topic-picker-item {
+  text-align: left;
+  padding: 0.32rem 0.55rem;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  font-size: 0.86rem;
+  color: var(--fg);
+  cursor: pointer;
+}
+.topic-picker-item:hover {
+  background: var(--tag-topic-bg);
+  color: var(--tag-topic-fg);
+}
+.topic-picker-empty {
+  padding: 0.4rem 0.55rem;
+  color: var(--muted);
+  font-style: italic;
+  font-size: 0.85rem;
+}
+.topic-picker-custom { color: var(--accent); }
 
 /* Collapsible source-collection sections on the index page */
 .collection {

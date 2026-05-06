@@ -1,5 +1,35 @@
 // Per-problem state in localStorage. Key = `prob-NNN`.
-// Stored fields: latex (string), bbox ([x1,y1,x2,y2]), outdated (bool).
+// Stored fields: latex (string), bbox ([x1,y1,x2,y2]), outdated (bool),
+//                topics (array of strings), approved_by (string|null).
+
+// Master vocabulary of high-school math topics, used by the topic picker.
+// Order roughly groups by area; the picker shows a search field for quick filter.
+const ALL_TOPICS = [
+  // Algebra
+  "Algebra", "Powers and roots", "Equations", "Inequalities",
+  "Systems of equations", "Polynomials",
+  // Functions
+  "Linear function", "Quadratic function", "Polynomial function",
+  "Rational function", "Exponential function", "Logarithmic function",
+  "Trigonometric functions", "Inverse function", "Composite function",
+  // Geometry — plane
+  "Geometry", "Polygons", "Triangle", "Right triangle", "Quadrilateral",
+  "Parallelogram", "Trapezoid", "Circle", "Area", "Perimeter",
+  "Similarity", "Congruence",
+  // Geometry — solids
+  "Solids", "Cylinder", "Cone", "Sphere", "Pyramid", "Prism", "Volume",
+  // Conic sections
+  "Conic sections", "Parabola", "Ellipse", "Hyperbola",
+  // Trig & vectors
+  "Trigonometry", "Vectors", "Analytic geometry",
+  // Calculus
+  "Calculus", "Limits", "Continuity", "Derivative", "Integration",
+  "Applications of derivatives", "Optimization",
+  // Discrete & misc
+  "Logic", "Set Theory", "Number Theory", "Combinatorics", "Probability",
+  "Statistics", "Sequences", "Arithmetic sequence", "Geometric sequence",
+  "Series", "Complex numbers", "Logarithms",
+];
 
 const GH = {
   owner: 'DanielVitas',
@@ -109,6 +139,27 @@ function effectiveState(id) {
   return { ...r, ...l };
 }
 
+// Return the effective topics for a problem given build-time defaults.
+// Priority: localStorage.topics > remote.topics > meta.topics (defaults).
+function effectiveTopics(id, defaults) {
+  const s = effectiveState(id);
+  if (Array.isArray(s.topics)) return s.topics.slice();
+  return Array.isArray(defaults) ? defaults.slice() : [];
+}
+
+// Persist a new topics list for a problem to localStorage.
+function setTopics(id, topics) {
+  const s = loadState(id);
+  s.topics = (topics || []).slice();
+  saveState(id, s);
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => (
+    {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]
+  ));
+}
+
 // What the user has in localStorage that's different from the remote state.
 function pendingChanges() {
   const remote = REMOTE_DATA || {};
@@ -126,7 +177,8 @@ function pendingChanges() {
       JSON.stringify(local.latex)        === JSON.stringify(r.latex) &&
       JSON.stringify(local.bbox)         === JSON.stringify(r.bbox)  &&
       JSON.stringify(!!local.outdated)   === JSON.stringify(!!r.outdated) &&
-      JSON.stringify(local.approved_by || null) === JSON.stringify(r.approved_by || null)
+      JSON.stringify(local.approved_by || null) === JSON.stringify(r.approved_by || null) &&
+      JSON.stringify(local.topics || null) === JSON.stringify(r.topics || null)
     );
     if (!same) out[id] = local;
   }
@@ -510,6 +562,164 @@ function latexToHtml(src, problemId, tikzCount) {
   return src;
 }
 
+// ---------- Topic editor (problem page) ------------------------------------
+// Renders the editable topic chips into #topics-tags: each chip has an inline
+// × that removes it; a + button at the end opens a topic picker.
+function renderTopicsEditor(meta) {
+  const row = document.getElementById('topics-tags');
+  if (!row) return;
+  const current = effectiveTopics(meta.n, meta.topics);
+  let html = '';
+  for (const t of current) {
+    html += '<span class="tag topic editable">'
+         +    escapeHtml(t)
+         +    '<button class="topic-remove" data-topic="' + escapeHtml(t)
+         +      '" aria-label="remove topic">×</button>'
+         +  '</span>';
+  }
+  html += '<button class="topic-add" id="topic-add" aria-label="add topic" title="Add a topic">+</button>';
+  row.innerHTML = html;
+  row.querySelectorAll('.topic-remove').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      const t = btn.dataset.topic;
+      const next = effectiveTopics(meta.n, meta.topics).filter(x => x !== t);
+      setTopics(meta.n, next);
+      renderTopicsEditor(meta);
+      const bar = document.getElementById('gh-sync');
+      if (bar && typeof bar._refresh === 'function') bar._refresh();
+    });
+  });
+  const addBtn = row.querySelector('#topic-add');
+  addBtn.addEventListener('click', (e) => {
+    e.preventDefault(); e.stopPropagation();
+    openTopicPicker(meta, addBtn);
+  });
+}
+
+function openTopicPicker(meta, anchorBtn) {
+  // Close any existing picker
+  const existing = document.querySelector('.topic-picker');
+  if (existing) { existing.remove(); return; }
+  const current = new Set(effectiveTopics(meta.n, meta.topics));
+  const picker = document.createElement('div');
+  picker.className = 'topic-picker';
+  const search = document.createElement('input');
+  search.className = 'topic-picker-search';
+  search.type = 'text';
+  search.placeholder = 'Filter or type a new topic…';
+  picker.appendChild(search);
+  const list = document.createElement('div');
+  list.className = 'topic-picker-list';
+  picker.appendChild(list);
+
+  function addTopic(t) {
+    t = (t || '').trim();
+    if (!t) return;
+    const next = effectiveTopics(meta.n, meta.topics);
+    if (!next.includes(t)) next.push(t);
+    setTopics(meta.n, next);
+    closePicker();
+    renderTopicsEditor(meta);
+    const bar = document.getElementById('gh-sync');
+    if (bar && typeof bar._refresh === 'function') bar._refresh();
+  }
+
+  function renderList(filter) {
+    list.innerHTML = '';
+    const f = filter.toLowerCase();
+    const available = ALL_TOPICS.filter(t => !current.has(t)
+      && t.toLowerCase().includes(f));
+    if (available.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'topic-picker-empty';
+      empty.textContent = 'No matches.';
+      list.appendChild(empty);
+    } else {
+      for (const t of available) {
+        const btn = document.createElement('button');
+        btn.className = 'topic-picker-item';
+        btn.type = 'button';
+        btn.textContent = t;
+        btn.addEventListener('click', (e) => {
+          e.preventDefault(); e.stopPropagation();
+          addTopic(t);
+        });
+        list.appendChild(btn);
+      }
+    }
+    // If search has a non-empty value that isn't already in the list,
+    // offer to add it as a custom topic.
+    const query = filter.trim();
+    if (query && !current.has(query) &&
+        !ALL_TOPICS.some(t => t.toLowerCase() === query.toLowerCase())) {
+      const btn = document.createElement('button');
+      btn.className = 'topic-picker-item topic-picker-custom';
+      btn.type = 'button';
+      btn.innerHTML = 'Add new topic: <strong>' + escapeHtml(query) + '</strong>';
+      btn.addEventListener('click', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        addTopic(query);
+      });
+      list.appendChild(btn);
+    }
+  }
+  renderList('');
+  search.addEventListener('input', () => renderList(search.value));
+  search.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { closePicker(); return; }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const q = search.value.trim();
+      if (!q) return;
+      // Prefer an exact-case-insensitive match from the master list
+      const match = ALL_TOPICS.find(t => t.toLowerCase() === q.toLowerCase()
+        && !current.has(t));
+      addTopic(match || q);
+    }
+  });
+
+  // Anchor + position
+  document.body.appendChild(picker);
+  const r = anchorBtn.getBoundingClientRect();
+  picker.style.left = Math.max(8, r.left + window.scrollX) + 'px';
+  picker.style.top  = (r.bottom + window.scrollY + 6) + 'px';
+  setTimeout(() => search.focus(), 0);
+
+  function closePicker() {
+    picker.remove();
+    document.removeEventListener('click', onDocClick, true);
+  }
+  function onDocClick(e) {
+    if (!picker.contains(e.target) && e.target !== anchorBtn) {
+      closePicker();
+    }
+  }
+  setTimeout(() => document.addEventListener('click', onDocClick, true), 0);
+}
+
+// On the index page, rebuild each card's topic chips from effective state
+// (so edits made on a problem page are reflected after navigation/push).
+function applyIndexTopics() {
+  document.querySelectorAll('.problem-card').forEach(card => {
+    const id = card.dataset.id;
+    let defaults = [];
+    try { defaults = JSON.parse(card.dataset.topics || '[]'); } catch {}
+    const eff = effectiveTopics(id, defaults);
+    const tagsEl = card.querySelector('.tags');
+    if (!tagsEl) return;
+    // Remove existing topic chips (they were rendered server-side after
+    // the regular tag chips). Topic chips are <span class="tag topic">.
+    tagsEl.querySelectorAll('.tag.topic').forEach(el => el.remove());
+    for (const t of eff) {
+      const span = document.createElement('span');
+      span.className = 'tag topic';
+      span.textContent = t;
+      tagsEl.appendChild(span);
+    }
+  });
+}
+
 // Apply status-driven background colours to every card on the index page,
 // based on the merged remote+local state and the current reviewer name.
 // Cards may have both an "outdated" and an "approved" class — the CSS handles
@@ -587,6 +797,7 @@ async function initProblemPage(meta) {
   updateBadge(state.outdated);
   approveCb.checked = !!state.approved_by;
   updateApprovalChip(state.approved_by || null);
+  renderTopicsEditor(meta);
   // Expose a refresh hook so changes to display names elsewhere (e.g. from
   // the dropdown) update the chip text without a reload.
   window.refreshApprovalChip = () => {
@@ -819,6 +1030,7 @@ async function initIndexPage() {
   window.addEventListener('hashchange', handleSectionHash);
   // Make sure we have the latest reviewer name from /user before colouring.
   await ensureNameFromToken();
+  applyIndexTopics();
   applyIndexStatuses();
   const exportAllBtn = document.getElementById('export-all');
   if (exportAllBtn) {

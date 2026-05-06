@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Naloga 5 — Matura 2025</title>
-<link rel="stylesheet" href="styles.css?v=5ea6f6c0">
+<link rel="stylesheet" href="styles.css?v=f96ee69e">
 <script>
   window.MathJax = {
     tex: {
@@ -84,7 +84,10 @@
     <h1>5.</h1>
     <div class="tags"><span class="tag source">Matura</span><span class="tag year">2025</span><span class="tag season">Spomladanski rok</span><span class="tag pola">Izpitna pola 1</span><span class="tag level">OR</span><span class="tag section">A</span><span class="tag points">2 točki</span></div>
   </div>
-  <div class="topics-row"><span class="topics-label">Topics:</span><div class="tags"><span class="tag topic">Geometry</span><span class="tag topic">Polygons</span></div></div>
+  <div class="topics-row">
+    <span class="topics-label">Topics:</span>
+    <div class="tags" id="topics-tags"><span class="tag topic">Geometry</span><span class="tag topic">Polygons</span></div>
+  </div>
   <div class="action-row">
     <nav class="problem-nav"><a class="nav-arrow" href="problem-004.html" aria-label="previous problem">←</a><a class="nav-menu" href="index.html">Menu</a><a class="nav-arrow" href="problem-006.html" aria-label="next problem">→</a></nav>
     <div class="status-bar">
@@ -132,9 +135,9 @@
       </div>
     </div>
   </div>
-<script src="app.js?v=7beb9350"></script>
+<script src="app.js?v=09241298"></script>
 <script>
-  const PROBLEM = {"n": 5, "latex": "Na skici spodaj je štirikotnik $ABCD$. Izračunajte kota $\\beta$ in $\\gamma$, če je $\\gamma=2\\beta$.\n\n\\begin{center}\n\\begin{tikzpicture}[scale=1.0,>=latex]\n  \\coordinate (A) at (0,0);\n  \\coordinate (B) at (5.4,0);\n  \\coordinate (C) at (4.6,2.6);\n  \\coordinate (D) at (1.6,3.0);\n  \\draw[thick] (A) -- (B) -- (C) -- (D) -- cycle;\n  \\node[below left]  at (A) {$A$};\n  \\node[below right] at (B) {$B$};\n  \\node[above right] at (C) {$C$};\n  \\node[above left]  at (D) {$D$};\n  \\pic [draw, \"$70^\\circ$\", angle radius=8mm, angle eccentricity=1.45]\n       {angle = B--A--D};\n  \\pic [draw, \"$\\beta$\", angle radius=8mm, angle eccentricity=1.6]\n       {angle = C--B--A};\n  \\pic [draw, \"$101^\\circ$\", angle radius=8mm, angle eccentricity=1.6]\n       {angle = D--C--B};\n  \\pic [draw, \"$\\gamma$\", angle radius=8mm, angle eccentricity=1.55]\n       {angle = A--D--C};\n\\end{tikzpicture}\n\\end{center}", "tikz_count": 1, "page_image": "pages/2025_Spomladanski_Pola1_OR_page-11.png", "page_size": [1654, 2339], "bbox_default": [157, 134, 1514, 663]};
+  const PROBLEM = {"n": 5, "latex": "Na skici spodaj je štirikotnik $ABCD$. Izračunajte kota $\\beta$ in $\\gamma$, če je $\\gamma=2\\beta$.\n\n\\begin{center}\n\\begin{tikzpicture}[scale=1.0,>=latex]\n  \\coordinate (A) at (0,0);\n  \\coordinate (B) at (5.4,0);\n  \\coordinate (C) at (4.6,2.6);\n  \\coordinate (D) at (1.6,3.0);\n  \\draw[thick] (A) -- (B) -- (C) -- (D) -- cycle;\n  \\node[below left]  at (A) {$A$};\n  \\node[below right] at (B) {$B$};\n  \\node[above right] at (C) {$C$};\n  \\node[above left]  at (D) {$D$};\n  \\pic [draw, \"$70^\\circ$\", angle radius=8mm, angle eccentricity=1.45]\n       {angle = B--A--D};\n  \\pic [draw, \"$\\beta$\", angle radius=8mm, angle eccentricity=1.6]\n       {angle = C--B--A};\n  \\pic [draw, \"$101^\\circ$\", angle radius=8mm, angle eccentricity=1.6]\n       {angle = D--C--B};\n  \\pic [draw, \"$\\gamma$\", angle radius=8mm, angle eccentricity=1.55]\n       {angle = A--D--C};\n\\end{tikzpicture}\n\\end{center}", "topics": ["Geometry", "Polygons"], "tikz_count": 1, "page_image": "pages/2025_Spomladanski_Pola1_OR_page-11.png", "page_size": [1654, 2339], "bbox_default": [157, 134, 1514, 663]};
   initProblemPage(PROBLEM);
 </script>
 </body>
