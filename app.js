@@ -356,6 +356,8 @@ function latexToHtml(src, problemId, tikzCount) {
 
 // Apply status-driven background colours to every card on the index page,
 // based on the merged remote+local state and the current reviewer name.
+// Cards may have both an "outdated" and an "approved" class — the CSS handles
+// that combination with a half/half gradient.
 function applyIndexStatuses() {
   const me = getName();
   document.querySelectorAll('.problem-card').forEach(card => {
@@ -365,9 +367,8 @@ function applyIndexStatuses() {
     if (s.approved_by) {
       if (me && s.approved_by === me) card.classList.add('status-approved-me');
       else                            card.classList.add('status-approved-other');
-    } else if (s.outdated) {
-      card.classList.add('status-outdated');
     }
+    if (s.outdated) card.classList.add('status-outdated');
   });
 }
 

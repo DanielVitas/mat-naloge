@@ -41,7 +41,9 @@ a:hover { text-decoration: underline; }
   margin-top: 1.5rem;
 }
 .problem-card {
-  display: flex; flex-direction: column; gap: 0.4rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
   padding: 0.7rem 0.9rem;
   background: #f3f4f6;       /* grey by default */
   border: 1px solid var(--card-border);
@@ -56,14 +58,33 @@ a:hover { text-decoration: underline; }
   transform: translateY(-1px);
   text-decoration: none;
 }
-.problem-card .card-num { font-weight: 600; font-size: 1.05rem; }
-.problem-card .tags { margin: 0; gap: 0.3rem; }
+.problem-card .card-num {
+  flex-shrink: 0; font-weight: 600; font-size: 1.05rem;
+}
+.problem-card .tags {
+  margin: 0; gap: 0.3rem;
+  flex: 1; display: flex; flex-wrap: wrap;
+}
 .problem-card .tag { font-size: 0.72rem; padding: 0.1rem 0.45rem; }
 
-/* status-driven background colours */
-.problem-card.status-outdated       { background: var(--warn-bg); }
-.problem-card.status-approved-other { background: #d1fae5; }   /* light green */
-.problem-card.status-approved-me    { background: #34d399; }   /* dark green */
+/* status-driven background colours.
+   * single status: solid colour
+   * outdated + approved: half/half gradient (yellow + green) */
+.problem-card.status-outdated:not(.status-approved-me):not(.status-approved-other) {
+  background: var(--warn-bg);                                   /* yellow */
+}
+.problem-card.status-approved-other:not(.status-outdated) {
+  background: #d1fae5;                                          /* light green */
+}
+.problem-card.status-approved-me:not(.status-outdated) {
+  background: #34d399;                                          /* dark green */
+}
+.problem-card.status-outdated.status-approved-other {
+  background: linear-gradient(to right, var(--warn-bg) 50%, #d1fae5 50%);
+}
+.problem-card.status-outdated.status-approved-me {
+  background: linear-gradient(to right, var(--warn-bg) 50%, #34d399 50%);
+}
 .problem-card.status-approved-me .card-num { color: #064e3b; }
 
 .status-bar {
