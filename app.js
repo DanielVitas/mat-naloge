@@ -1978,8 +1978,13 @@ function initFinishing(byN) {
   const headBar = document.getElementById('finishing-heading-bar');
   if (!tex || !preview) return;
 
-  // items: { n, content, spaceBefore (pt), pageBreakBefore }
+  // items: [{n, content}, ...] — the problems in their current order.
+  // gaps:  [{space, pageBreak}, ...] — positional metadata BETWEEN items;
+  //        gaps[i] is the gap drawn before items[i] (gaps[0] is unused/sentinel).
+  // Reordering items[] doesn't touch gaps[] — so the space/page-break
+  // between positions 1 and 2 stays put even if you swap problems 1 and 2.
   let items = [];
+  let gaps  = [];
   let lastExamFingerprint = '';
   // Heading toggles (Title / Name / Surname / Points / Grade) + the
   // currently-displayed title text (editable through the LaTeX textarea).
@@ -2031,9 +2036,10 @@ function initFinishing(byN) {
     const itemsTex = items.map((item, i) => {
       let pre = '';
       if (i > 0) {
-        if (item.pageBreakBefore) pre += '\\newpage\n';
-        if (item.spaceBefore && item.spaceBefore > 0) {
-          pre += `\\vspace*{${item.spaceBefore}pt}\n`;
+        const g = gaps[i] || { space: 0, pageBreak: false };
+        if (g.pageBreak) pre += '\\newpage\n';
+        if (g.space && g.space > 0) {
+          pre += `\\vspace*{${g.space}pt}\n`;
         }
       }
       const nMarker = item.n ? `% problem ${item.n}\n` : '';
@@ -2084,11 +2090,13 @@ ${itemsTex}
     const chunks = inner.split(/\\item\b\s*/);
     if (chunks.length < 2) return false;
     const newItems = [];
+    const newGaps  = [];
     let pendingNewpage = false;
     let pendingSpace = 0;
     for (let i = 1; i < chunks.length; i++) {
       let chunk = chunks[i];
-      // Pull off trailing \newpage / \vspace*{Xpt} (those belong to the NEXT item).
+      // Pull off trailing \newpage / \vspace*{Xpt} — they describe the gap
+      // BEFORE the NEXT item.
       let trailingNewpage = false;
       let trailingSpace = 0;
       while (true) {
@@ -2109,15 +2117,17 @@ ${itemsTex}
         n = parseInt(nM[1], 10);
         chunk = chunk.substring(nM[0].length);
       }
-      newItems.push({
-        n, content: chunk.trim(),
-        spaceBefore: pendingSpace,
-        pageBreakBefore: pendingNewpage,
-      });
+      newItems.push({ n, content: chunk.trim() });
+      // The previously-buffered "pending" directives describe the gap
+      // BEFORE this just-pushed item.
+      newGaps.push(newItems.length === 1
+        ? { space: 0, pageBreak: false }                // sentinel
+        : { space: pendingSpace, pageBreak: pendingNewpage });
       pendingNewpage = trailingNewpage;
       pendingSpace = trailingSpace;
     }
     items = newItems;
+    gaps  = newGaps;
     return true;
   }
 
@@ -2144,18 +2154,35 @@ ${itemsTex}
       hh.appendChild(t);
       any = true;
     }
-    const fieldList = [];
-    if (headingState.name)    fieldList.push('Ime');
-    if (headingState.surname) fieldList.push('Priimek');
-    if (headingState.points)  fieldList.push('Točke');
-    if (headingState.grade)   fieldList.push('Ocena');
-    if (fieldList.length > 0) {
+    const fieldDefs = [
+      { key: 'name',    label: 'Ime' },
+      { key: 'surname', label: 'Priimek' },
+      { key: 'points',  label: 'Točke' },
+      { key: 'grade',   label: 'Ocena' },
+    ].filter(d => headingState[d.key]);
+    if (fieldDefs.length > 0) {
       const fields = document.createElement('div');
       fields.className = 'exam-heading-fields';
-      for (const f of fieldList) {
+      for (const d of fieldDefs) {
         const row = document.createElement('div');
         row.className = 'exam-heading-field';
-        row.innerHTML = `<span class="exam-field-label">${f}:</span><span class="exam-field-blank"></span>`;
+        row.innerHTML =
+          `<span class="exam-field-label">${d.label}:` +
+          `<button type="button" class="exam-field-remove" data-key="${d.key}" title="Remove field">×</button>` +
+          `</span>` +
+          `<span class="exam-field-blank"></span>`;
+        const x = row.querySelector('.exam-field-remove');
+        x.addEventListener('click', (e) => {
+          e.preventDefault();
+          headingState[d.key] = false;
+          // Sync the heading-bar checkbox UI
+          if (headBar) {
+            const cb = headBar.querySelector(`input[data-head="${d.key}"]`);
+            if (cb) cb.checked = false;
+          }
+          renderPreview();
+          regenerateTex();
+        });
         fields.appendChild(row);
       }
       hh.appendChild(fields);
@@ -2174,14 +2201,8 @@ ${itemsTex}
       return;
     }
     items.forEach((item, idx) => {
+      const g = gaps[idx] || { space: 0, pageBreak: false };
       if (idx > 0) {
-        // If the next item has a page break, draw a dashed blue line at the
-        // bottom of the previous problem (instead of decorating the next).
-        if (item.pageBreakBefore) {
-          const line = document.createElement('div');
-          line.className = 'finishing-page-break-line';
-          preview.appendChild(line);
-        }
         const sep = document.createElement('div');
         sep.className = 'finishing-separator';
         sep.dataset.i = idx;
@@ -2190,22 +2211,22 @@ ${itemsTex}
         row.className = 'finishing-controls-row';
         const ctrl = document.createElement('span');
         ctrl.className = 'finishing-space-control';
-        ctrl.innerHTML = `Space: <input type="number" min="0" step="1" value="${item.spaceBefore || 0}" class="space-input"> pt`;
+        ctrl.innerHTML = `Space: <input type="number" min="0" step="1" value="${g.space || 0}" class="space-input"> pt`;
         const inp = ctrl.querySelector('input');
         inp.addEventListener('input', (e) => {
           const v = Math.max(0, parseInt(e.target.value || '0', 10) || 0);
-          items[idx].spaceBefore = v;
+          gaps[idx].space = v;
           spacer.style.height = (4 + Math.round(v * 1.333)) + 'px';
           regenerateTex();
         });
         row.appendChild(ctrl);
         const pb = document.createElement('button');
         pb.type = 'button';
-        pb.className = 'page-break-toggle' + (item.pageBreakBefore ? ' is-active' : '');
-        pb.textContent = item.pageBreakBefore ? '↪ Page break ✓' : '↪ Page break';
+        pb.className = 'page-break-toggle' + (g.pageBreak ? ' is-active' : '');
+        pb.textContent = g.pageBreak ? '↪ Page break ✓' : '↪ Page break';
         pb.addEventListener('click', (e) => {
           e.preventDefault();
-          items[idx].pageBreakBefore = !items[idx].pageBreakBefore;
+          gaps[idx].pageBreak = !gaps[idx].pageBreak;
           renderPreview();
           regenerateTex();
         });
@@ -2214,34 +2235,36 @@ ${itemsTex}
         // Visible space bar (height in px ≈ pt × 1.333)
         const spacer = document.createElement('div');
         spacer.className = 'finishing-space';
-        spacer.style.height = (4 + Math.round((item.spaceBefore || 0) * 1.333)) + 'px';
+        spacer.style.height = (4 + Math.round((g.space || 0) * 1.333)) + 'px';
         sep.appendChild(spacer);
+        // Dashed page-break line goes BELOW the controls + spacer.
+        if (g.pageBreak) {
+          const line = document.createElement('div');
+          line.className = 'finishing-page-break-line';
+          sep.appendChild(line);
+        }
         preview.appendChild(sep);
       }
 
       const block = document.createElement('div');
       block.className = 'finishing-block';
-      if (item.pageBreakBefore) block.classList.add('is-page-break');
+      if (g.pageBreak) block.classList.add('is-page-break');
       block.draggable = true;
       block.dataset.i = idx;
-      const head = document.createElement('div');
-      head.className = 'finishing-block-head';
       const dragH = document.createElement('span');
       dragH.className = 'drag-handle';
       dragH.textContent = '⋮⋮';
       dragH.title = 'Drag to reorder';
-      head.appendChild(dragH);
-      const num = document.createElement('span');
-      num.className = 'result-num';
-      num.textContent = `${idx + 1}.`;
-      head.appendChild(num);
-      block.appendChild(head);
+      block.appendChild(dragH);
       const body = document.createElement('div');
       body.className = 'finishing-block-body';
-      // Use the (possibly user-edited) item.content for rendering. tikz
-      // count comes from the original problem if n is known.
       const tikz = (item.n != null && byN[item.n]) ? (byN[item.n].tikz_count || 0) : 0;
       body.innerHTML = latexToHtml(item.content || '', item.n, tikz);
+      // Inline the problem number with the first paragraph (no line break).
+      const numHtml = `<strong class="result-num">${idx + 1}. </strong>`;
+      const firstP = body.querySelector('p');
+      if (firstP) firstP.insertAdjacentHTML('afterbegin', numHtml);
+      else        body.insertAdjacentHTML('afterbegin', numHtml);
       block.appendChild(body);
       preview.appendChild(block);
     });
@@ -2316,11 +2339,10 @@ ${itemsTex}
         const data = byN[n] || {};
         const ed = effectiveState(n);
         const src = (ed.latex !== undefined) ? ed.latex : (data.latex || '');
-        return {
-          n, content: src.trim(),
-          spaceBefore: 0, pageBreakBefore: false,
-        };
+        return { n, content: src.trim() };
       });
+      // Reset positional gaps to defaults whenever the exam set changes.
+      gaps = items.map(() => ({ space: 0, pageBreak: false }));
       regenerateTex();
     }
     renderPreview();

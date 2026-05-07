@@ -1235,6 +1235,7 @@ canvas.crop-display {
   overflow-y: auto;
 }
 .finishing-block {
+  display: flex; align-items: flex-start; gap: 0.45rem;
   position: relative;
   padding: 0.4rem 0.5rem 0.5rem;
   background: white;
@@ -1243,23 +1244,22 @@ canvas.crop-display {
 }
 .finishing-block + .finishing-block { margin-top: 0; }
 .finishing-block.dragging { opacity: 0.45; }
-.finishing-block-head {
-  display: flex; align-items: center; gap: 0.4rem;
-  margin-bottom: 0.25rem;
-  cursor: grab;
-}
-.finishing-block-head .drag-handle {
+.finishing-block .drag-handle {
+  flex-shrink: 0;
   color: var(--muted);
-  font-size: 1.05rem; line-height: 1;
+  font-size: 1.05rem; line-height: 1.5;
   user-select: none;
   cursor: grab;
 }
-.finishing-block-head .result-num {
-  font-weight: 600; color: var(--accent);
-  font-size: 0.95rem;
+.finishing-block-body {
+  flex: 1; min-width: 0;
+  font-size: 0.92rem; line-height: 1.5;
 }
-.finishing-block-body { font-size: 0.92rem; line-height: 1.5; }
 .finishing-block-body p { margin: 0.25rem 0; }
+.finishing-block-body .result-num {
+  font-weight: 700; color: var(--accent);
+  margin-right: 0.2em;
+}
 .finishing-block-body .tex-tikz img { max-width: 100%; max-height: 280px; }
 
 /* Separator between two consecutive problems */
@@ -1377,6 +1377,26 @@ canvas.crop-display {
   border-bottom: 1px dotted #888;
   height: 1.1em;
 }
+.exam-heading-field .exam-field-remove {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--muted);
+  border: 0;
+  border-radius: 999px;
+  width: 1rem; height: 1rem;
+  font-size: 0.7rem; line-height: 1; font-weight: 700;
+  margin-left: 0.3rem;
+  cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  vertical-align: baseline;
+  padding: 0;
+}
+.exam-heading-field .exam-field-remove:hover {
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+@media print {
+  body.print-finishing .exam-heading-field .exam-field-remove { display: none !important; }
+}
 
 /* Page-break visual indicator: a dashed blue line drawn at the bottom of
    the previous problem (so it visually attaches to where the page ends). */
@@ -1447,21 +1467,20 @@ canvas.crop-display {
     break-before: page !important;
   }
   body.print-finishing .finishing-page-break-line { display: none !important; }
-  /* Hide all the interactive widgets in the separator/header. */
-  body.print-finishing .finishing-block-head .drag-handle,
-  body.print-finishing .finishing-separator .page-break-toggle,
-  body.print-finishing .finishing-separator .finishing-grip {
+  /* Hide every interactive widget — controls row + drag handle + page-break line. */
+  body.print-finishing .finishing-controls-row,
+  body.print-finishing .page-break-toggle,
+  body.print-finishing .finishing-space-control,
+  body.print-finishing .finishing-block .drag-handle,
+  body.print-finishing .finishing-page-break-line {
     display: none !important;
   }
   body.print-finishing .finishing-separator { margin: 0; }
   body.print-finishing .finishing-separator .finishing-space {
     background: transparent !important; border: 0 !important;
   }
-  body.print-finishing .finishing-block-head {
-    margin: 0 0 0.1rem; padding: 0;
-  }
-  body.print-finishing .finishing-block-head .result-num {
-    color: black; font-size: 0.95rem;
+  body.print-finishing .finishing-block-body .result-num {
+    color: black;
   }
 }
 
