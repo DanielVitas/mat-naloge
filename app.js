@@ -1975,8 +1975,38 @@ async function initExamPage() {
 function initFinishing(byN) {
   const tex     = document.getElementById('finishing-tex');
   const preview = document.getElementById('finishing-preview');
-  const headBar = document.getElementById('finishing-heading-bar');
+  const headAdds = document.getElementById('finishing-heading-adds');
   if (!tex || !preview) return;
+
+  // Definitions for the heading items shown next to "Preview" when not active.
+  const HEADING_DEFS = [
+    { key: 'title',   label: 'Title' },
+    { key: 'name',    label: 'Ime' },
+    { key: 'surname', label: 'Priimek' },
+    { key: 'points',  label: 'Točke' },
+    { key: 'grade',   label: 'Ocena' },
+  ];
+
+  function renderHeadingAdds() {
+    if (!headAdds) return;
+    headAdds.innerHTML = '';
+    for (const d of HEADING_DEFS) {
+      if (headingState[d.key]) continue;       // already in the heading
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'finishing-heading-add';
+      btn.textContent = '+ ' + d.label;
+      btn.title = 'Add ' + d.label + ' to the heading';
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        headingState[d.key] = true;
+        renderPreview();
+        renderHeadingAdds();
+        regenerateTex();
+      });
+      headAdds.appendChild(btn);
+    }
+  }
 
   // items: [{n, content}, ...] — the problems in their current order.
   // gaps:  [{space, pageBreak}, ...] — positional metadata BETWEEN items;
@@ -2079,10 +2109,7 @@ ${itemsTex}
     } else {
       headingState.title = false;
     }
-    if (headBar) {
-      const cb = headBar.querySelector('input[data-head="title"]');
-      if (cb) cb.checked = headingState.title;
-    }
+    renderHeadingAdds();
 
     const m = tex.value.match(/\\begin\{enumerate\}[^\n]*\n([\s\S]*?)\\end\{enumerate\}/);
     if (!m) return false;
@@ -2138,6 +2165,8 @@ ${itemsTex}
     hh.className = 'exam-heading';
     let any = false;
     if (headingState.title) {
+      const wrap = document.createElement('div');
+      wrap.className = 'exam-heading-title-wrap';
       const t = document.createElement('div');
       t.className = 'exam-heading-title';
       t.contentEditable = 'true';
@@ -2151,7 +2180,21 @@ ${itemsTex}
         headingTitle = (t.textContent || '').replace(/\s+/g, ' ').trim() || ' ';
         regenerateTex();
       });
-      hh.appendChild(t);
+      wrap.appendChild(t);
+      const xt = document.createElement('button');
+      xt.type = 'button';
+      xt.className = 'exam-field-remove exam-title-remove';
+      xt.title = 'Remove title';
+      xt.textContent = '×';
+      xt.addEventListener('click', (e) => {
+        e.preventDefault();
+        headingState.title = false;
+        renderPreview();
+        renderHeadingAdds();
+        regenerateTex();
+      });
+      wrap.appendChild(xt);
+      hh.appendChild(wrap);
       any = true;
     }
     const fieldDefs = [
@@ -2175,12 +2218,8 @@ ${itemsTex}
         x.addEventListener('click', (e) => {
           e.preventDefault();
           headingState[d.key] = false;
-          // Sync the heading-bar checkbox UI
-          if (headBar) {
-            const cb = headBar.querySelector(`input[data-head="${d.key}"]`);
-            if (cb) cb.checked = false;
-          }
           renderPreview();
+          renderHeadingAdds();
           regenerateTex();
         });
         fields.appendChild(row);
@@ -2216,12 +2255,17 @@ ${itemsTex}
         inp.addEventListener('input', (e) => {
           const v = Math.max(0, parseInt(e.target.value || '0', 10) || 0);
           gaps[idx].space = v;
-          // Space and Page break are mutually exclusive.
+          // Space and Page break are mutually exclusive — but DON'T re-render,
+          // or the input loses focus mid-typing. Patch the DOM in place.
           if (v > 0 && gaps[idx].pageBreak) {
             gaps[idx].pageBreak = false;
-            renderPreview();   // re-render to drop the dashed line + button highlight
-            regenerateTex();
-            return;
+            pb.classList.remove('is-active');
+            pb.textContent = '↪ Page break';
+            const line = sep.querySelector('.finishing-page-break-line');
+            if (line) line.remove();
+            const nextBlock = preview.querySelector(
+              `.finishing-block[data-i="${idx}"]`);
+            if (nextBlock) nextBlock.classList.remove('is-page-break');
           }
           spacer.style.height = (4 + Math.round(v * 1.333)) + 'px';
           regenerateTex();
@@ -2359,17 +2403,6 @@ ${itemsTex}
     dropIdx = null;
   });
 
-  // Heading checkboxes
-  if (headBar) {
-    headBar.querySelectorAll('input[type=checkbox][data-head]').forEach(cb => {
-      cb.addEventListener('change', () => {
-        headingState[cb.dataset.head] = cb.checked;
-        regenerateTex();
-        renderPreview();
-      });
-    });
-  }
-
   // Editable LaTeX — re-parse items on input (debounced) and re-render preview.
   let parseTimer = null;
   tex.addEventListener('input', () => {
@@ -2402,6 +2435,7 @@ ${itemsTex}
   }
   window.addEventListener('exam-changed', refresh);
   refresh();
+  renderHeadingAdds();
 
   // Downloads
   document.getElementById('download-tex').addEventListener('click', () => {
