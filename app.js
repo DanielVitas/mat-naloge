@@ -1999,13 +1999,29 @@ function initFinishing(byN) {
     if (headingState.title) {
       lines.push('\\begin{center}\n{\\Large\\textbf{' + headingTitle + '}}\n\\end{center}');
     }
-    const fields = [];
-    if (headingState.name)    fields.push('Ime: \\dotfill');
-    if (headingState.surname) fields.push('Priimek: \\dotfill');
-    if (headingState.points)  fields.push('Točke: \\dotfill');
-    if (headingState.grade)   fields.push('Ocena: \\dotfill');
-    if (fields.length > 0) {
-      lines.push(fields.map(f => f + '\\\\[0.5em]').join('\n'));
+    // Layout fields in a borderless 2-column tabular: row 1 = Ime/Priimek,
+    // row 2 = Točke/Ocena. Cells that are toggled off render as empty.
+    const cell = (on, label) => on ? `${label}: \\dotfill` : '';
+    const top = [
+      cell(headingState.name,    'Ime'),
+      cell(headingState.surname, 'Priimek'),
+    ];
+    const bot = [
+      cell(headingState.points,  'Točke'),
+      cell(headingState.grade,   'Ocena'),
+    ];
+    const hasTop = top.some(Boolean);
+    const hasBot = bot.some(Boolean);
+    if (hasTop || hasBot) {
+      const rows = [];
+      if (hasTop) rows.push(`${top[0]} & ${top[1]}`);
+      if (hasBot) rows.push(`${bot[0]} & ${bot[1]}`);
+      lines.push(
+        '\\noindent\\begin{tabular*}{\\textwidth}' +
+        '{@{}p{0.45\\textwidth}@{\\extracolsep{\\fill}}p{0.45\\textwidth}@{}}\n' +
+        rows.join(' \\\\[0.5em]\n') + '\n' +
+        '\\end{tabular*}'
+      );
     }
     if (lines.length === 0) return '';
     return lines.join('\n\\bigskip\n') + '\n\n\\bigskip\n\n';
@@ -2114,7 +2130,17 @@ ${itemsTex}
     if (headingState.title) {
       const t = document.createElement('div');
       t.className = 'exam-heading-title';
+      t.contentEditable = 'true';
+      t.spellcheck = false;
       t.textContent = headingTitle;
+      // Plain-text editing — strip any pasted formatting & block Enter newlines.
+      t.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter') { ev.preventDefault(); t.blur(); }
+      });
+      t.addEventListener('input', () => {
+        headingTitle = (t.textContent || '').replace(/\s+/g, ' ').trim() || ' ';
+        regenerateTex();
+      });
       hh.appendChild(t);
       any = true;
     }
@@ -2149,6 +2175,13 @@ ${itemsTex}
     }
     items.forEach((item, idx) => {
       if (idx > 0) {
+        // If the next item has a page break, draw a dashed blue line at the
+        // bottom of the previous problem (instead of decorating the next).
+        if (item.pageBreakBefore) {
+          const line = document.createElement('div');
+          line.className = 'finishing-page-break-line';
+          preview.appendChild(line);
+        }
         const sep = document.createElement('div');
         sep.className = 'finishing-separator';
         sep.dataset.i = idx;
