@@ -2294,15 +2294,17 @@ ${itemsTex}
     e.preventDefault();
     const targetIdx = parseInt(block.dataset.i, 10);
     if (targetIdx === draggingIdx) return;
-    const rect = block.getBoundingClientRect();
-    const before = (e.clientY - rect.top) < rect.height / 2;
-    let insertAt = before ? targetIdx : targetIdx + 1;
-    if (draggingIdx < insertAt) insertAt--;
-    if (insertAt === draggingIdx) return;
+    // The moment we hover over a different block, swap positions: lift
+    // the dragging item out and reinsert it at the target's index. This is
+    // far more responsive than waiting for the midpoint crossing.
     const [moved] = items.splice(draggingIdx, 1);
-    items.splice(insertAt, 0, moved);
-    draggingIdx = insertAt;
+    items.splice(targetIdx, 0, moved);
+    draggingIdx = targetIdx;
     renderPreview();
+    // Restore the .dragging class on the freshly-rendered moved block so
+    // the visual state stays consistent during the drag.
+    const re = preview.querySelector(`.finishing-block[data-i="${draggingIdx}"]`);
+    if (re) re.classList.add('dragging');
   });
   preview.addEventListener('drop', (e) => { e.preventDefault(); });
 
