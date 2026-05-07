@@ -2460,7 +2460,14 @@ ${itemsTex}
     document.body.appendChild(a); a.click(); a.remove();
     URL.revokeObjectURL(url);
   });
-  document.getElementById('download-pdf').addEventListener('click', () => {
+  // Re-entrancy guard — on mobile, a long-press can fire the click handler
+  // more than once, so we ignore subsequent clicks while a print flow is
+  // already in progress.
+  let printInProgress = false;
+  document.getElementById('download-pdf').addEventListener('click', (e) => {
+    e.preventDefault();
+    if (printInProgress) return;
+    printInProgress = true;
     // Mobile browsers (iOS Safari, Chrome Mobile) sometimes capture the
     // PDF from the screen view rather than the @media print stylesheet,
     // so class-based hiding gets ignored. Force display:none via inline
@@ -2492,10 +2499,14 @@ ${itemsTex}
     });
     document.body.classList.add('print-finishing');
 
+    let cleaned = false;
     const cleanup = () => {
+      if (cleaned) return;
+      cleaned = true;
       document.body.classList.remove('print-finishing');
       restored.forEach(({ el, prev }) => { el.style.cssText = prev; });
       window.removeEventListener('afterprint', cleanup);
+      printInProgress = false;
     };
     window.addEventListener('afterprint', cleanup);
     // Safety net: if afterprint never fires (some mobile browsers), drop

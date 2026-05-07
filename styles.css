@@ -503,6 +503,16 @@ textarea#latex-source {
 .hint { color: var(--muted); font-size: 0.82rem; margin: 0.4rem 0 0; }
 
 .export-row { margin-top: 1.2rem; display: flex; gap: 0.6rem; flex-wrap: wrap; }
+/* Mobile-friendly tap target — disable the iOS long-press callout/share
+   sheet, kill double-tap zoom, prevent accidental text selection. */
+.export-row button,
+#download-tex,
+#download-pdf {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
 
 /* Crop display (canvas) */
 canvas.crop-display {
