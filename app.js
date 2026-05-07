@@ -2216,6 +2216,13 @@ ${itemsTex}
         inp.addEventListener('input', (e) => {
           const v = Math.max(0, parseInt(e.target.value || '0', 10) || 0);
           gaps[idx].space = v;
+          // Space and Page break are mutually exclusive.
+          if (v > 0 && gaps[idx].pageBreak) {
+            gaps[idx].pageBreak = false;
+            renderPreview();   // re-render to drop the dashed line + button highlight
+            regenerateTex();
+            return;
+          }
           spacer.style.height = (4 + Math.round(v * 1.333)) + 'px';
           regenerateTex();
         });
@@ -2226,7 +2233,10 @@ ${itemsTex}
         pb.textContent = g.pageBreak ? '↪ Page break ✓' : '↪ Page break';
         pb.addEventListener('click', (e) => {
           e.preventDefault();
-          gaps[idx].pageBreak = !gaps[idx].pageBreak;
+          const turningOn = !gaps[idx].pageBreak;
+          gaps[idx].pageBreak = turningOn;
+          // Mutual exclusion: turning page break on clears any pt of space.
+          if (turningOn) gaps[idx].space = 0;
           renderPreview();
           regenerateTex();
         });
