@@ -2460,120 +2460,80 @@ ${itemsTex}
     document.body.appendChild(a); a.click(); a.remove();
     URL.revokeObjectURL(url);
   });
-  // Open a self-contained HTML document in a new tab and let the BROWSER
-  // print THAT page. Avoids every problem with class-toggling on mobile —
-  // there's no chrome on the new tab to hide.
-  document.getElementById('download-pdf').addEventListener('click', () => {
+  // Generate the PDF entirely client-side via html2pdf.js — same shape as
+  // the LaTeX download: build a blob, trigger a download, done. No print
+  // dialog, no new windows, no body-class toggling.
+  document.getElementById('download-pdf').addEventListener('click', async () => {
+    const btn = document.getElementById('download-pdf');
+    if (typeof html2pdf === 'undefined') {
+      alert('PDF library failed to load. Check your network connection.');
+      return;
+    }
     const previewEl = document.getElementById('finishing-preview');
     if (!previewEl) return;
-    // Clone preview, strip the interactive bits (controls / drag handles /
-    // dashed page-break line / × buttons) so the clone is print-clean.
+
+    // Clone the preview and strip the interactive bits.
     const clone = previewEl.cloneNode(true);
     clone.querySelectorAll(
       '.finishing-controls-row, .drag-handle, ' +
       '.finishing-page-break-line, .exam-field-remove, ' +
       '.finishing-heading-adds'
     ).forEach(el => el.remove());
-    // Make editable title look static
     clone.querySelectorAll('[contenteditable]').forEach(el => {
       el.removeAttribute('contenteditable');
       el.removeAttribute('spellcheck');
     });
 
-    const cssHref = (document.querySelector('link[rel="stylesheet"]') || {}).href || 'styles.css';
+    // Wrap clone in a container sized like an A4 page (in CSS px at 96dpi:
+    // 794×1123). html2pdf renders the container then slices it across pages.
+    const sandbox = document.createElement('div');
+    sandbox.style.cssText =
+      'position:fixed;left:-10000px;top:0;width:794px;background:white;' +
+      'padding:60px;box-sizing:border-box;font-family:Georgia,serif;' +
+      'color:black;';
+    // Force every problem to break cleanly across pages.
+    const pageBreakStyle = document.createElement('style');
+    pageBreakStyle.textContent = `
+      .finishing-block { page-break-inside: avoid; break-inside: avoid;
+                         margin: 0 0 14px; display: block; border: 0; padding: 0; }
+      .finishing-block.is-page-break { page-break-before: always !important;
+                                       break-before: page !important; }
+      .finishing-block-body { display: block; }
+      .exam-heading-title-wrap { display: block; text-align: center; margin: 0 0 14px; }
+    `;
+    sandbox.appendChild(pageBreakStyle);
+    sandbox.appendChild(clone);
+    document.body.appendChild(sandbox);
 
-    const html = `<!doctype html>
-<html lang="sl">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Izpit</title>
-<link rel="stylesheet" href="${cssHref}">
-<style>
-  @page { size: A4; margin: 1.5cm; }
-  body { background: white; margin: 0; padding: 1.5cm; }
-  #finishing-preview {
-    background: white !important;
-    border: 0 !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    box-shadow: none !important;
-    max-height: none !important;
-    overflow: visible !important;
-    display: block !important;
-  }
-  .finishing-block {
-    display: block !important;
-    border: 0 !important;
-    padding: 0 !important;
-    margin: 0 0 0.6em !important;
-    page-break-inside: avoid;
-    break-inside: avoid;
-  }
-  .finishing-block.is-page-break {
-    page-break-before: always !important;
-    break-before: page !important;
-  }
-  .drag-handle, .finishing-controls-row, .finishing-page-break-line,
-  .exam-field-remove, .finishing-heading-adds { display: none !important; }
-  .auto-print-hint {
-    font-family: system-ui, -apple-system, sans-serif;
-    background: #fff7c2; border: 1px solid #e8d24c;
-    padding: 0.6rem 0.9rem; border-radius: 6px;
-    margin-bottom: 1rem; font-size: 0.9rem;
-  }
-  @media print { .auto-print-hint { display: none !important; } }
-</style>
-<script>
-  window.MathJax = {
-    tex: {
-      inlineMath: [['$', '$']],
-      displayMath: [['$$', '$$']],
-      processEscapes: true,
-      processEnvironments: false
-    },
-    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] },
-    startup: {
-      ready: function() {
-        MathJax.startup.defaultReady();
-        MathJax.startup.promise.then(function() {
-          setTimeout(function() {
-            try { window.print(); } catch (e) {}
-          }, 400);
-        });
-      }
+    // Wait for MathJax in the main document to finish typesetting (the
+    // clone copies the rendered output, so this is just a sanity wait).
+    if (window.MathJax && window.MathJax.typesetPromise) {
+      try { await window.MathJax.typesetPromise([sandbox]); } catch (_) {}
     }
-  };
-</script>
-<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-</head>
-<body>
-<div class="auto-print-hint">If the print dialog doesn't open automatically, use your browser's Print or Share &rarr; Save as PDF.</div>
-${clone.outerHTML}
-</body>
-</html>`;
 
-    // Use a Blob URL so the new tab has a valid origin and same-origin
-    // styling rules apply. Falls back to about:blank+document.write.
-    let opened = null;
+    btn.disabled = true;
+    const origText = btn.textContent;
+    btn.textContent = '⏳ Generating PDF…';
+
     try {
-      const blob = new Blob([html], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      opened = window.open(url, '_blank');
-      // Revoke the URL after a delay (the new tab needs time to load).
-      setTimeout(() => URL.revokeObjectURL(url), 60000);
-    } catch (err) { /* fall through */ }
-    if (!opened) {
-      // Popup blocked or Blob not supported — fall back to writing into
-      // a freshly-opened blank window from inside the user gesture.
-      opened = window.open('about:blank', '_blank');
-      if (opened) {
-        opened.document.open();
-        opened.document.write(html);
-        opened.document.close();
-      } else {
-        alert('Please allow popups for this site to download the PDF.');
-      }
+      await html2pdf().set({
+        margin:      0,
+        filename:    'izpit.pdf',
+        image:       { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, backgroundColor: '#ffffff', useCORS: true,
+                       windowWidth: 794 },
+        jsPDF:       { unit: 'pt', format: 'a4', orientation: 'portrait' },
+        pagebreak:   { mode: ['css', 'legacy'],
+                       before: '.finishing-block.is-page-break',
+                       avoid: '.finishing-block' },
+      }).from(sandbox).save();
+    } catch (err) {
+      console.error('PDF generation failed:', err);
+      alert('PDF generation failed: ' + (err && err.message || err));
+    } finally {
+      sandbox.remove();
+      btn.disabled = false;
+      btn.textContent = origText;
     }
   });
 }
