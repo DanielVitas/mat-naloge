@@ -1223,11 +1223,21 @@ canvas.crop-display {
   border: 1px solid var(--card-border);
   border-radius: 8px;
   padding: 0.9rem 1rem;
+  box-sizing: border-box;
+  min-width: 0;             /* allow grid item to shrink so the textarea
+                               doesn't push the card past its column */
+}
+/* Make the LaTeX pane a column flex container so its single big child
+   (the textarea) fills exactly the available space — no overflow past
+   the card border, no wasted whitespace. */
+.finishing-left {
+  display: flex;
+  flex-direction: column;
 }
 #finishing-tex {
   width: 100%;
   min-height: 540px;        /* tall LaTeX editor */
-  height: 100%;
+  flex: 1 1 auto;           /* fill the rest of the card vertically */
   box-sizing: border-box;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.82rem;

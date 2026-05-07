@@ -2556,8 +2556,9 @@ ${itemsTex}
           },
         },
         jsPDF:       { unit: 'pt', format: 'a4', orientation: 'portrait' },
-        pagebreak:   { mode: ['css', 'legacy'],
-                       before: '.finishing-block.is-page-break' },
+        pagebreak:   { mode: ['avoid-all', 'css', 'legacy'],
+                       before: '.finishing-block.is-page-break',
+                       avoid:  '.finishing-block' },
       }).from(previewEl).save();
     } catch (err) {
       console.error('PDF generation failed:', err);
