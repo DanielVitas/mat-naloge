@@ -2114,37 +2114,50 @@ ${itemsTex}
     const m = tex.value.match(/\\begin\{enumerate\}[^\n]*\n([\s\S]*?)\\end\{enumerate\}/);
     if (!m) return false;
     const inner = m[1];
+    // Splitting on \item leaves chunks[0] as the preamble (which contains
+    // the "% problem N" comment for the FIRST item) and chunks[i>=1] as
+    // the BODY of item i — but each body's *tail* may also carry the
+    // gap markers (\newpage / \vspace) and the "% problem M" comment for
+    // the NEXT item. Peel that tail off before treating chunk[i] as
+    // content for item i.
     const chunks = inner.split(/\\item\b\s*/);
     if (chunks.length < 2) return false;
+    // Pull the FIRST item's "% problem N" out of the preamble.
+    const firstNM = chunks[0].match(/%\s*problem\s+(\d+)\s*\n/);
+    let currentN = firstNM ? parseInt(firstNM[1], 10) : null;
     const newItems = [];
     const newGaps  = [];
     let pendingNewpage = false;
     let pendingSpace = 0;
     for (let i = 1; i < chunks.length; i++) {
       let chunk = chunks[i];
-      // Pull off trailing \newpage / \vspace*{Xpt} — they describe the gap
-      // BEFORE the NEXT item.
+      // Peel from the END: \newpage, \vspace, "% problem M\n" — repeatedly,
+      // any order. The peeled comment is the marker for the NEXT item.
       let trailingNewpage = false;
       let trailingSpace = 0;
+      let nextN = null;
       while (true) {
+        const cmM = chunk.match(/\s*%\s*problem\s+(\d+)[^\n]*\n?\s*$/);
+        if (cmM) {
+          nextN = parseInt(cmM[1], 10);
+          chunk = chunk.substring(0, chunk.length - cmM[0].length);
+          continue;
+        }
         const npM = chunk.match(/\s*\\newpage\s*$/);
+        if (npM) {
+          trailingNewpage = true;
+          chunk = chunk.substring(0, chunk.length - npM[0].length);
+          continue;
+        }
         const vsM = chunk.match(/\s*\\vspace\*?\{\s*(\d+)\s*pt\s*\}\s*$/);
         if (vsM) {
           trailingSpace = parseInt(vsM[1], 10);
           chunk = chunk.substring(0, chunk.length - vsM[0].length);
-        } else if (npM) {
-          trailingNewpage = true;
-          chunk = chunk.substring(0, chunk.length - npM[0].length);
-        } else break;
+          continue;
+        }
+        break;
       }
-      // Recover the original problem N from the "% problem N" comment.
-      let n = null;
-      const nM = chunk.match(/^\s*%\s*problem\s+(\d+)\s*\n/);
-      if (nM) {
-        n = parseInt(nM[1], 10);
-        chunk = chunk.substring(nM[0].length);
-      }
-      newItems.push({ n, content: chunk.trim() });
+      newItems.push({ n: currentN, content: chunk.trim() });
       // The previously-buffered "pending" directives describe the gap
       // BEFORE this just-pushed item.
       newGaps.push(newItems.length === 1
@@ -2152,6 +2165,7 @@ ${itemsTex}
         : { space: pendingSpace, pageBreak: pendingNewpage });
       pendingNewpage = trailingNewpage;
       pendingSpace = trailingSpace;
+      currentN = nextN;
     }
     items = newItems;
     gaps  = newGaps;
@@ -2448,10 +2462,17 @@ ${itemsTex}
   });
   document.getElementById('download-pdf').addEventListener('click', () => {
     document.body.classList.add('print-finishing');
-    setTimeout(() => {
-      window.print();
+    // afterprint fires when the print/share-PDF dialog closes — including
+    // on iOS/Android, where window.print() returns immediately.
+    const cleanup = () => {
       document.body.classList.remove('print-finishing');
-    }, 50);
+      window.removeEventListener('afterprint', cleanup);
+    };
+    window.addEventListener('afterprint', cleanup);
+    // Safety net: if afterprint never fires (some mobile browsers), drop
+    // the class after a long delay so the screen UI returns to normal.
+    setTimeout(cleanup, 60000);
+    setTimeout(() => window.print(), 100);
   });
 }
 
