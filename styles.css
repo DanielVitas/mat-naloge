@@ -1287,21 +1287,75 @@ canvas.crop-display {
   border-top: 1px dashed transparent;
   border-bottom: 1px dashed transparent;
 }
-.finishing-separator .finishing-grip {
+.finishing-separator .finishing-space-control {
   align-self: center;
-  background: rgba(0,0,0,0.06);
+  font-size: 0.82rem;
   color: var(--muted);
-  font-weight: 700;
-  width: 2.4rem; height: 1.1rem;
-  display: flex; align-items: center; justify-content: center;
-  border-radius: 0 0 8px 8px;
-  font-size: 0.85rem;
-  line-height: 1;
-  cursor: ns-resize;
-  user-select: none;
-  touch-action: none;
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  margin-bottom: 0.2rem;
 }
-.finishing-separator .finishing-grip:hover { background: var(--accent); color: white; }
+.finishing-separator .finishing-space-control input {
+  width: 4rem;
+  padding: 0.18rem 0.4rem;
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.82rem;
+}
+
+/* Heading bar above the LaTeX/preview body */
+.finishing-heading-bar {
+  display: flex; align-items: center; flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  padding: 0.55rem 0.85rem;
+  margin: 0 0 0.6rem;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  font-size: 0.88rem;
+}
+.finishing-heading-bar .finishing-heading-label {
+  font-weight: 600;
+  color: var(--muted);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-right: 0.4rem;
+}
+.finishing-heading-bar label {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  cursor: pointer; user-select: none;
+}
+
+/* Heading preview (Title + name/surname/points/grade fields) */
+.exam-heading {
+  margin: 0 0 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--card-border);
+}
+.exam-heading-title {
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 0.8rem;
+}
+.exam-heading-fields {
+  display: flex; flex-direction: column;
+  gap: 0.4rem;
+}
+.exam-heading-field {
+  display: flex; align-items: baseline; gap: 0.5rem;
+  font-size: 0.95rem;
+}
+.exam-heading-field .exam-field-label {
+  font-weight: 500; color: var(--fg);
+  flex-shrink: 0;
+}
+.exam-heading-field .exam-field-blank {
+  flex: 1;
+  border-bottom: 1px dotted #888;
+  height: 1.1em;
+}
 
 /* Page-break visual indicator on the block when active */
 .finishing-block.is-page-break {
@@ -1334,8 +1388,15 @@ canvas.crop-display {
   body.print-finishing > .container > h1,
   body.print-finishing section[data-panel="selection"],
   body.print-finishing .finishing-toolbar,
+  body.print-finishing .finishing-heading-bar,
   body.print-finishing .finishing-left,
   body.print-finishing .pane-header { display: none !important; }
+  /* Heading section in print */
+  body.print-finishing .exam-heading {
+    border-bottom: 0;
+    margin-bottom: 1rem;
+  }
+  body.print-finishing .exam-heading-title { color: black; }
   /* Force the body grid to a single column so the preview takes full width. */
   body.print-finishing .finishing-body {
     display: block !important;

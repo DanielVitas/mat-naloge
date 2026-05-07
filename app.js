@@ -1975,11 +1975,14 @@ async function initExamPage() {
 function initFinishing(byN) {
   const tex     = document.getElementById('finishing-tex');
   const preview = document.getElementById('finishing-preview');
+  const headBar = document.getElementById('finishing-heading-bar');
   if (!tex || !preview) return;
 
-  // items: array of { n, spaceBefore (px), pageBreakBefore (bool) }
+  // items: { n, content, spaceBefore (pt), pageBreakBefore }
   let items = [];
   let lastExamFingerprint = '';
+  // Heading toggles (Title / Name / Surname / Points / Grade)
+  const headingState = { title: true, name: true, surname: true, points: true, grade: true };
 
   function sortBySection(ns) {
     return [...ns].sort((a, b) => {
@@ -1989,22 +1992,35 @@ function initFinishing(byN) {
     });
   }
 
-  function regenerate() {
-    const parts = items.map((item, i) => {
+  function generateHeadingTex() {
+    const lines = [];
+    if (headingState.title) {
+      lines.push('\\begin{center}\n{\\Large\\textbf{Izpit}}\n\\end{center}');
+    }
+    const fields = [];
+    if (headingState.name)    fields.push('Ime: \\dotfill');
+    if (headingState.surname) fields.push('Priimek: \\dotfill');
+    if (headingState.points)  fields.push('Točke: \\dotfill');
+    if (headingState.grade)   fields.push('Ocena: \\dotfill');
+    if (fields.length > 0) {
+      lines.push(fields.map(f => f + '\\\\[0.5em]').join('\n'));
+    }
+    if (lines.length === 0) return '';
+    return lines.join('\n\\bigskip\n') + '\n\n\\bigskip\n\n';
+  }
+
+  function regenerateTex() {
+    const itemsTex = items.map((item, i) => {
       let pre = '';
       if (i > 0) {
         if (item.pageBreakBefore) pre += '\\newpage\n';
         if (item.spaceBefore && item.spaceBefore > 0) {
-          // Convert px to pt (1pt ≈ 1.333px at 96 DPI).
-          const pt = Math.max(0, Math.round(item.spaceBefore / 1.333));
-          if (pt > 0) pre += `\\vspace*{${pt}pt}\n`;
+          pre += `\\vspace*{${item.spaceBefore}pt}\n`;
         }
       }
-      const data = byN[item.n] || {};
-      const ed = effectiveState(item.n);
-      const src = (ed.latex !== undefined) ? ed.latex : (data.latex || '');
-      return `${pre}\\item ${src.trim()}`;
-    });
+      const nMarker = item.n ? `% problem ${item.n}\n` : '';
+      return `${pre}${nMarker}\\item ${(item.content || '').trim()}`;
+    }).join('\n\n');
     const doc = `\\documentclass[12pt,a4paper]{article}
 \\usepackage[utf8]{inputenc}
 \\usepackage[T1]{fontenc}
@@ -2018,21 +2034,100 @@ function initFinishing(byN) {
 \\pagestyle{empty}
 \\setlength{\\parindent}{0pt}
 \\begin{document}
-\\begin{enumerate}[leftmargin=*]
-${parts.join('\n\n')}
+${generateHeadingTex()}\\begin{enumerate}[leftmargin=*]
+${itemsTex}
 \\end{enumerate}
 \\end{document}
 `;
     tex.value = doc;
   }
 
+  // Parse the textarea content into items[] (best-effort). Returns true if
+  // the enumerate body could be located, false otherwise.
+  function parseTexIntoItems() {
+    const m = tex.value.match(/\\begin\{enumerate\}[^\n]*\n([\s\S]*?)\\end\{enumerate\}/);
+    if (!m) return false;
+    const inner = m[1];
+    const chunks = inner.split(/\\item\b\s*/);
+    if (chunks.length < 2) return false;
+    const newItems = [];
+    let pendingNewpage = false;
+    let pendingSpace = 0;
+    for (let i = 1; i < chunks.length; i++) {
+      let chunk = chunks[i];
+      // Pull off trailing \newpage / \vspace*{Xpt} (those belong to the NEXT item).
+      let trailingNewpage = false;
+      let trailingSpace = 0;
+      while (true) {
+        const npM = chunk.match(/\s*\\newpage\s*$/);
+        const vsM = chunk.match(/\s*\\vspace\*?\{\s*(\d+)\s*pt\s*\}\s*$/);
+        if (vsM) {
+          trailingSpace = parseInt(vsM[1], 10);
+          chunk = chunk.substring(0, chunk.length - vsM[0].length);
+        } else if (npM) {
+          trailingNewpage = true;
+          chunk = chunk.substring(0, chunk.length - npM[0].length);
+        } else break;
+      }
+      // Recover the original problem N from the "% problem N" comment.
+      let n = null;
+      const nM = chunk.match(/^\s*%\s*problem\s+(\d+)\s*\n/);
+      if (nM) {
+        n = parseInt(nM[1], 10);
+        chunk = chunk.substring(nM[0].length);
+      }
+      newItems.push({
+        n, content: chunk.trim(),
+        spaceBefore: pendingSpace,
+        pageBreakBefore: pendingNewpage,
+      });
+      pendingNewpage = trailingNewpage;
+      pendingSpace = trailingSpace;
+    }
+    items = newItems;
+    return true;
+  }
+
   function renderPreview() {
     preview.innerHTML = '';
+    // Heading section
+    const hh = document.createElement('div');
+    hh.className = 'exam-heading';
+    let any = false;
+    if (headingState.title) {
+      const t = document.createElement('div');
+      t.className = 'exam-heading-title';
+      t.textContent = 'Izpit';
+      hh.appendChild(t);
+      any = true;
+    }
+    const fieldList = [];
+    if (headingState.name)    fieldList.push('Ime');
+    if (headingState.surname) fieldList.push('Priimek');
+    if (headingState.points)  fieldList.push('Točke');
+    if (headingState.grade)   fieldList.push('Ocena');
+    if (fieldList.length > 0) {
+      const fields = document.createElement('div');
+      fields.className = 'exam-heading-fields';
+      for (const f of fieldList) {
+        const row = document.createElement('div');
+        row.className = 'exam-heading-field';
+        row.innerHTML = `<span class="exam-field-label">${f}:</span><span class="exam-field-blank"></span>`;
+        fields.appendChild(row);
+      }
+      hh.appendChild(fields);
+      any = true;
+    }
+    if (any) preview.appendChild(hh);
+
     if (items.length === 0) {
       const empty = document.createElement('div');
       empty.className = 'exam-empty';
       empty.textContent = 'No problems in the exam yet. Add some on the Selection tab.';
       preview.appendChild(empty);
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise([preview]).catch(() => {});
+      }
       return;
     }
     items.forEach((item, idx) => {
@@ -2040,7 +2135,6 @@ ${parts.join('\n\n')}
         const sep = document.createElement('div');
         sep.className = 'finishing-separator';
         sep.dataset.i = idx;
-        // Page-break toggle button
         const pb = document.createElement('button');
         pb.type = 'button';
         pb.className = 'page-break-toggle' + (item.pageBreakBefore ? ' is-active' : '');
@@ -2049,44 +2143,26 @@ ${parts.join('\n\n')}
           e.preventDefault();
           items[idx].pageBreakBefore = !items[idx].pageBreakBefore;
           renderPreview();
-          regenerate();
+          regenerateTex();
         });
         sep.appendChild(pb);
-        // Visible space bar (height = 8px baseline + extra)
+        // Numeric pt input for the gap before this item
+        const ctrl = document.createElement('span');
+        ctrl.className = 'finishing-space-control';
+        ctrl.innerHTML = `Space: <input type="number" min="0" step="1" value="${item.spaceBefore || 0}" class="space-input"> pt`;
+        const inp = ctrl.querySelector('input');
+        inp.addEventListener('input', (e) => {
+          const v = Math.max(0, parseInt(e.target.value || '0', 10) || 0);
+          items[idx].spaceBefore = v;
+          spacer.style.height = (4 + Math.round(v * 1.333)) + 'px';
+          regenerateTex();
+        });
+        sep.appendChild(ctrl);
+        // Visible space bar (height in px ≈ pt × 1.333) — read-only here
         const spacer = document.createElement('div');
         spacer.className = 'finishing-space';
-        const px = item.spaceBefore || 0;
-        spacer.style.height = (8 + px) + 'px';
+        spacer.style.height = (4 + Math.round((item.spaceBefore || 0) * 1.333)) + 'px';
         sep.appendChild(spacer);
-        // Drag handle for stretching the space
-        const grip = document.createElement('div');
-        grip.className = 'finishing-grip';
-        grip.title = 'Drag down to add space';
-        grip.textContent = '↕';
-        sep.appendChild(grip);
-        // Pointer-based drag (works with mouse + touch)
-        grip.addEventListener('pointerdown', (ev) => {
-          ev.preventDefault();
-          grip.setPointerCapture(ev.pointerId);
-          const startY = ev.clientY;
-          const startSpace = items[idx].spaceBefore || 0;
-          const onMove = (e2) => {
-            const dy = e2.clientY - startY;
-            const next = Math.max(0, Math.round(startSpace + dy));
-            items[idx].spaceBefore = next;
-            spacer.style.height = (8 + next) + 'px';
-          };
-          const onUp = (e2) => {
-            grip.releasePointerCapture(ev.pointerId);
-            grip.removeEventListener('pointermove', onMove);
-            grip.removeEventListener('pointerup',   onUp);
-            grip.removeEventListener('pointercancel', onUp);
-            regenerate();
-          };
-          grip.addEventListener('pointermove', onMove);
-          grip.addEventListener('pointerup',   onUp);
-          grip.addEventListener('pointercancel', onUp);
-        });
         preview.appendChild(sep);
       }
 
@@ -2109,10 +2185,10 @@ ${parts.join('\n\n')}
       block.appendChild(head);
       const body = document.createElement('div');
       body.className = 'finishing-block-body';
-      const data = byN[item.n] || {};
-      const ed = effectiveState(item.n);
-      const src = (ed.latex !== undefined) ? ed.latex : (data.latex || '');
-      body.innerHTML = latexToHtml(src, item.n, data.tikz_count || 0);
+      // Use the (possibly user-edited) item.content for rendering. tikz
+      // count comes from the original problem if n is known.
+      const tikz = (item.n != null && byN[item.n]) ? (byN[item.n].tikz_count || 0) : 0;
+      body.innerHTML = latexToHtml(item.content || '', item.n, tikz);
       block.appendChild(body);
       preview.appendChild(block);
     });
@@ -2121,7 +2197,7 @@ ${parts.join('\n\n')}
     }
   }
 
-  // Drag-reorder for the whole problem block
+  // Drag-reorder
   let draggingIdx = null;
   preview.addEventListener('dragstart', (e) => {
     const block = e.target.closest('.finishing-block');
@@ -2130,10 +2206,10 @@ ${parts.join('\n\n')}
     block.classList.add('dragging');
     e.dataTransfer.effectAllowed = 'move';
   });
-  preview.addEventListener('dragend', (e) => {
+  preview.addEventListener('dragend', () => {
     preview.querySelectorAll('.dragging').forEach(b => b.classList.remove('dragging'));
     draggingIdx = null;
-    regenerate();
+    regenerateTex();
   });
   preview.addEventListener('dragover', (e) => {
     if (draggingIdx === null) return;
@@ -2154,22 +2230,47 @@ ${parts.join('\n\n')}
   });
   preview.addEventListener('drop', (e) => { e.preventDefault(); });
 
+  // Heading checkboxes
+  if (headBar) {
+    headBar.querySelectorAll('input[type=checkbox][data-head]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        headingState[cb.dataset.head] = cb.checked;
+        regenerateTex();
+        renderPreview();
+      });
+    });
+  }
+
+  // Editable LaTeX — re-parse items on input (debounced) and re-render preview.
+  let parseTimer = null;
+  tex.addEventListener('input', () => {
+    clearTimeout(parseTimer);
+    parseTimer = setTimeout(() => {
+      const ok = parseTexIntoItems();
+      if (ok) renderPreview();
+      // If parsing fails, leave the previous render untouched (user is mid-edit).
+    }, 250);
+  });
+
   function refresh() {
     const exam = getExam();
-    // Detect changes to the exam set vs. the last-known fingerprint. If the
-    // set is unchanged, keep the user's reorder/space/pagebreak edits.
     const fp = exam.slice().sort((a, b) => a - b).join(',');
     if (fp === lastExamFingerprint && items.length) {
-      // Only update visible n's that actually still exist in the exam.
-      // (Should already match — defensive.)
+      // Set unchanged — keep user edits to ordering, content, etc.
     } else {
       lastExamFingerprint = fp;
-      items = sortBySection(exam).map(n => ({
-        n, spaceBefore: 0, pageBreakBefore: false
-      }));
+      items = sortBySection(exam).map(n => {
+        const data = byN[n] || {};
+        const ed = effectiveState(n);
+        const src = (ed.latex !== undefined) ? ed.latex : (data.latex || '');
+        return {
+          n, content: src.trim(),
+          spaceBefore: 0, pageBreakBefore: false,
+        };
+      });
+      regenerateTex();
     }
     renderPreview();
-    regenerate();
   }
   window.addEventListener('exam-changed', refresh);
   refresh();
@@ -2184,8 +2285,6 @@ ${parts.join('\n\n')}
     URL.revokeObjectURL(url);
   });
   document.getElementById('download-pdf').addEventListener('click', () => {
-    // Browser-side: print the preview pane → user picks "Save as PDF".
-    // The @media print CSS hides chrome/buttons and lets only #finishing-preview show.
     document.body.classList.add('print-finishing');
     setTimeout(() => {
       window.print();
