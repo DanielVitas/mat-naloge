@@ -2461,8 +2461,11 @@ ${itemsTex}
     URL.revokeObjectURL(url);
   });
   // Generate the PDF entirely client-side via html2pdf.js — same shape as
-  // the LaTeX download: build a blob, trigger a download, done. No print
-  // dialog, no new windows, no body-class toggling.
+  // the LaTeX download: build a blob, trigger a download, done.
+  // Strategy: pass the live #finishing-preview element to html2pdf, then
+  // use html2canvas's onclone hook to mutate ITS internal clone (which
+  // already inherits MathJax styles from the real document) — strip the
+  // interactive bits and reset the preview's chrome styles.
   document.getElementById('download-pdf').addEventListener('click', async () => {
     const btn = document.getElementById('download-pdf');
     if (typeof html2pdf === 'undefined') {
@@ -2472,43 +2475,9 @@ ${itemsTex}
     const previewEl = document.getElementById('finishing-preview');
     if (!previewEl) return;
 
-    // Clone the preview and strip the interactive bits.
-    const clone = previewEl.cloneNode(true);
-    clone.querySelectorAll(
-      '.finishing-controls-row, .drag-handle, ' +
-      '.finishing-page-break-line, .exam-field-remove, ' +
-      '.finishing-heading-adds'
-    ).forEach(el => el.remove());
-    clone.querySelectorAll('[contenteditable]').forEach(el => {
-      el.removeAttribute('contenteditable');
-      el.removeAttribute('spellcheck');
-    });
-
-    // Wrap clone in a container sized like an A4 page (in CSS px at 96dpi:
-    // 794×1123). html2pdf renders the container then slices it across pages.
-    const sandbox = document.createElement('div');
-    sandbox.style.cssText =
-      'position:fixed;left:-10000px;top:0;width:794px;background:white;' +
-      'padding:60px;box-sizing:border-box;font-family:Georgia,serif;' +
-      'color:black;';
-    // Force every problem to break cleanly across pages.
-    const pageBreakStyle = document.createElement('style');
-    pageBreakStyle.textContent = `
-      .finishing-block { page-break-inside: avoid; break-inside: avoid;
-                         margin: 0 0 14px; display: block; border: 0; padding: 0; }
-      .finishing-block.is-page-break { page-break-before: always !important;
-                                       break-before: page !important; }
-      .finishing-block-body { display: block; }
-      .exam-heading-title-wrap { display: block; text-align: center; margin: 0 0 14px; }
-    `;
-    sandbox.appendChild(pageBreakStyle);
-    sandbox.appendChild(clone);
-    document.body.appendChild(sandbox);
-
-    // Wait for MathJax in the main document to finish typesetting (the
-    // clone copies the rendered output, so this is just a sanity wait).
+    // Make sure MathJax is done rendering the live preview.
     if (window.MathJax && window.MathJax.typesetPromise) {
-      try { await window.MathJax.typesetPromise([sandbox]); } catch (_) {}
+      try { await window.MathJax.typesetPromise([previewEl]); } catch (_) {}
     }
 
     btn.disabled = true;
@@ -2517,21 +2486,52 @@ ${itemsTex}
 
     try {
       await html2pdf().set({
-        margin:      0,
+        margin:      [40, 40, 40, 40],   // pt — matches A4 1.4cm margin
         filename:    'izpit.pdf',
         image:       { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, backgroundColor: '#ffffff', useCORS: true,
-                       windowWidth: 794 },
+        html2canvas: {
+          scale: 2,
+          backgroundColor: '#ffffff',
+          useCORS: true,
+          // html2canvas builds its own clone of the document; this hook
+          // lets us mutate that clone before rasterisation.
+          onclone: (clonedDoc) => {
+            const p = clonedDoc.getElementById('finishing-preview');
+            if (p) {
+              p.style.cssText =
+                'background:white !important;border:0 !important;' +
+                'padding:0 !important;margin:0 !important;' +
+                'box-shadow:none !important;max-height:none !important;' +
+                'overflow:visible !important;display:block !important;';
+            }
+            clonedDoc.querySelectorAll(
+              '.finishing-controls-row, .drag-handle, ' +
+              '.finishing-page-break-line, .exam-field-remove, ' +
+              '.finishing-heading-adds'
+            ).forEach(el => el.remove());
+            clonedDoc.querySelectorAll('[contenteditable]').forEach(el => {
+              el.removeAttribute('contenteditable');
+              el.removeAttribute('spellcheck');
+            });
+            clonedDoc.querySelectorAll('.finishing-block').forEach(b => {
+              b.style.display = 'block';
+              b.style.border = '0';
+              b.style.padding = '0';
+              b.style.margin = '0 0 10px';
+            });
+            clonedDoc.querySelectorAll('.finishing-separator').forEach(s => {
+              s.style.margin = '0';
+            });
+          },
+        },
         jsPDF:       { unit: 'pt', format: 'a4', orientation: 'portrait' },
         pagebreak:   { mode: ['css', 'legacy'],
-                       before: '.finishing-block.is-page-break',
-                       avoid: '.finishing-block' },
-      }).from(sandbox).save();
+                       before: '.finishing-block.is-page-break' },
+      }).from(previewEl).save();
     } catch (err) {
       console.error('PDF generation failed:', err);
       alert('PDF generation failed: ' + (err && err.message || err));
     } finally {
-      sandbox.remove();
       btn.disabled = false;
       btn.textContent = origText;
     }
