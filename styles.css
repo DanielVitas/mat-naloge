@@ -1287,12 +1287,16 @@ canvas.crop-display {
   border-top: 1px dashed transparent;
   border-bottom: 1px dashed transparent;
 }
+.finishing-controls-row {
+  display: flex; flex-direction: row; align-items: center; justify-content: center;
+  gap: 0.7rem;
+  margin-bottom: 0.2rem;
+  flex-wrap: wrap;
+}
 .finishing-separator .finishing-space-control {
-  align-self: center;
   font-size: 0.82rem;
   color: var(--muted);
   display: inline-flex; align-items: center; gap: 0.3rem;
-  margin-bottom: 0.2rem;
 }
 .finishing-separator .finishing-space-control input {
   width: 4rem;

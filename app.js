@@ -1981,8 +1981,10 @@ function initFinishing(byN) {
   // items: { n, content, spaceBefore (pt), pageBreakBefore }
   let items = [];
   let lastExamFingerprint = '';
-  // Heading toggles (Title / Name / Surname / Points / Grade)
+  // Heading toggles (Title / Name / Surname / Points / Grade) + the
+  // currently-displayed title text (editable through the LaTeX textarea).
   const headingState = { title: true, name: true, surname: true, points: true, grade: true };
+  let headingTitle = 'Izpit';
 
   function sortBySection(ns) {
     return [...ns].sort((a, b) => {
@@ -1995,7 +1997,7 @@ function initFinishing(byN) {
   function generateHeadingTex() {
     const lines = [];
     if (headingState.title) {
-      lines.push('\\begin{center}\n{\\Large\\textbf{Izpit}}\n\\end{center}');
+      lines.push('\\begin{center}\n{\\Large\\textbf{' + headingTitle + '}}\n\\end{center}');
     }
     const fields = [];
     if (headingState.name)    fields.push('Ime: \\dotfill');
@@ -2042,9 +2044,24 @@ ${itemsTex}
     tex.value = doc;
   }
 
-  // Parse the textarea content into items[] (best-effort). Returns true if
-  // the enumerate body could be located, false otherwise.
+  // Parse the textarea content into items[] (best-effort). Also picks up
+  // the heading title text (so editing "Izpit" in LaTeX flows back into
+  // the preview). Returns true if the enumerate body could be located.
   function parseTexIntoItems() {
+    // --- Title (everything inside \begin{center}{\Large\textbf{...}}\end{center}) ---
+    const titleM = tex.value.match(
+      /\\begin\{center\}\s*\{\s*\\Large\s*\\textbf\{([^{}]+)\}\s*\}\s*\\end\{center\}/);
+    if (titleM) {
+      headingTitle = titleM[1];
+      headingState.title = true;
+    } else {
+      headingState.title = false;
+    }
+    if (headBar) {
+      const cb = headBar.querySelector('input[data-head="title"]');
+      if (cb) cb.checked = headingState.title;
+    }
+
     const m = tex.value.match(/\\begin\{enumerate\}[^\n]*\n([\s\S]*?)\\end\{enumerate\}/);
     if (!m) return false;
     const inner = m[1];
@@ -2097,7 +2114,7 @@ ${itemsTex}
     if (headingState.title) {
       const t = document.createElement('div');
       t.className = 'exam-heading-title';
-      t.textContent = 'Izpit';
+      t.textContent = headingTitle;
       hh.appendChild(t);
       any = true;
     }
@@ -2135,18 +2152,9 @@ ${itemsTex}
         const sep = document.createElement('div');
         sep.className = 'finishing-separator';
         sep.dataset.i = idx;
-        const pb = document.createElement('button');
-        pb.type = 'button';
-        pb.className = 'page-break-toggle' + (item.pageBreakBefore ? ' is-active' : '');
-        pb.textContent = item.pageBreakBefore ? '↪ Page break ✓' : '↪ Page break';
-        pb.addEventListener('click', (e) => {
-          e.preventDefault();
-          items[idx].pageBreakBefore = !items[idx].pageBreakBefore;
-          renderPreview();
-          regenerateTex();
-        });
-        sep.appendChild(pb);
-        // Numeric pt input for the gap before this item
+        // Space input + Page break button — side by side, Space first.
+        const row = document.createElement('div');
+        row.className = 'finishing-controls-row';
         const ctrl = document.createElement('span');
         ctrl.className = 'finishing-space-control';
         ctrl.innerHTML = `Space: <input type="number" min="0" step="1" value="${item.spaceBefore || 0}" class="space-input"> pt`;
@@ -2157,8 +2165,20 @@ ${itemsTex}
           spacer.style.height = (4 + Math.round(v * 1.333)) + 'px';
           regenerateTex();
         });
-        sep.appendChild(ctrl);
-        // Visible space bar (height in px ≈ pt × 1.333) — read-only here
+        row.appendChild(ctrl);
+        const pb = document.createElement('button');
+        pb.type = 'button';
+        pb.className = 'page-break-toggle' + (item.pageBreakBefore ? ' is-active' : '');
+        pb.textContent = item.pageBreakBefore ? '↪ Page break ✓' : '↪ Page break';
+        pb.addEventListener('click', (e) => {
+          e.preventDefault();
+          items[idx].pageBreakBefore = !items[idx].pageBreakBefore;
+          renderPreview();
+          regenerateTex();
+        });
+        row.appendChild(pb);
+        sep.appendChild(row);
+        // Visible space bar (height in px ≈ pt × 1.333)
         const spacer = document.createElement('div');
         spacer.className = 'finishing-space';
         spacer.style.height = (4 + Math.round((item.spaceBefore || 0) * 1.333)) + 'px';
