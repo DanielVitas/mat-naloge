@@ -2183,7 +2183,7 @@ ${itemsTex}
       wrap.appendChild(t);
       const xt = document.createElement('button');
       xt.type = 'button';
-      xt.className = 'exam-field-remove exam-title-remove';
+      xt.className = 'exam-field-remove';
       xt.title = 'Remove title';
       xt.textContent = '×';
       xt.addEventListener('click', (e) => {
