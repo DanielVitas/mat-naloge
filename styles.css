@@ -1517,6 +1517,76 @@ body.print-finishing .finishing-block-body .result-num {
   color: black;
 }
 
+/* Same rules under @media print, but scoped to body.page-exam — so they
+   fire even when the user invokes the browser's own Print / Save-as-PDF
+   command (Share → Print on iOS, ⌘P on desktop) without clicking our
+   Download PDF button. */
+@media print {
+  body.page-exam { background: white !important; margin: 0; padding: 0; }
+  body.page-exam .top-bar,
+  body.page-exam > .container > .page-tabs,
+  body.page-exam > .container > .exam-tabs,
+  body.page-exam > .container > .export-row,
+  body.page-exam > .container > h1,
+  body.page-exam section[data-panel="selection"],
+  body.page-exam .finishing-toolbar,
+  body.page-exam .finishing-heading-adds,
+  body.page-exam .finishing-left,
+  body.page-exam .pane-header { display: none !important; }
+  body.page-exam .exam-heading {
+    border-bottom: 0;
+    margin-bottom: 1rem;
+  }
+  body.page-exam .exam-heading-title { color: black; }
+  body.page-exam .finishing-body {
+    display: block !important;
+    grid-template-columns: 1fr !important;
+    gap: 0 !important;
+  }
+  body.page-exam .finishing-right {
+    border: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+  body.page-exam #finishing-preview {
+    display: block !important;
+    border: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    background: white !important;
+    box-shadow: none !important;
+  }
+  body.page-exam .finishing-block {
+    display: block !important;
+    border: 0 !important;
+    padding: 0 !important;
+    margin: 0;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  body.page-exam .finishing-block.is-page-break {
+    page-break-before: always !important;
+    break-before: page !important;
+  }
+  body.page-exam .finishing-controls-row,
+  body.page-exam .page-break-toggle,
+  body.page-exam .finishing-space-control,
+  body.page-exam .finishing-block .drag-handle,
+  body.page-exam .finishing-page-break-line,
+  body.page-exam .exam-field-remove {
+    display: none !important;
+  }
+  body.page-exam .finishing-separator { margin: 0; }
+  body.page-exam .finishing-separator .finishing-space {
+    background: transparent !important; border: 0 !important;
+  }
+  body.page-exam .finishing-block-body .result-num {
+    color: black;
+  }
+}
+
 /* The status badge is now a clickable toggle */
 button.status-badge {
   cursor: pointer;
