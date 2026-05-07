@@ -2494,33 +2494,40 @@ ${itemsTex}
           backgroundColor: '#ffffff',
           useCORS: true,
           // html2canvas builds its own clone of the document; this hook
-          // lets us mutate that clone before rasterisation.
+          // lets us mutate that clone before rasterisation. Hide chrome
+          // but otherwise leave the natural layout alone — it already
+          // flows correctly on screen, so it'll flow correctly here too.
           onclone: (clonedDoc) => {
             const p = clonedDoc.getElementById('finishing-preview');
             if (p) {
-              p.style.cssText =
-                'background:white !important;border:0 !important;' +
-                'padding:0 !important;margin:0 !important;' +
-                'box-shadow:none !important;max-height:none !important;' +
-                'overflow:visible !important;display:block !important;';
+              p.style.setProperty('background', 'white', 'important');
+              p.style.setProperty('border', '0', 'important');
+              p.style.setProperty('padding', '0', 'important');
+              p.style.setProperty('margin', '0', 'important');
+              p.style.setProperty('box-shadow', 'none', 'important');
+              p.style.setProperty('max-height', 'none', 'important');
+              p.style.setProperty('overflow', 'visible', 'important');
             }
-            clonedDoc.querySelectorAll(
-              '.finishing-controls-row, .drag-handle, ' +
-              '.finishing-page-break-line, .exam-field-remove, ' +
-              '.finishing-heading-adds'
-            ).forEach(el => el.remove());
+            // Hide (don't remove) the interactive bits so the surrounding
+            // flex layout doesn't get re-flowed unpredictably.
+            const HIDE = [
+              '.finishing-controls-row', '.drag-handle',
+              '.finishing-page-break-line', '.exam-field-remove',
+              '.finishing-heading-adds',
+            ];
+            HIDE.forEach(sel => {
+              clonedDoc.querySelectorAll(sel).forEach(el => {
+                el.style.setProperty('display', 'none', 'important');
+              });
+            });
             clonedDoc.querySelectorAll('[contenteditable]').forEach(el => {
               el.removeAttribute('contenteditable');
               el.removeAttribute('spellcheck');
             });
+            // Give every problem a comfortable bottom margin so they
+            // don't smush together in the PDF.
             clonedDoc.querySelectorAll('.finishing-block').forEach(b => {
-              b.style.display = 'block';
-              b.style.border = '0';
-              b.style.padding = '0';
-              b.style.margin = '0 0 10px';
-            });
-            clonedDoc.querySelectorAll('.finishing-separator').forEach(s => {
-              s.style.margin = '0';
+              b.style.setProperty('margin-bottom', '14px', 'important');
             });
           },
         },
