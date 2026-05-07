@@ -2273,40 +2273,81 @@ ${itemsTex}
     }
   }
 
-  // Drag-reorder
+  // Drag-reorder — standard "insertion line" pattern: while dragging, a
+  // thin horizontal indicator shows where the item would land if dropped.
+  // The actual reorder only happens on drop.
   let draggingIdx = null;
+  let dropIdx = null;
+  let insertLine = null;
+  function showInsertionLine(idx) {
+    if (!insertLine) {
+      insertLine = document.createElement('div');
+      insertLine.className = 'finishing-insert-line';
+      preview.appendChild(insertLine);
+    }
+    const blocks = preview.querySelectorAll('.finishing-block');
+    const previewRect = preview.getBoundingClientRect();
+    let topY;
+    if (blocks.length === 0) topY = 0;
+    else if (idx >= blocks.length) {
+      const lastRect = blocks[blocks.length - 1].getBoundingClientRect();
+      topY = lastRect.bottom - previewRect.top + preview.scrollTop;
+    } else {
+      const rect = blocks[idx].getBoundingClientRect();
+      topY = rect.top - previewRect.top + preview.scrollTop;
+    }
+    insertLine.style.top = (topY - 2) + 'px';
+    insertLine.style.display = 'block';
+  }
+  function hideInsertionLine() {
+    if (insertLine) insertLine.style.display = 'none';
+  }
   preview.addEventListener('dragstart', (e) => {
     const block = e.target.closest('.finishing-block');
     if (!block) return;
     draggingIdx = parseInt(block.dataset.i, 10);
+    dropIdx = draggingIdx;
     block.classList.add('dragging');
     e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', String(draggingIdx)); } catch {}
   });
   preview.addEventListener('dragend', () => {
     preview.querySelectorAll('.dragging').forEach(b => b.classList.remove('dragging'));
     draggingIdx = null;
-    regenerateTex();
+    dropIdx = null;
+    hideInsertionLine();
   });
   preview.addEventListener('dragover', (e) => {
     if (draggingIdx === null) return;
-    const block = e.target.closest('.finishing-block');
-    if (!block) return;
     e.preventDefault();
-    const targetIdx = parseInt(block.dataset.i, 10);
-    if (targetIdx === draggingIdx) return;
-    // The moment we hover over a different block, swap positions: lift
-    // the dragging item out and reinsert it at the target's index. This is
-    // far more responsive than waiting for the midpoint crossing.
-    const [moved] = items.splice(draggingIdx, 1);
-    items.splice(targetIdx, 0, moved);
-    draggingIdx = targetIdx;
-    renderPreview();
-    // Restore the .dragging class on the freshly-rendered moved block so
-    // the visual state stays consistent during the drag.
-    const re = preview.querySelector(`.finishing-block[data-i="${draggingIdx}"]`);
-    if (re) re.classList.add('dragging');
+    e.dataTransfer.dropEffect = 'move';
+    // Find which gap the cursor is closest to (compare against block midpoints).
+    const blocks = Array.from(preview.querySelectorAll('.finishing-block'));
+    let idx = blocks.length;
+    for (let i = 0; i < blocks.length; i++) {
+      const rect = blocks[i].getBoundingClientRect();
+      const mid = rect.top + rect.height / 2;
+      if (e.clientY < mid) { idx = i; break; }
+    }
+    dropIdx = idx;
+    showInsertionLine(idx);
   });
-  preview.addEventListener('drop', (e) => { e.preventDefault(); });
+  preview.addEventListener('drop', (e) => {
+    e.preventDefault();
+    hideInsertionLine();
+    if (draggingIdx === null || dropIdx === null) { return; }
+    // splice index needs adjustment if removing from before the target
+    let target = dropIdx;
+    if (draggingIdx < target) target--;
+    if (target !== draggingIdx) {
+      const [moved] = items.splice(draggingIdx, 1);
+      items.splice(target, 0, moved);
+      renderPreview();
+      regenerateTex();
+    }
+    draggingIdx = null;
+    dropIdx = null;
+  });
 
   // Heading checkboxes
   if (headBar) {

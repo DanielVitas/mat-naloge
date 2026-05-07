@@ -1224,6 +1224,7 @@ canvas.crop-display {
 
 /* Right pane — interactive preview with drag/space/page-break */
 .finishing-preview-pane {
+  position: relative;
   display: flex; flex-direction: column;
   gap: 0;
   background: white;
@@ -1233,6 +1234,19 @@ canvas.crop-display {
   min-height: 540px;
   max-height: 720px;
   overflow-y: auto;
+}
+/* Drag insertion indicator: a thin accent-colored line that shows where a
+   dragged problem would land if dropped now. */
+.finishing-insert-line {
+  position: absolute;
+  left: 0.6rem; right: 0.8rem;
+  height: 3px;
+  background: var(--accent);
+  border-radius: 2px;
+  pointer-events: none;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.18);
+  display: none;
+  z-index: 5;
 }
 .finishing-block {
   display: flex; align-items: flex-start; gap: 0.45rem;
