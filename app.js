@@ -2461,18 +2461,49 @@ ${itemsTex}
     URL.revokeObjectURL(url);
   });
   document.getElementById('download-pdf').addEventListener('click', () => {
+    // Mobile browsers (iOS Safari, Chrome Mobile) sometimes capture the
+    // PDF from the screen view rather than the @media print stylesheet,
+    // so class-based hiding gets ignored. Force display:none via inline
+    // styles on every chrome element — that's unambiguous everywhere.
+    const HIDE_FOR_PRINT = [
+      '.top-bar',
+      '.container > .page-tabs',
+      '.container > .exam-tabs',
+      '.container > .export-row',
+      '.container > h1',
+      'section[data-panel="selection"]',
+      '.finishing-toolbar',
+      '.finishing-heading-adds',
+      '.finishing-left',
+      '.pane-header',
+      '.finishing-controls-row',
+      '.page-break-toggle',
+      '.finishing-space-control',
+      '.finishing-block .drag-handle',
+      '.finishing-page-break-line',
+      '.exam-field-remove',
+    ];
+    const restored = [];
+    HIDE_FOR_PRINT.forEach(sel => {
+      document.querySelectorAll(sel).forEach(el => {
+        restored.push({ el, prev: el.style.cssText });
+        el.style.setProperty('display', 'none', 'important');
+      });
+    });
     document.body.classList.add('print-finishing');
-    // afterprint fires when the print/share-PDF dialog closes — including
-    // on iOS/Android, where window.print() returns immediately.
+
     const cleanup = () => {
       document.body.classList.remove('print-finishing');
+      restored.forEach(({ el, prev }) => { el.style.cssText = prev; });
       window.removeEventListener('afterprint', cleanup);
     };
     window.addEventListener('afterprint', cleanup);
     // Safety net: if afterprint never fires (some mobile browsers), drop
     // the class after a long delay so the screen UI returns to normal.
     setTimeout(cleanup, 60000);
-    setTimeout(() => window.print(), 100);
+    // Force a reflow before printing so mobile browsers see the new layout.
+    void document.body.offsetHeight;
+    setTimeout(() => window.print(), 200);
   });
 }
 
