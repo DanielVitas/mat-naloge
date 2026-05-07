@@ -2520,6 +2520,30 @@ ${itemsTex}
                 el.style.setProperty('display', 'none', 'important');
               });
             });
+            // KILL every hidden MathJax companion node — assistive MathML,
+            // breakable copies, and the menu shadow tree. html2canvas
+            // doesn't honour their clip/position:absolute hiding and would
+            // rasterise them on top of the visible SVG, producing 2-5
+            // ghost copies of every formula.
+            const REMOVE_MJX = [
+              'mjx-assistive-mml',
+              'mjx-container > mjx-math',          // older MathJax fallback markup
+              'mjx-container > mjx-mtext',
+              '.MJX_Assistive_MathML',
+              '.MJX-mml',
+              'mjx-merror',
+            ];
+            REMOVE_MJX.forEach(sel => {
+              clonedDoc.querySelectorAll(sel).forEach(el => el.remove());
+            });
+            // For each mjx-container, keep ONLY the visible <svg> child.
+            clonedDoc.querySelectorAll('mjx-container').forEach(c => {
+              Array.from(c.childNodes).forEach(child => {
+                if (child.nodeType === 1 && child.tagName.toLowerCase() !== 'svg') {
+                  child.remove();
+                }
+              });
+            });
             clonedDoc.querySelectorAll('[contenteditable]').forEach(el => {
               el.removeAttribute('contenteditable');
               el.removeAttribute('spellcheck');
