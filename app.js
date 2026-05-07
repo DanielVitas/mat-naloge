@@ -2460,61 +2460,121 @@ ${itemsTex}
     document.body.appendChild(a); a.click(); a.remove();
     URL.revokeObjectURL(url);
   });
-  // Re-entrancy guard — on mobile, a long-press can fire the click handler
-  // more than once, so we ignore subsequent clicks while a print flow is
-  // already in progress.
-  let printInProgress = false;
-  document.getElementById('download-pdf').addEventListener('click', (e) => {
-    e.preventDefault();
-    if (printInProgress) return;
-    printInProgress = true;
-    // Mobile browsers (iOS Safari, Chrome Mobile) sometimes capture the
-    // PDF from the screen view rather than the @media print stylesheet,
-    // so class-based hiding gets ignored. Force display:none via inline
-    // styles on every chrome element — that's unambiguous everywhere.
-    const HIDE_FOR_PRINT = [
-      '.top-bar',
-      '.container > .page-tabs',
-      '.container > .exam-tabs',
-      '.container > .export-row',
-      '.container > h1',
-      'section[data-panel="selection"]',
-      '.finishing-toolbar',
-      '.finishing-heading-adds',
-      '.finishing-left',
-      '.pane-header',
-      '.finishing-controls-row',
-      '.page-break-toggle',
-      '.finishing-space-control',
-      '.finishing-block .drag-handle',
-      '.finishing-page-break-line',
-      '.exam-field-remove',
-    ];
-    const restored = [];
-    HIDE_FOR_PRINT.forEach(sel => {
-      document.querySelectorAll(sel).forEach(el => {
-        restored.push({ el, prev: el.style.cssText });
-        el.style.setProperty('display', 'none', 'important');
-      });
+  // Open a self-contained HTML document in a new tab and let the BROWSER
+  // print THAT page. Avoids every problem with class-toggling on mobile —
+  // there's no chrome on the new tab to hide.
+  document.getElementById('download-pdf').addEventListener('click', () => {
+    const previewEl = document.getElementById('finishing-preview');
+    if (!previewEl) return;
+    // Clone preview, strip the interactive bits (controls / drag handles /
+    // dashed page-break line / × buttons) so the clone is print-clean.
+    const clone = previewEl.cloneNode(true);
+    clone.querySelectorAll(
+      '.finishing-controls-row, .drag-handle, ' +
+      '.finishing-page-break-line, .exam-field-remove, ' +
+      '.finishing-heading-adds'
+    ).forEach(el => el.remove());
+    // Make editable title look static
+    clone.querySelectorAll('[contenteditable]').forEach(el => {
+      el.removeAttribute('contenteditable');
+      el.removeAttribute('spellcheck');
     });
-    document.body.classList.add('print-finishing');
 
-    let cleaned = false;
-    const cleanup = () => {
-      if (cleaned) return;
-      cleaned = true;
-      document.body.classList.remove('print-finishing');
-      restored.forEach(({ el, prev }) => { el.style.cssText = prev; });
-      window.removeEventListener('afterprint', cleanup);
-      printInProgress = false;
-    };
-    window.addEventListener('afterprint', cleanup);
-    // Safety net: if afterprint never fires (some mobile browsers), drop
-    // the class after a long delay so the screen UI returns to normal.
-    setTimeout(cleanup, 60000);
-    // Force a reflow before printing so mobile browsers see the new layout.
-    void document.body.offsetHeight;
-    setTimeout(() => window.print(), 200);
+    const cssHref = (document.querySelector('link[rel="stylesheet"]') || {}).href || 'styles.css';
+
+    const html = `<!doctype html>
+<html lang="sl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Izpit</title>
+<link rel="stylesheet" href="${cssHref}">
+<style>
+  @page { size: A4; margin: 1.5cm; }
+  body { background: white; margin: 0; padding: 1.5cm; }
+  #finishing-preview {
+    background: white !important;
+    border: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+    display: block !important;
+  }
+  .finishing-block {
+    display: block !important;
+    border: 0 !important;
+    padding: 0 !important;
+    margin: 0 0 0.6em !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .finishing-block.is-page-break {
+    page-break-before: always !important;
+    break-before: page !important;
+  }
+  .drag-handle, .finishing-controls-row, .finishing-page-break-line,
+  .exam-field-remove, .finishing-heading-adds { display: none !important; }
+  .auto-print-hint {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: #fff7c2; border: 1px solid #e8d24c;
+    padding: 0.6rem 0.9rem; border-radius: 6px;
+    margin-bottom: 1rem; font-size: 0.9rem;
+  }
+  @media print { .auto-print-hint { display: none !important; } }
+</style>
+<script>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$']],
+      displayMath: [['$$', '$$']],
+      processEscapes: true,
+      processEnvironments: false
+    },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] },
+    startup: {
+      ready: function() {
+        MathJax.startup.defaultReady();
+        MathJax.startup.promise.then(function() {
+          setTimeout(function() {
+            try { window.print(); } catch (e) {}
+          }, 400);
+        });
+      }
+    }
+  };
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<div class="auto-print-hint">If the print dialog doesn't open automatically, use your browser's Print or Share &rarr; Save as PDF.</div>
+${clone.outerHTML}
+</body>
+</html>`;
+
+    // Use a Blob URL so the new tab has a valid origin and same-origin
+    // styling rules apply. Falls back to about:blank+document.write.
+    let opened = null;
+    try {
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      opened = window.open(url, '_blank');
+      // Revoke the URL after a delay (the new tab needs time to load).
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (err) { /* fall through */ }
+    if (!opened) {
+      // Popup blocked or Blob not supported — fall back to writing into
+      // a freshly-opened blank window from inside the user gesture.
+      opened = window.open('about:blank', '_blank');
+      if (opened) {
+        opened.document.open();
+        opened.document.write(html);
+        opened.document.close();
+      } else {
+        alert('Please allow popups for this site to download the PDF.');
+      }
+    }
   });
 }
 
