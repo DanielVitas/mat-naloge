@@ -2460,150 +2460,127 @@ ${itemsTex}
     document.body.appendChild(a); a.click(); a.remove();
     URL.revokeObjectURL(url);
   });
-  // Real LaTeX compilation, run on a tiny Fly.io service that hosts a
-  // standard TeX Live `pdflatex`. POST the .tex source, GET the PDF.
-  // Source for the service is in `fly_compiler/` — see its README.md.
+  // Two PDF download paths:
+  //   • Main "Download PDF" button — fast (~1 s), uses html2pdf to
+  //     rasterise the live #finishing-preview. Output is the same as the
+  //     on-screen preview, MathJax-rendered as crisp SVG.
+  //   • Dropdown's "Compile via pdflatex" — slower (~3 s), POSTs the .tex
+  //     to a Fly.io service that runs real pdflatex. Output is byte-
+  //     equivalent to compiling locally.
   const LATEX_COMPILE_URL = 'https://mat-naloge-latex.fly.dev/compile';
 
-  // ---- legacy in-browser engine code, no longer wired up ---------------
-  let _pdftex = null;
-  function getPdfTex_unused() {
-    if (_pdftex) return _pdftex;
-    _pdftex = (() => {
-      const worker = new Worker('texlive_engine/pdftex-worker.js');
-      const pending = new Map();
-      let nextId = 0;
-      const stdoutLines = [];
-      let onReadyResolve, onReadyReject;
-      const ready = new Promise((res, rej) => {
-        onReadyResolve = res; onReadyReject = rej;
-      });
-      worker.addEventListener('error', (e) => {
-        console.error('[texlive worker error]', e);
-        if (onReadyReject) onReadyReject(new Error(
-          'TeX worker failed to load: ' + (e.message || 'unknown')));
-      });
-      worker.addEventListener('messageerror', (e) => {
-        console.error('[texlive messageerror]', e);
-      });
-      worker.addEventListener('message', (ev) => {
-        let data;
-        try { data = JSON.parse(ev.data); } catch (e) { return; }
-        switch (data.command) {
-          case 'ready':
-            onReadyResolve();
-            break;
-          case 'stdout':
-            console.log('[pdftex]', data.contents);
-            stdoutLines.push(data.contents);
-            break;
-          case 'stderr':
-            console.warn('[pdftex stderr]', data.contents);
-            stdoutLines.push(data.contents);
-            break;
-          default:
-            if (data.msg_id != null && pending.has(data.msg_id)) {
-              const { resolve, reject } = pending.get(data.msg_id);
-              pending.delete(data.msg_id);
-              if (data.command === 'error') reject(new Error(data.message));
-              else resolve(data.result);
+  // -- html2pdf-based fast PDF (the original, what worked on desktop) -----
+  async function downloadPdfViaHtml2Pdf() {
+    const btn = document.getElementById('download-pdf');
+    if (typeof html2pdf === 'undefined') {
+      alert('PDF library failed to load. Check your network connection.');
+      return;
+    }
+    const previewEl = document.getElementById('finishing-preview');
+    if (!previewEl) return;
+
+    const origLabel = btn.textContent;
+    btn.disabled = true;
+
+    // Make sure MathJax has finished rendering everything in the preview.
+    if (window.MathJax && window.MathJax.typesetPromise) {
+      try { await window.MathJax.typesetPromise([previewEl]); } catch (_) {}
+    }
+
+    try {
+      await html2pdf().set({
+        margin:      [40, 40, 40, 40],   // pt — A4 1.4cm margin
+        filename:    'izpit.pdf',
+        image:       { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          backgroundColor: '#ffffff',
+          useCORS: true,
+          // html2canvas builds its own clone of the document; this hook
+          // lets us mutate that clone before rasterisation. Hide chrome
+          // but otherwise leave the natural layout alone.
+          onclone: (clonedDoc) => {
+            const p = clonedDoc.getElementById('finishing-preview');
+            if (p) {
+              p.style.setProperty('background', 'white', 'important');
+              p.style.setProperty('border', '0', 'important');
+              p.style.setProperty('padding', '0', 'important');
+              p.style.setProperty('margin', '0', 'important');
+              p.style.setProperty('box-shadow', 'none', 'important');
+              // CRITICAL: live preview is a scrollable card with
+              // max-height: 720px / overflow-y: auto. Without these
+              // overrides, html2canvas only captures the visible 720 px
+              // window — anything past it is lost.
+              p.style.setProperty('max-height', 'none', 'important');
+              p.style.setProperty('min-height', '0', 'important');
+              p.style.setProperty('height', 'auto', 'important');
+              p.style.setProperty('overflow', 'visible', 'important');
+              p.style.setProperty('overflow-y', 'visible', 'important');
+              p.style.setProperty('display', 'block', 'important');
             }
-        }
-      });
-      function send(command, args) {
-        return new Promise((resolve, reject) => {
-          const msg_id = nextId++;
-          pending.set(msg_id, { resolve, reject });
-          worker.postMessage(JSON.stringify({
-            command, msg_id, arguments: args || []
-          }));
-        });
-      }
-      let initialized = false;
-      async function compile(texSource) {
-        await ready;
-        stdoutLines.length = 0;
-        if (initialized) {
-          // The texlive.js worker can't run pdfTeX twice (Module.run
-          // hangs forever on the second call). For now we never reuse
-          // the worker for a second compile — caller has to make a new
-          // engine. We still attempt the unlink for symmetry.
-          try { await send('FS_unlink', ['/input.tex']); } catch (_) {}
-          try { await send('FS_unlink', ['/input.pdf']); } catch (_) {}
-        } else {
-          await send('FS_createLazyFilesFromList',
-                     ['/', 'texlive.lst', './texlive', true, true]);
-          initialized = true;
-        }
-        await send('FS_createDataFile',
-                   ['/', 'input.tex', texSource, true, true]);
-        // Single pdflatex pass. Two passes would be needed for
-        // cross-references/TOC, but our exam document has neither, and
-        // re-entering Module.run hangs this engine.
-        try {
-          await send('run',
-                     ['-interaction=nonstopmode', '-output-format', 'pdf',
-                      'input.tex']);
-        } catch (err) {
-          // pdfTeX errored, but it usually still wrote a partial PDF.
-          // Fall through and try to read it anyway.
-          console.warn('[pdftex] run threw:', err && err.message || err);
-        }
-        // Check the log to see whether pdfTeX actually wrote a PDF —
-        // FS_readFile in this old worker hangs when the file doesn't
-        // exist (no error message is sent back), so we have to inspect
-        // stdout instead of just trying to read.
-        const fullLog = stdoutLines.join('\n');
-        if (/no output PDF file produced/i.test(fullLog) ||
-            !/Output written on .*\.pdf/i.test(fullLog)) {
-          // Surface the salient lines: any "! …" error, "Fatal error",
-          // and the last few log lines.
-          const errLines = stdoutLines.filter(l =>
-            /^!|Fatal error|Error:|not found|not loadable/i.test(l));
-          const tail = errLines.length ? errLines : stdoutLines.slice(-30);
-          throw new Error('LaTeX compilation failed.\n\n' +
-                          tail.join('\n'));
-        }
-        let pdfStr;
-        try {
-          pdfStr = await Promise.race([
-            send('FS_readFile', ['/input.pdf']),
-            new Promise((_, rej) =>
-              setTimeout(() => rej(new Error('FS_readFile timed out — worker hung')),
-                         15000)),
-          ]);
-        } catch (err) {
-          throw new Error('LaTeX produced a PDF but reading it failed: ' +
-                          (err && err.message || err));
-        }
-        if (!pdfStr || pdfStr.length === 0) {
-          throw new Error('LaTeX produced an empty PDF.\n\nLog tail:\n' +
-                          stdoutLines.slice(-25).join('\n'));
-        }
-        // pdfStr is a string of byte-chars — convert back to Uint8Array.
-        const bytes = new Uint8Array(pdfStr.length);
-        for (let i = 0; i < pdfStr.length; i++) {
-          bytes[i] = pdfStr.charCodeAt(i) & 0xff;
-        }
-        return new Blob([bytes], { type: 'application/pdf' });
-      }
-      return { compile, ready };
-    })();
-    return _pdftex;
+            // Hide (don't remove) the interactive bits so the surrounding
+            // flex layout doesn't get re-flowed unpredictably.
+            ['.finishing-controls-row', '.drag-handle',
+             '.finishing-page-break-line', '.exam-field-remove',
+             '.finishing-heading-adds'].forEach(sel => {
+              clonedDoc.querySelectorAll(sel).forEach(el => {
+                el.style.setProperty('display', 'none', 'important');
+              });
+            });
+            // Strip every hidden MathJax companion node — assistive MML,
+            // breakable copies, menu shadow tree. html2canvas ignores
+            // their clip/position:absolute hiding and would rasterise
+            // them on top of the visible <svg>, producing 2-5 ghost
+            // copies of every formula.
+            ['mjx-assistive-mml',
+             'mjx-container > mjx-math',
+             'mjx-container > mjx-mtext',
+             '.MJX_Assistive_MathML', '.MJX-mml', 'mjx-merror'].forEach(sel => {
+              clonedDoc.querySelectorAll(sel).forEach(el => el.remove());
+            });
+            // For each mjx-container, keep ONLY the visible <svg> child.
+            clonedDoc.querySelectorAll('mjx-container').forEach(c => {
+              Array.from(c.childNodes).forEach(child => {
+                if (child.nodeType === 1 && child.tagName.toLowerCase() !== 'svg') {
+                  child.remove();
+                }
+              });
+            });
+            clonedDoc.querySelectorAll('[contenteditable]').forEach(el => {
+              el.removeAttribute('contenteditable');
+              el.removeAttribute('spellcheck');
+            });
+            // Comfortable bottom margin so problems don't smush together.
+            clonedDoc.querySelectorAll('.finishing-block').forEach(b => {
+              b.style.setProperty('margin-bottom', '14px', 'important');
+            });
+          },
+        },
+        jsPDF:       { unit: 'pt', format: 'a4', orientation: 'portrait' },
+        pagebreak:   { mode: ['avoid-all', 'css', 'legacy'],
+                       before: '.finishing-block.is-page-break',
+                       avoid:  '.finishing-block' },
+      }).from(previewEl).save();
+    } catch (err) {
+      console.error('PDF generation failed:', err);
+      alert('PDF generation failed: ' + (err && err.message || err));
+    } finally {
+      btn.disabled = false;
+      btn.textContent = origLabel;
+    }
   }
 
-  document.getElementById('download-pdf').addEventListener('click', async () => {
+  // -- Server-compile PDF (real pdflatex via Fly.io) ----------------------
+  async function downloadPdfViaServer() {
     const btn = document.getElementById('download-pdf');
     const texContent = tex.value;
     if (!texContent.trim()) {
       alert('No LaTeX to compile.');
       return;
     }
-
     const origLabel = btn.textContent;
     btn.disabled = true;
     btn.textContent = '⏳ Compiling LaTeX…';
-
     try {
       const r = await fetch(LATEX_COMPILE_URL, {
         method: 'POST',
@@ -2611,7 +2588,6 @@ ${itemsTex}
         body: texContent,
       });
       if (!r.ok) {
-        // The service returns JSON {error, log} on compile failure.
         let detail = '';
         try {
           const j = await r.json();
@@ -2634,6 +2610,29 @@ ${itemsTex}
     } finally {
       btn.disabled = false;
       btn.textContent = origLabel;
+    }
+  }
+
+  // Wire up the split button + dropdown.
+  document.getElementById('download-pdf')
+          .addEventListener('click', downloadPdfViaHtml2Pdf);
+  const splitMenu = document.getElementById('pdf-split-menu');
+  document.getElementById('download-pdf-menu')
+          .addEventListener('click', (e) => {
+    e.stopPropagation();
+    splitMenu.hidden = !splitMenu.hidden;
+  });
+  document.getElementById('download-pdf-server')
+          .addEventListener('click', (e) => {
+    e.preventDefault();
+    splitMenu.hidden = true;
+    downloadPdfViaServer();
+  });
+  // Click outside → close the menu.
+  document.addEventListener('click', (e) => {
+    if (!splitMenu.hidden && !splitMenu.contains(e.target) &&
+        e.target.id !== 'download-pdf-menu') {
+      splitMenu.hidden = true;
     }
   });
 }
