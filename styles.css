@@ -1115,6 +1115,19 @@ canvas.crop-display {
 .search-result-wrap {
   position: relative;
   height: 13em;
+  /* Grid items stack in DOM order by default — a later (lower) card
+     would paint on top of an expanded card from the row above. Lift
+     the WRAP (not just the inner .search-result) on hover so the
+     entire stacking context for this card pops above its neighbours.
+     The 0.25 s delay on `z-index` when un-hovering keeps the wrap up
+     while the height animation finishes retracting. */
+  z-index: 1;
+  transition: z-index 0s linear 0.25s;
+}
+.search-result-wrap:has(.search-result-hot-zone:hover),
+.search-result-wrap:has(.search-result .result-add:hover) {
+  z-index: 10;
+  transition: z-index 0s linear 0s;
 }
 .search-result-hot-zone {
   position: absolute;
@@ -1448,16 +1461,25 @@ body.page-exam.latex-open .finishing-right { display: flex; }
 
 /* Right pane — interactive preview with drag/space/page-break */
 .finishing-preview-pane {
+  /* A4-shaped page. Width = 21 cm, padding = 1.5 cm (matches the PDF
+     margin), so the typeset content visually matches what you'll get
+     after pdflatex. Min-height keeps a full A4 height (29.7 cm) even
+     when the content is short — short exams still look like a page. */
   position: relative;
   display: flex; flex-direction: column;
   gap: 0;
   background: white;
   border: 1px solid var(--card-border);
-  border-radius: 6px;
-  padding: 0.6rem 0.8rem;
-  min-height: 540px;
-  max-height: 720px;
-  overflow-y: auto;
+  border-radius: 4px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+  width: 21cm;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 1.5cm;
+  box-sizing: border-box;
+  min-height: 29.7cm;
+  max-height: none;
+  overflow-y: visible;
 }
 /* Drag insertion indicator: a thin accent-colored line that shows where a
    dragged problem would land if dropped now. */
