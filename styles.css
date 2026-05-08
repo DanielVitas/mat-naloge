@@ -477,25 +477,33 @@ textarea#latex-source {
   border-radius: 6px; border: 1px dashed #ccc;
   font-size: 0.95rem; min-height: 4rem;
 }
-.preview-box .tex-center { text-align: center; margin: 0.4rem 0; }
-.preview-box .tex-tabular { margin: 0.5rem auto; border-collapse: collapse; }
-.preview-box .tex-tabular td, .preview-box .tex-tabular th {
+.preview-box .tex-center,
+.finishing-block-body .tex-center { text-align: center; margin: 0.4rem 0; }
+.preview-box .tex-tabular,
+.finishing-block-body .tex-tabular { margin: 0.5rem auto; border-collapse: collapse; }
+.preview-box .tex-tabular td, .preview-box .tex-tabular th,
+.finishing-block-body .tex-tabular td, .finishing-block-body .tex-tabular th {
   border: 1px solid #999; padding: 0.3rem 0.6rem; text-align: left; vertical-align: middle;
 }
-.preview-box .tex-list { margin: 0.4rem 0 0.4rem 1.4rem; padding-left: 0; }
-.preview-box .tex-tikz { text-align: center; margin: 0.5rem 0; }
+.preview-box .tex-list,
+.finishing-block-body .tex-list { margin: 0.4rem 0 0.4rem 1.4rem; padding-left: 0; }
+.preview-box .tex-tikz,
+.finishing-block-body .tex-tikz { text-align: center; margin: 0.5rem 0; }
 .preview-box .tex-tikz img {
   max-width: 100%; max-height: 360px; height: auto;
   background: white; padding: 4px;
   border: 1px solid var(--card-border); border-radius: 4px;
 }
-.preview-box .tex-figure-placeholder {
+.preview-box .tex-figure-placeholder,
+.finishing-block-body .tex-figure-placeholder {
   margin: 0.5rem 0; padding: 0.5rem 0.8rem; background: var(--warn-bg);
   border: 1px dashed var(--warn); color: var(--warn); border-radius: 6px;
   text-align: center; font-style: italic; font-size: 0.9rem;
 }
-.preview-box .tex-fbox { border: 1px solid #555; padding: 0 0.3em; }
-.preview-box .tex-rule { color: #777; letter-spacing: -1px; }
+.preview-box .tex-fbox,
+.finishing-block-body .tex-fbox { border: 1px solid #555; padding: 0 0.3em; }
+.preview-box .tex-rule,
+.finishing-block-body .tex-rule { color: #777; letter-spacing: -1px; }
 .preview-box p { margin: 0.4rem 0; }
 .preview-box p:first-child { margin-top: 0; }
 .preview-box p:last-child  { margin-bottom: 0; }
