@@ -1156,10 +1156,14 @@ canvas.crop-display {
 /* The Add icon stays clickable. */
 .search-result .result-actions,
 .search-result .result-add { pointer-events: auto; }
-/* Expand the card when the hot zone — or the Add button — is hovered. */
+/* Expand the card when the hot zone — or the Add button — is hovered.
+   The card grows for tall content but never shrinks below the original
+   13em footprint (cards with little content stay the same size as their
+   slot in the grid). */
 .search-result-wrap:has(.search-result-hot-zone:hover) .search-result,
 .search-result-wrap:has(.search-result .result-add:hover) .search-result {
   height: auto;
+  min-height: 13em;
   max-height: 100em;
   overflow: visible;
   z-index: 5;
