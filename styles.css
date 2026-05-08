@@ -470,10 +470,12 @@ button:disabled { opacity: 0.5; cursor: default; }
 /* Hide the "Preview" / "LaTeX" pane h3 labels on the problem page —
    layout makes them obvious. */
 .problem-body .pane > .pane-header > h3 { display: none; }
-/* Stand-alone status row sits below the Export row. */
+/* Status row holds the ✓/⚠ toggle + Approve checkbox. On the problem page
+   it sits inside .meta-right at the top; on its own elsewhere it stays a
+   simple inline row. */
 .status-row {
   display: flex; align-items: center; gap: 0.6rem;
-  margin: 0.4rem 0 0.6rem;
+  margin: 0;
 }
 /* Inline navigation arrows next to the H1 in the title row. */
 .title-row .nav-arrow {
@@ -488,10 +490,37 @@ button:disabled { opacity: 0.5; cursor: default; }
 }
 .title-row {
   display: flex; align-items: baseline; gap: 0.9rem;
-  flex-wrap: wrap; margin: 0.2rem 0 0.4rem;
+  flex-wrap: wrap; margin: 0;
 }
-.title-row h1 { margin: 0; }
+.title-row h1 {
+  margin: 0;
+  font-size: 1.4rem; font-weight: 600;
+  color: var(--fg); line-height: 1;
+}
 .title-row .tags { margin: 0; }
+/* When the title-row sits inside the .top-bar, override its default size
+   to match the existing .page-title sizing. */
+.top-bar .title-row { align-items: center; }
+
+/* Meta row sits immediately under the top bar: topics on the left,
+   status + export stacked on the right. .meta-right's first child
+   (.status-row) lines up with the top of .topics-row because of
+   align-items: flex-start. */
+.meta-row {
+  display: flex; align-items: flex-start;
+  gap: 1rem; flex-wrap: wrap;
+  margin: 0.4rem 0 0.7rem;
+}
+.meta-row .topics-row {
+  flex: 1 1 auto; min-width: 0;
+  margin: 0;
+}
+.meta-right {
+  display: flex; flex-direction: column;
+  align-items: flex-end; gap: 0.4rem;
+  flex: 0 0 auto;
+}
+.meta-right .action-row { margin: 0; }
 
 /* Topics row: shown right under title-row, distinct color, optional label */
 .topics-row {
@@ -544,10 +573,16 @@ textarea#latex-source {
 .finishing-block-body .tex-list { margin: 0.4rem 0 0.4rem 1.4rem; padding-left: 0; }
 .preview-box .tex-tikz,
 .finishing-block-body .tex-tikz { text-align: center; margin: 0.5rem 0; }
-.preview-box .tex-tikz img {
+.preview-box .tex-tikz img,
+.preview-box .tex-tikz svg {
   max-width: 100%; max-height: 360px; height: auto;
   background: white; padding: 4px;
   border: 1px solid var(--card-border); border-radius: 4px;
+}
+.preview-box .tex-tikz .tikz-loading {
+  display: inline-block; padding: 0.4rem 0.8rem;
+  font-size: 0.8rem; color: var(--muted);
+  background: #f5f5f5; border: 1px dashed #ccc; border-radius: 6px;
 }
 .preview-box .tex-figure-placeholder,
 .finishing-block-body .tex-figure-placeholder {

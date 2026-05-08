@@ -876,13 +876,20 @@ function latexToHtml(src, problemId, tikzCount) {
   src = src.replace(/\\begin\{align\*?\}([\s\S]*?)\\end\{align\*?\}/g,
     (_, i) => stashIt('$$\\begin{aligned}' + i + '\\end{aligned}$$'));
 
-  src = src.replace(/\\begin\{tikzpicture\}[\s\S]*?\\end\{tikzpicture\}/g, () => {
+  src = src.replace(/\\begin\{tikzpicture\}[\s\S]*?\\end\{tikzpicture\}/g, (match) => {
     tikzIdx++;
+    // Encode the source so the live-preview hydrator can ship it to the
+    // pdflatex backend on demand. encodeURIComponent keeps this UTF-8 safe
+    // and embeddable as an attribute value.
+    const enc = encodeURIComponent(match);
+    let initial;
     if (padded && tikzIdx <= (tikzCount || 0)) {
       const url = `tikz/prob-${padded}-fig${tikzIdx}.svg`;
-      return `<div class="tex-tikz"><img src="${url}" alt="TikZ figure ${tikzIdx}"></div>`;
+      initial = `<img src="${url}" alt="TikZ figure ${tikzIdx}">`;
+    } else {
+      initial = `<span class="tikz-loading">rendering TikZ…</span>`;
     }
-    return '<div class="tex-figure-placeholder">[TikZ figure — see original on the right]</div>';
+    return `<div class="tex-tikz" data-tikz-src="${enc}">${initial}</div>`;
   });
 
   src = src.replace(/\\begin\{tabular\}\{([^}]+)\}([\s\S]*?)\\end\{tabular\}/g,
@@ -1152,11 +1159,64 @@ function applyIndexStatuses() {
   });
 }
 
-function renderTeXPreview(srcText, target, problemId, tikzCount) {
+function renderTeXPreview(srcText, target, problemId, tikzCount, hydrateTikz) {
   target.innerHTML = latexToHtml(srcText, problemId, tikzCount);
   if (window.MathJax && window.MathJax.typesetPromise) {
     MathJax.typesetPromise([target]).catch(() => {});
   }
+  if (hydrateTikz) hydrateTikzInPreview(target);
+}
+
+// ---------- Live TikZ preview ----------------------------------------------
+// When the user edits LaTeX containing a tikzpicture, ship the block to the
+// pdflatex backend (Fly.io) and replace the placeholder/IMG with the freshly
+// compiled SVG. Cached by source string so repeated renders of the same
+// figure (e.g. typing in the prose around it) don't re-fetch.
+const TIKZ_COMPILE_URL = 'https://mat-naloge-latex.fly.dev/tikz';
+const _tikzCache = new Map();   // src -> Promise<string|null>
+
+function fetchTikzSvg(src) {
+  if (_tikzCache.has(src)) return _tikzCache.get(src);
+  const p = (async () => {
+    try {
+      const r = await fetch(TIKZ_COMPILE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/x-latex; charset=utf-8' },
+        body: src,
+      });
+      if (!r.ok) return null;
+      return await r.text();
+    } catch (_e) {
+      return null;
+    }
+  })();
+  _tikzCache.set(src, p);
+  return p;
+}
+
+async function hydrateTikzInPreview(target) {
+  const els = Array.from(target.querySelectorAll('.tex-tikz[data-tikz-src]'));
+  await Promise.all(els.map(async (el) => {
+    const enc = el.getAttribute('data-tikz-src');
+    if (!enc) return;
+    let src;
+    try { src = decodeURIComponent(enc); } catch { return; }
+    const svg = await fetchTikzSvg(src);
+    // Bail out if the preview was re-rendered while we waited (the el is
+    // detached) or its source attribute changed mid-flight.
+    if (!target.contains(el)) return;
+    if (el.getAttribute('data-tikz-src') !== enc) return;
+    if (!svg) return;
+    el.innerHTML = svg;
+    // Strip width/height so the SVG flexes to its container, like the
+    // build-time pre-rendered <img>s do.
+    const svgEl = el.querySelector('svg');
+    if (svgEl) {
+      svgEl.removeAttribute('width');
+      svgEl.removeAttribute('height');
+      svgEl.style.maxWidth = '100%';
+    }
+  }));
 }
 
 // ---------------- Crop display + editor ------------------------------------
@@ -1202,7 +1262,11 @@ async function initProblemPage(meta) {
     const cur = (loadState(id).approved_by) || ((REMOTE_DATA && REMOTE_DATA[id]) ? REMOTE_DATA[id].approved_by : null);
     updateApprovalChip(cur || null);
   };
-  renderTeXPreview(ta.value, preview, meta.n, meta.tikz_count);
+  // On first render, only hit the /tikz backend if the LaTeX has been edited
+  // away from the build-time source — otherwise the pre-rendered SVGs that
+  // ship with the page are already correct and there's no point waiting for
+  // a network round-trip.
+  renderTeXPreview(ta.value, preview, meta.n, meta.tikz_count, ta.value !== meta.latex);
 
   let timer;
   ta.addEventListener('input', () => {
@@ -1211,7 +1275,13 @@ async function initProblemPage(meta) {
       const s = loadState(id);
       s.latex = ta.value;
       saveState(id, s);
-      renderTeXPreview(ta.value, preview, meta.n, meta.tikz_count);
+      // Hydrate TikZ live: every keystroke (after debounce) re-fetches a
+      // fresh SVG from pdflatex; identical sources are served from cache.
+      renderTeXPreview(ta.value, preview, meta.n, meta.tikz_count, true);
+      // Push counter is derived from pendingChanges() — rebuild it now so
+      // the badge reflects the new edit without waiting for a page refresh.
+      const bar = document.getElementById('gh-sync');
+      if (bar && typeof bar._refresh === 'function') bar._refresh();
     }, 250);
   });
 
