@@ -414,15 +414,40 @@ a:hover { text-decoration: underline; }
 .status-badge.ok       { background: var(--ok-bg);   color: var(--ok); }
 .status-badge.outdated { background: var(--warn-bg); color: var(--warn); }
 
-.approve-label {
-  display: inline-flex; align-items: center; gap: 0.35rem;
-  font-size: 0.85rem; cursor: pointer; user-select: none;
+/* Approver chip rendering. Other people who approved show as static
+   read-only chips; the user's own chip is a button that toggles approval. */
+.approvers {
+  display: inline-flex; align-items: center;
+  flex-wrap: wrap; gap: 0.35rem;
 }
-.approve-label input[type=checkbox] { margin: 0; cursor: pointer; }
-
 .approval-chip {
-  font-size: 0.85rem; padding: 0.2rem 0.7rem; border-radius: 999px;
-  background: #ecfeff; color: #0e7490; border: 1px solid #a5f3fc;
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  font-size: 0.85rem; padding: 0.2rem 0.65rem; border-radius: 999px;
+  border: 1px solid transparent;
+}
+.approval-chip--other {
+  background: #ecfeff; color: #0e7490; border-color: #a5f3fc;
+  cursor: default;
+}
+.approval-chip--self {
+  font: inherit; font-size: 0.85rem;
+  cursor: pointer; user-select: none;
+  padding: 0.2rem 0.65rem;
+}
+.approval-chip--self.is-approved {
+  background: #ecfeff; color: #0e7490; border-color: #a5f3fc;
+}
+.approval-chip--self.is-approved:hover {
+  background: #cffafe; border-color: #67e8f9;
+}
+.approval-chip--self.is-unapproved {
+  background: #f3f4f6; color: #6b7280; border-color: #e5e7eb;
+}
+.approval-chip--self.is-unapproved:hover {
+  background: #e5e7eb; border-color: #d1d5db; color: #374151;
+}
+.approval-chip--self .self-mark {
+  font-weight: 700; font-size: 0.95rem; line-height: 1;
 }
 .approval-chip[hidden] { display: none !important; }
 
@@ -509,7 +534,7 @@ button:disabled { opacity: 0.5; cursor: default; }
 .meta-row {
   display: flex; align-items: flex-start;
   gap: 1rem; flex-wrap: wrap;
-  margin: 0.4rem 0 0.1rem;
+  margin: 0.4rem 0 0;
 }
 .meta-row > .tags-row,
 .meta-row > .topics-row {

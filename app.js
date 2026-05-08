@@ -369,6 +369,23 @@ function getDisplayNamesRemote() {
 function effectiveDisplayNames() {
   return { ...getDisplayNamesRemote(), ...getDisplayNamesLocal() };
 }
+// Normalize an `approved_by` field to a deduplicated array. Old data
+// stored a single login string; new data stores an array. Either shape
+// (or null/undefined) is accepted; the return is always a fresh array.
+function approverList(approvedBy) {
+  if (!approvedBy) return [];
+  const arr = Array.isArray(approvedBy) ? approvedBy : [approvedBy];
+  const out = [];
+  const seen = new Set();
+  for (const x of arr) {
+    if (typeof x !== 'string') continue;
+    const t = x.trim();
+    if (!t || seen.has(t)) continue;
+    seen.add(t); out.push(t);
+  }
+  return out;
+}
+
 // Look up the display name for a GitHub login; falls back to login itself.
 function displayNameFor(login) {
   if (!login) return '';
@@ -1151,9 +1168,10 @@ function applyIndexStatuses() {
     const id = card.dataset.id;
     const s = effectiveState(id);
     card.classList.remove('status-outdated', 'status-approved-me', 'status-approved-other');
-    if (s.approved_by) {
-      if (me && s.approved_by === me) card.classList.add('status-approved-me');
-      else                            card.classList.add('status-approved-other');
+    const approvers = approverList(s.approved_by);
+    if (approvers.length > 0) {
+      if (me && approvers.includes(me)) card.classList.add('status-approved-me');
+      else                              card.classList.add('status-approved-other');
     }
     if (s.outdated) card.classList.add('status-outdated');
   });
@@ -1305,22 +1323,17 @@ async function initProblemPage(meta) {
   const ta            = $('latex-source');
   const preview       = $('preview');
   const badge         = $('status-badge');
-  const approveCb     = $('approve-cb');
-  const approvalChip  = $('approval-chip');
+  const approversEl   = $('approvers');
   const exportBtn     = $('export-changes');
 
   // -------- LaTeX --------
   ta.value = state.latex !== undefined ? state.latex : meta.latex;
   updateBadge(state.outdated);
-  approveCb.checked = !!state.approved_by;
-  updateApprovalChip(state.approved_by || null);
+  renderApprovers();
   renderTopicsEditor(meta);
   // Expose a refresh hook so changes to display names elsewhere (e.g. from
   // the dropdown) update the chip text without a reload.
-  window.refreshApprovalChip = () => {
-    const cur = (loadState(id).approved_by) || ((REMOTE_DATA && REMOTE_DATA[id]) ? REMOTE_DATA[id].approved_by : null);
-    updateApprovalChip(cur || null);
-  };
+  window.refreshApprovalChip = renderApprovers;
   // On first render, only hit the /tikz backend if the LaTeX has been edited
   // away from the build-time source — otherwise the pre-rendered SVGs that
   // ship with the page are already correct and there's no point waiting for
@@ -1523,28 +1536,68 @@ async function initProblemPage(meta) {
   });
 
   // -------- Approve --------
-  approveCb.addEventListener('change', async () => {
-    const s = loadState(id);
-    if (approveCb.checked) {
-      let myName = getName();
-      if (!myName) {
-        if (getToken()) await ensureNameFromToken();
-        myName = getName();
-      }
-      if (!myName) {
-        alert('Please sign in to GitHub first (Sign in button in the top-right).');
-        approveCb.checked = false;
-        return;
-      }
-      s.approved_by = myName;
-    } else {
-      s.approved_by = null;
+  // Click the self chip to toggle whether MY login is in approved_by.
+  // Other approvers are rendered as read-only chips to the left.
+  async function toggleSelfApproval() {
+    let myName = getName();
+    if (!myName) {
+      if (getToken()) await ensureNameFromToken();
+      myName = getName();
     }
+    if (!myName) {
+      alert('Please sign in to GitHub first (Sign in button in the top-right).');
+      return;
+    }
+    const s = loadState(id);
+    // Start from the merged effective list so we don't accidentally drop
+    // approvers who exist on remote but haven't been written to local yet.
+    const eff = effectiveState(id);
+    const cur = approverList(eff.approved_by);
+    const next = cur.includes(myName)
+      ? cur.filter(x => x !== myName)
+      : cur.concat(myName);
+    next.sort();
+    s.approved_by = next.length > 0 ? next : null;
     saveState(id, s);
-    updateApprovalChip(s.approved_by);
+    renderApprovers();
     const bar = document.getElementById('gh-sync');
     if (bar && typeof bar._refresh === 'function') bar._refresh();
-  });
+  }
+
+  function renderApprovers() {
+    const eff      = effectiveState(id);
+    const list     = approverList(eff.approved_by);
+    const me       = getName();
+    const others   = list.filter(x => !me || x !== me);
+    const meIn     = !!me && list.includes(me);
+
+    approversEl.innerHTML = '';
+    // Other approvers (read-only chips), in stable display order.
+    for (const login of others.slice().sort()) {
+      const chip = document.createElement('span');
+      chip.className = 'approval-chip approval-chip--other';
+      chip.title = login;
+      chip.textContent = `${displayNameFor(login)} ✓`;
+      approversEl.appendChild(chip);
+    }
+    // Self chip (always present once we know who "me" is). Greyed-out × when
+    // not approved, accent-colored ✓ when approved. Clicking toggles.
+    const selfChip = document.createElement('button');
+    selfChip.type = 'button';
+    selfChip.id   = 'self-approval-chip';
+    selfChip.className = 'approval-chip approval-chip--self '
+                       + (meIn ? 'is-approved' : 'is-unapproved');
+    selfChip.title = meIn
+      ? 'Click to remove your approval'
+      : (me ? 'Click to approve' : 'Sign in (top-right) to approve');
+    const label = me ? displayNameFor(me) : 'Approve';
+    const mark  = meIn ? '✓' : '×';
+    selfChip.innerHTML =
+      `<span class="self-name">${escapeHtml(label)}</span>`
+    + `<span class="self-mark">${mark}</span>`;
+    selfChip.addEventListener('click', toggleSelfApproval);
+    approversEl.appendChild(selfChip);
+  }
 
   exportBtn.addEventListener('click', () => {
     const s = loadState(id);
@@ -1570,14 +1623,6 @@ async function initProblemPage(meta) {
     }
   }
 
-  function updateApprovalChip(login) {
-    if (login) {
-      approvalChip.hidden = false;
-      approvalChip.textContent = `${displayNameFor(login)} ✓`;
-    } else {
-      approvalChip.hidden = true;
-    }
-  }
 }
 
 // ---------- Search page ----------------------------------------------------
