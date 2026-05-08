@@ -2460,114 +2460,94 @@ ${itemsTex}
     document.body.appendChild(a); a.click(); a.remove();
     URL.revokeObjectURL(url);
   });
-  // Generate the PDF entirely client-side via html2pdf.js — same shape as
-  // the LaTeX download: build a blob, trigger a download, done.
-  // Strategy: pass the live #finishing-preview element to html2pdf, then
-  // use html2canvas's onclone hook to mutate ITS internal clone (which
-  // already inherits MathJax styles from the real document) — strip the
-  // interactive bits and reset the preview's chrome styles.
+  // Real LaTeX compilation. Send the .tex source off to a public
+  // LaTeX-as-a-service backend (texlive.net first, latexonline.cc as
+  // fallback) and download the resulting PDF. Output is byte-equivalent
+  // to running pdflatex locally — no rasterisation, no html2canvas.
+  async function compileViaTexlive(tex) {
+    const fd = new FormData();
+    fd.append('return',         'pdf');
+    fd.append('engine',         'pdflatex');
+    fd.append('filename[]',     'document.tex');
+    fd.append('filecontents[]', tex);
+    const r = await fetch('https://texlive.net/cgi-bin/latexcgi', {
+      method: 'POST',
+      body: fd,
+    });
+    if (!r.ok) throw new Error('texlive.net HTTP ' + r.status);
+    const ct = (r.headers.get('content-type') || '').toLowerCase();
+    const blob = await r.blob();
+    if (!ct.includes('pdf')) {
+      // The endpoint returns HTML or plain-text logs on failure.
+      const txt = await blob.text();
+      throw new Error('texlive.net compile failed:\n' + txt.slice(0, 800));
+    }
+    return blob;
+  }
+  async function compileViaLatexOnline(tex) {
+    // latexonline.cc: GET with text in querystring (works for ≲ 30KB).
+    const url = 'https://latexonline.cc/compile?text=' +
+                encodeURIComponent(tex) + '&command=pdflatex';
+    const r = await fetch(url);
+    if (!r.ok) {
+      const txt = await r.text();
+      throw new Error('latexonline.cc HTTP ' + r.status + ':\n' +
+                      txt.slice(0, 800));
+    }
+    const ct = (r.headers.get('content-type') || '').toLowerCase();
+    const blob = await r.blob();
+    if (!ct.includes('pdf')) {
+      const txt = await blob.text();
+      throw new Error('latexonline.cc compile failed:\n' + txt.slice(0, 800));
+    }
+    return blob;
+  }
+
   document.getElementById('download-pdf').addEventListener('click', async () => {
     const btn = document.getElementById('download-pdf');
-    if (typeof html2pdf === 'undefined') {
-      alert('PDF library failed to load. Check your network connection.');
+    const texContent = tex.value;
+    if (!texContent.trim()) {
+      alert('No LaTeX to compile.');
       return;
     }
-    const previewEl = document.getElementById('finishing-preview');
-    if (!previewEl) return;
 
-    // Make sure MathJax is done rendering the live preview.
-    if (window.MathJax && window.MathJax.typesetPromise) {
-      try { await window.MathJax.typesetPromise([previewEl]); } catch (_) {}
+    const origLabel = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '⏳ Compiling LaTeX…';
+
+    let lastErr = null;
+    let pdfBlob = null;
+    for (const fn of [compileViaTexlive, compileViaLatexOnline]) {
+      try {
+        pdfBlob = await fn(texContent);
+        break;
+      } catch (err) {
+        console.warn('LaTeX backend failed:', err);
+        lastErr = err;
+      }
     }
 
-    try {
-      await html2pdf().set({
-        margin:      [40, 40, 40, 40],   // pt — matches A4 1.4cm margin
-        filename:    'izpit.pdf',
-        image:       { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          backgroundColor: '#ffffff',
-          useCORS: true,
-          // html2canvas builds its own clone of the document; this hook
-          // lets us mutate that clone before rasterisation. Hide chrome
-          // but otherwise leave the natural layout alone — it already
-          // flows correctly on screen, so it'll flow correctly here too.
-          onclone: (clonedDoc) => {
-            const p = clonedDoc.getElementById('finishing-preview');
-            if (p) {
-              p.style.setProperty('background', 'white', 'important');
-              p.style.setProperty('border', '0', 'important');
-              p.style.setProperty('padding', '0', 'important');
-              p.style.setProperty('margin', '0', 'important');
-              p.style.setProperty('box-shadow', 'none', 'important');
-              // CRITICAL: the live preview is a scrollable card with
-              // max-height: 720px / overflow-y: auto. Without these
-              // overrides, html2canvas only captures the visible 720px
-              // window — so anything past it (e.g. problem 15) is lost.
-              p.style.setProperty('max-height', 'none', 'important');
-              p.style.setProperty('min-height', '0', 'important');
-              p.style.setProperty('height', 'auto', 'important');
-              p.style.setProperty('overflow', 'visible', 'important');
-              p.style.setProperty('overflow-y', 'visible', 'important');
-              p.style.setProperty('display', 'block', 'important');
-            }
-            // Hide (don't remove) the interactive bits so the surrounding
-            // flex layout doesn't get re-flowed unpredictably.
-            const HIDE = [
-              '.finishing-controls-row', '.drag-handle',
-              '.finishing-page-break-line', '.exam-field-remove',
-              '.finishing-heading-adds',
-            ];
-            HIDE.forEach(sel => {
-              clonedDoc.querySelectorAll(sel).forEach(el => {
-                el.style.setProperty('display', 'none', 'important');
-              });
-            });
-            // KILL every hidden MathJax companion node — assistive MathML,
-            // breakable copies, and the menu shadow tree. html2canvas
-            // doesn't honour their clip/position:absolute hiding and would
-            // rasterise them on top of the visible SVG, producing 2-5
-            // ghost copies of every formula.
-            const REMOVE_MJX = [
-              'mjx-assistive-mml',
-              'mjx-container > mjx-math',          // older MathJax fallback markup
-              'mjx-container > mjx-mtext',
-              '.MJX_Assistive_MathML',
-              '.MJX-mml',
-              'mjx-merror',
-            ];
-            REMOVE_MJX.forEach(sel => {
-              clonedDoc.querySelectorAll(sel).forEach(el => el.remove());
-            });
-            // For each mjx-container, keep ONLY the visible <svg> child.
-            clonedDoc.querySelectorAll('mjx-container').forEach(c => {
-              Array.from(c.childNodes).forEach(child => {
-                if (child.nodeType === 1 && child.tagName.toLowerCase() !== 'svg') {
-                  child.remove();
-                }
-              });
-            });
-            clonedDoc.querySelectorAll('[contenteditable]').forEach(el => {
-              el.removeAttribute('contenteditable');
-              el.removeAttribute('spellcheck');
-            });
-            // Give every problem a comfortable bottom margin so they
-            // don't smush together in the PDF.
-            clonedDoc.querySelectorAll('.finishing-block').forEach(b => {
-              b.style.setProperty('margin-bottom', '14px', 'important');
-            });
-          },
-        },
-        jsPDF:       { unit: 'pt', format: 'a4', orientation: 'portrait' },
-        pagebreak:   { mode: ['avoid-all', 'css', 'legacy'],
-                       before: '.finishing-block.is-page-break',
-                       avoid:  '.finishing-block' },
-      }).from(previewEl).save();
-    } catch (err) {
-      console.error('PDF generation failed:', err);
-      alert('PDF generation failed: ' + (err && err.message || err));
+    if (!pdfBlob) {
+      btn.disabled = false;
+      btn.textContent = origLabel;
+      const msg = (lastErr && lastErr.message || lastErr || 'unknown error');
+      alert(
+        'PDF compilation failed.\n\n' +
+        msg + '\n\n' +
+        'You can still click "Download LaTeX" and run pdflatex locally.'
+      );
+      return;
     }
+
+    // Trigger the browser download — same pattern as Download LaTeX.
+    const url = URL.createObjectURL(pdfBlob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'izpit.pdf';
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+
+    btn.disabled = false;
+    btn.textContent = origLabel;
   });
 }
 
