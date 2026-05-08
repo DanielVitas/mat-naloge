@@ -1895,15 +1895,10 @@ async function initExamPage() {
   const byN = {};
   for (const p of PROBLEMS) byN[p.n] = p;
 
-  // Tab switching uses the shared switchTab/bindPageTabs helpers.
-  bindPageTabs('selection');
-  function showTab(name) {
-    if (switchTab(name)) history.replaceState(null, '', '#' + name);
-  }
-  window.addEventListener('hashchange', () => {
-    const h = (location.hash || '').replace('#', '').trim();
-    if (h) switchTab(h);
-  });
+  // The Exam page used to have Selection + Finishing tabs; the
+  // Selection tab is gone. The page is now a single Finishing view.
+  initFinishing(byN);
+  return;
 
   function renderProblemRow(p, actions) {
     // actions: array of { label, onClick, kind (optional), title }
@@ -2544,8 +2539,10 @@ ${itemsTex}
         '<div class="search-results-bar">' +
           '<div class="search-summary" id="modal-coll-summary">Loading…</div>' +
           '<span class="add-random-control">' +
-            '+ Add <input type="number" id="modal-coll-rand-n" value="1" min="1" max="999"> random' +
-            '<button type="button" id="modal-coll-rand-btn">Add</button>' +
+            '<span class="add-random-prefix">+ Add</span>' +
+            '<input type="number" id="modal-coll-rand-n" value="1" min="1" max="999">' +
+            '<span class="add-random-suffix">random</span>' +
+            '<button type="button" id="modal-coll-rand-btn" aria-label="Add N random">→</button>' +
           '</span>' +
           '<button type="button" id="modal-coll-all-btn" class="add-all-btn">+ Add all</button>' +
         '</div>' +
@@ -2559,21 +2556,29 @@ ${itemsTex}
         '<div class="search-results-bar">' +
           '<div class="search-summary" id="result-count">Loading…</div>' +
           '<span class="add-random-control">' +
-            '+ Add <input type="number" id="add-random-n" value="1" min="1" max="999"> random' +
-            '<button type="button" id="add-random-btn">Add</button>' +
+            '<span class="add-random-prefix">+ Add</span>' +
+            '<input type="number" id="add-random-n" value="1" min="1" max="999">' +
+            '<span class="add-random-suffix">random</span>' +
+            '<button type="button" id="add-random-btn" aria-label="Add N random">→</button>' +
           '</span>' +
           '<button type="button" id="add-all-btn" class="add-all-btn">+ Add all</button>' +
         '</div>' +
         '<div class="search-results" id="search-results"></div>';
       // Run a configured initSearchPage that wires Add → exam.
+      // The Add button toggles: clicking on a problem already in the exam
+      // removes it.
       initSearchPage({
         skipPageInit: true,
         isMarked:       (n) => items.some(it => it.n === n),
-        onAdd:          (n) => addProblemsToExam([n]),
+        onAdd:          (n) => {
+          const idx = items.findIndex(it => it.n === n);
+          if (idx >= 0) removeProblemFromExamAt(idx);
+          else          addProblemsToExam([n]);
+        },
         onAddAll:       (ns) => addProblemsToExam(ns),
         addLabel:       'Add',
-        markedLabel:    'In exam',
-        markedDisabled: true,
+        markedLabel:    'Remove',
+        markedDisabled: false,
         markedClass:    'is-in-exam',
         showEditLink:   false,
         stateEvent:     'exam-changed',
@@ -2620,7 +2625,7 @@ ${itemsTex}
             <div class="result-body" data-id="${n}" data-tikz="${data.tikz_count || 0}"></div>
             <div class="result-actions">
               <button type="button" class="result-add ${inExam ? 'is-selected' : ''}"
-                      data-n="${n}" ${inExam ? 'disabled' : ''}>${inExam ? 'In exam' : 'Add'}</button>
+                      data-n="${n}">${inExam ? 'Remove' : 'Add'}</button>
             </div>
           </div>`;
         })
@@ -2642,12 +2647,16 @@ ${itemsTex}
 
     refresh();
 
-    // Single-card Add button (event delegation).
+    // Single-card Add/Remove button (event delegation): toggles
+    // membership of the problem in the exam.
     cardsContainer.addEventListener('click', (e) => {
       const btn = e.target.closest('.result-add');
-      if (!btn || btn.disabled) return;
+      if (!btn) return;
       e.preventDefault();
-      addProblemsToExam([Number(btn.dataset.n)]);
+      const n = Number(btn.dataset.n);
+      const idx = items.findIndex(it => it.n === n);
+      if (idx >= 0) removeProblemFromExamAt(idx);
+      else          addProblemsToExam([n]);
       refresh();
     });
     // Add all

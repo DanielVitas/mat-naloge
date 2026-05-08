@@ -1129,10 +1129,11 @@ canvas.crop-display {
 .search-result .result-add.is-selected:hover { background: var(--warn-bg); }
 
 .search-results-bar {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 1rem; margin: 0.2rem 0 0.8rem;
+  display: flex; align-items: center;
+  gap: 0.5rem; margin: 0.2rem 0 0.8rem;
+  flex-wrap: wrap;
 }
-.search-results-bar .search-summary { margin: 0; }
+.search-results-bar .search-summary { margin: 0; flex: 1; min-width: 0; }
 .add-all-btn {
   background: white;
   color: var(--accent);
@@ -1380,35 +1381,57 @@ canvas.crop-display {
   body.print-finishing .finishing-block-remove { display: none !important; }
 }
 
-/* "+ Add N random" input + button next to "+ Add all" in the search bar. */
+/* "+ Add N random" — styled to match the .add-all-btn neighbour with
+   the number input integrated as part of the same pill. */
 .add-random-control {
-  display: inline-flex; align-items: center; gap: 0.3rem;
-  font-size: 0.88rem; color: var(--muted);
-}
-.add-random-control input {
-  width: 3.4rem;
-  padding: 0.18rem 0.4rem;
-  font: inherit; font-size: 0.88rem;
-  border: 1px solid var(--card-border);
-  border-radius: 4px;
-  text-align: center;
-}
-.add-random-control button {
-  font: inherit; font-size: 0.88rem;
-  padding: 0.25rem 0.7rem;
+  display: inline-flex; align-items: stretch;
   background: white;
-  border: 1px solid var(--card-border);
-  border-radius: 5px;
+  border: 1px dashed var(--accent);
+  border-radius: 6px;
+  font: inherit; font-size: 0.85rem;
+  color: var(--accent);
+  overflow: hidden;
+  cursor: pointer;
+}
+.add-random-control:hover { background: rgba(37, 99, 235, 0.06); }
+.add-random-control:hover button { color: var(--accent); }
+.add-random-prefix,
+.add-random-suffix {
+  display: flex; align-items: center;
+  font-weight: 500;
+  padding: 0.35rem 0;
+  user-select: none;
+}
+.add-random-prefix { padding-left: 0.7rem; padding-right: 0.25rem; }
+.add-random-suffix { padding-left: 0.05rem; padding-right: 0.15rem; }
+.add-random-control input {
+  width: 2.4rem;
+  padding: 0.35rem 0.1rem;
+  font: inherit; font-size: 0.85rem; font-weight: 600;
+  border: 0;
+  background: transparent;
+  text-align: center;
+  color: var(--accent);
+  -moz-appearance: textfield;
+}
+.add-random-control input::-webkit-inner-spin-button,
+.add-random-control input::-webkit-outer-spin-button {
+  -webkit-appearance: none; margin: 0;
+}
+.add-random-control input:focus { outline: none; background: rgba(37, 99, 235, 0.08); }
+.add-random-control button {
+  background: transparent;
+  border: 0;
+  padding: 0.35rem 0.7rem 0.35rem 0.3rem;
+  font: inherit; font-size: 0.85rem; font-weight: 500;
   color: var(--accent);
   cursor: pointer;
 }
-.add-random-control button:hover {
-  background: rgba(37, 99, 235, 0.06);
-  border-color: var(--accent);
-}
-.add-random-control button[disabled] {
-  opacity: 0.5;
-  cursor: not-allowed;
+.add-random-control button:disabled { color: var(--muted); cursor: default; }
+.add-random-control:has(button:disabled) {
+  opacity: 0.6; cursor: default;
+  border-color: var(--card-border);
+  background: white !important;
 }
 
 /* "+ Add a problem" pseudo-block at the end of the preview. */
