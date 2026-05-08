@@ -1115,20 +1115,13 @@ canvas.crop-display {
 .search-result-wrap {
   position: relative;
   height: 13em;
-  /* Grid items stack in DOM order by default — a later (lower) card
-     would paint on top of an expanded card from the row above. Lift
-     the WRAP (not just the inner .search-result) on hover so the
-     entire stacking context for this card pops above its neighbours.
-     The 0.25 s delay on `z-index` when un-hovering keeps the wrap up
-     while the height animation finishes retracting. */
+  /* The `.is-hovered` class is toggled by JS (mouseenter/leave on the
+     hot zone + Add button) — not CSS `:has()` — because some browsers
+     have a 1-frame paint delay between :has() reevaluation and z-index
+     application. JS firing synchronously eliminates that hiccup. */
   z-index: 1;
-  transition: z-index 0s linear 0.25s;
 }
-.search-result-wrap:has(.search-result-hot-zone:hover),
-.search-result-wrap:has(.search-result .result-add:hover) {
-  z-index: 10;
-  transition: z-index 0s linear 0s;
-}
+.search-result-wrap.is-hovered { z-index: 10; }
 .search-result-hot-zone {
   position: absolute;
   top: 0; left: 0; right: 0;
@@ -1156,27 +1149,28 @@ canvas.crop-display {
 /* The Add icon stays clickable. */
 .search-result .result-actions,
 .search-result .result-add { pointer-events: auto; }
-/* Expand the card when the hot zone — or the Add button — is hovered.
+/* Expand the card when its wrap is marked hovered (by JS).
    The card grows for tall content but never shrinks below the original
-   13em footprint (cards with little content stay the same size as their
-   slot in the grid). */
-.search-result-wrap:has(.search-result-hot-zone:hover) .search-result,
-.search-result-wrap:has(.search-result .result-add:hover) .search-result {
+   13em footprint. */
+.search-result-wrap.is-hovered .search-result {
   height: auto;
   min-height: 13em;
   max-height: 100em;
   overflow: visible;
   z-index: 5;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-  transition: height 0.25s ease, box-shadow 0.08s, border-color 0.08s,
-              z-index 0s linear 0s;
 }
+.search-result-wrap.is-hovered .search-result::after { opacity: 0; }
 .search-result::after {
-  /* Fade gradient covering the bottom of the card. */
+  /* Fade gradient covering the bottom of the card. Inherit the parent's
+     rounded bottom corners so the gradient doesn't poke out past them
+     when the card is expanded (overflow: visible). */
   content: '';
   position: absolute; left: 0; right: 0; bottom: 0;
   height: 2.5em;
   background: linear-gradient(to bottom, transparent, var(--card-bg));
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
   pointer-events: none;
   opacity: 1;
   transition: opacity 0.2s ease;

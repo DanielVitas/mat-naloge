@@ -1782,6 +1782,27 @@ async function initSearchPage(opts) {
     if (window.MathJax && window.MathJax.typesetPromise) {
       window.MathJax.typesetPromise([resultsEl]).catch(() => {});
     }
+    // Hover state for each card wrap. Manage via JS so the elevation
+    // and expansion happen synchronously — :has()-based CSS hover has a
+    // 1-frame paint delay in some browsers.
+    resultsEl.querySelectorAll('.search-result-wrap').forEach(wrap => {
+      const hot    = wrap.querySelector('.search-result-hot-zone');
+      const addBtn = wrap.querySelector('.result-add');
+      const targets = [hot, addBtn].filter(Boolean);
+      const enter = () => wrap.classList.add('is-hovered');
+      const leave = () => {
+        // Defer one task so transitions between hot-zone and Add button
+        // (cursor crossing the boundary) don't flicker the class off.
+        setTimeout(() => {
+          const stillIn = targets.some(t => t.matches(':hover'));
+          if (!stillIn) wrap.classList.remove('is-hovered');
+        }, 0);
+      };
+      targets.forEach(t => {
+        t.addEventListener('mouseenter', enter);
+        t.addEventListener('mouseleave', leave);
+      });
+    });
     refreshAddAll();
   }
 
