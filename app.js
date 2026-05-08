@@ -1439,13 +1439,41 @@ async function initProblemPage(meta) {
 // ---------- Search page ----------------------------------------------------
 // Live filter UI over window.PROBLEMS (embedded in search.html). Every filter
 // input triggers re-render — there's no submit button.
-async function initSearchPage() {
-  await fetchRemoteData();
-  migrateLocalTopics();
-  initMenuBar();
-  initSyncBar();
-  initCollectionBar();
-  await ensureNameFromToken();
+async function initSearchPage(opts) {
+  // Same function powers (a) the standalone search.html page and (b) the
+  // "Add a problem" modal opened from the Finishing tab. The opts object
+  // lets the caller swap out the Add-button semantics:
+  //   isMarked    : (n) => bool       — show the "in" state for problem n
+  //   onAdd       : (n) => void       — clicked the Add button
+  //   onAddAll    : (ns) => void      — clicked "Add all"
+  //   addLabel    : string            — Add-button text in default state
+  //   markedLabel : string            — Add-button text in "in" state
+  //   markedDisabled : bool           — disable button when "in"
+  //   markedClass : string            — extra CSS class on cards in "in" state
+  //   showEditLink: bool              — show the "Edit" link next to Add
+  //   stateEvent  : string            — name of event to listen for to refresh
+  //   skipPageInit: bool              — skip the page-level init helpers
+  opts = opts || {};
+  const isMarked        = opts.isMarked   || isSelected;
+  const onAdd           = opts.onAdd      || toggleSelected;
+  const onAddAll        = opts.onAddAll   || ((ns) => {
+    const sel = getSelected(); ns.forEach(n => sel.add(n)); setSelected(sel);
+  });
+  const addLabel        = opts.addLabel    || 'Add';
+  const markedLabel     = opts.markedLabel || 'Remove';
+  const markedDisabled  = !!opts.markedDisabled;
+  const markedClass     = opts.markedClass || '';
+  const showEditLink    = opts.showEditLink !== false;
+  const stateEvent      = opts.stateEvent  || 'selection-changed';
+
+  if (!opts.skipPageInit) {
+    await fetchRemoteData();
+    migrateLocalTopics();
+    initMenuBar();
+    initSyncBar();
+    initCollectionBar();
+    await ensureNameFromToken();
+  }
 
   const PROBLEMS = (window.PROBLEMS || []).slice();
   if (PROBLEMS.length === 0) return;
@@ -1717,13 +1745,18 @@ async function initSearchPage() {
     lastMatches = out;
     countEl.textContent = `${out.length} of ${PROBLEMS.length} problems`;
     resultsEl.innerHTML = out.map(p => {
-      const sel = isSelected(p.n);
-      return `<div class="search-result">
+      const sel = isMarked(p.n);
+      const cls = sel ? ('is-selected ' + markedClass).trim() : '';
+      const dis = sel && markedDisabled ? 'disabled' : '';
+      const editLink = showEditLink
+        ? `<a class="result-edit" href="problem-${String(p.n).padStart(3,'0')}.html">Edit</a>`
+        : '';
+      return `<div class="search-result ${sel && markedClass ? markedClass : ''}">
         <span class="result-num">${p.n}.</span>
         <div class="result-body" data-id="${p.n}" data-tikz="${p.tikz_count || 0}"></div>
         <div class="result-actions">
-          <button type="button" class="result-add ${sel ? 'is-selected' : ''}" data-n="${p.n}">${sel ? 'Remove' : 'Add'}</button>
-          <a class="result-edit" href="problem-${String(p.n).padStart(3,'0')}.html">Edit</a>
+          <button type="button" class="result-add ${cls}" data-n="${p.n}" ${dis}>${sel ? markedLabel : addLabel}</button>
+          ${editLink}
         </div>
       </div>`;
     }).join('');
@@ -1744,13 +1777,12 @@ async function initSearchPage() {
   function refreshAddAll() {
     const btn = document.getElementById('add-all-btn');
     if (!btn) return;
-    const sel = getSelected();
-    const remaining = lastMatches.filter(p => !sel.has(p.n)).length;
+    const remaining = lastMatches.filter(p => !isMarked(p.n)).length;
     if (remaining === 0 && lastMatches.length > 0) {
-      btn.textContent = `All ${lastMatches.length} already in selection`;
+      btn.textContent = `All ${lastMatches.length} already added`;
       btn.disabled = true;
     } else {
-      btn.textContent = `+ Add all to selection (${remaining})`;
+      btn.textContent = `+ Add all (${remaining})`;
       btn.disabled = lastMatches.length === 0;
     }
   }
@@ -1758,14 +1790,19 @@ async function initSearchPage() {
   // Event delegation for Add/Remove buttons.
   resultsEl.addEventListener('click', (e) => {
     const btn = e.target.closest('.result-add');
-    if (!btn) return;
+    if (!btn || btn.disabled) return;
     e.preventDefault();
     const n = Number(btn.dataset.n);
-    toggleSelected(n);
+    onAdd(n);
     // Re-render this single button's state without rebuilding everything.
-    const nowSel = isSelected(n);
+    const nowSel = isMarked(n);
     btn.classList.toggle('is-selected', nowSel);
-    btn.textContent = nowSel ? 'Remove' : 'Add';
+    btn.textContent = nowSel ? markedLabel : addLabel;
+    if (markedDisabled) btn.disabled = nowSel;
+    if (markedClass) {
+      const card = btn.closest('.search-result');
+      if (card) card.classList.toggle(markedClass, nowSel);
+    }
     refreshAddAll();
   });
 
@@ -1773,24 +1810,35 @@ async function initSearchPage() {
   const addAllBtn = document.getElementById('add-all-btn');
   if (addAllBtn) {
     addAllBtn.addEventListener('click', () => {
-      const sel = getSelected();
-      lastMatches.forEach(p => sel.add(p.n));
-      setSelected(sel);
+      onAddAll(lastMatches.map(p => p.n).filter(n => !isMarked(n)));
       // Update visible buttons
       resultsEl.querySelectorAll('.result-add').forEach(b => {
-        b.classList.add('is-selected');
-        b.textContent = 'Remove';
+        const n = Number(b.dataset.n);
+        if (isMarked(n)) {
+          b.classList.add('is-selected');
+          b.textContent = markedLabel;
+          if (markedDisabled) b.disabled = true;
+          if (markedClass) {
+            const card = b.closest('.search-result');
+            if (card) card.classList.add(markedClass);
+          }
+        }
       });
       refreshAddAll();
     });
   }
-  // Update Add/Remove button text when selection changes anywhere else.
-  window.addEventListener('selection-changed', () => {
+  // Update Add/Remove button text when state changes anywhere else.
+  window.addEventListener(stateEvent, () => {
     resultsEl.querySelectorAll('.result-add').forEach(b => {
       const n = Number(b.dataset.n);
-      const sel = isSelected(n);
+      const sel = isMarked(n);
       b.classList.toggle('is-selected', sel);
-      b.textContent = sel ? 'Remove' : 'Add';
+      b.textContent = sel ? markedLabel : addLabel;
+      if (markedDisabled) b.disabled = sel;
+      if (markedClass) {
+        const card = b.closest('.search-result');
+        if (card) card.classList.toggle(markedClass, sel);
+      }
     });
     refreshAddAll();
   });
@@ -2345,8 +2393,8 @@ ${itemsTex}
   }
 
   // Builds the "Add a problem" pseudo-block at the end of the preview.
-  // Two actions: (1) pick a problem from the user's collection that's not
-  // yet in the exam, (2) jump to the search page.
+  // Both actions open a fullscreen modal so the user can browse problems
+  // with the same UI as the search page.
   function appendAddBlock() {
     const addBlock = document.createElement('div');
     addBlock.className = 'finishing-add-block';
@@ -2354,47 +2402,134 @@ ${itemsTex}
       '<div class="finishing-add-header">+ Add a problem</div>' +
       '<div class="finishing-add-actions">' +
         '<button type="button" class="finishing-add-from-coll">From Collection…</button>' +
-        '<a class="finishing-add-search" href="search.html" target="_blank" rel="noopener">Search problems →</a>' +
-      '</div>' +
-      '<div class="finishing-add-coll-list" hidden></div>';
-
-    const collBtn  = addBlock.querySelector('.finishing-add-from-coll');
-    const collList = addBlock.querySelector('.finishing-add-coll-list');
-
-    collBtn.addEventListener('click', () => {
-      if (!collList.hidden) { collList.hidden = true; return; }
-      const inExam = new Set(items.map(it => it.n).filter(n => n != null));
-      const coll = [...getSelected()].sort((a, b) => a - b)
-                                     .filter(n => !inExam.has(n));
-      collList.innerHTML = '';
-      if (coll.length === 0) {
-        const empty = document.createElement('div');
-        empty.className = 'finishing-add-empty';
-        empty.textContent = 'No collection problems available to add.';
-        collList.appendChild(empty);
-      } else {
-        for (const n of coll) {
-          const data = byN[n] || {};
-          const sec = (data.section_letters || []).join('') || '';
-          const item = document.createElement('button');
-          item.type = 'button';
-          item.className = 'finishing-add-coll-item';
-          item.dataset.n = n;
-          item.innerHTML =
-            '<span class="finishing-add-coll-num">' + n + '.</span>' +
-            (sec ? '<span class="finishing-add-coll-sec">' + sec + '</span>' : '');
-          item.addEventListener('click', () => {
-            // Add to the exam (persisted in localStorage). The
-            // `exam-changed` event triggers refresh() → renderPreview().
-            setExam([...getExam(), n]);
-          });
-          collList.appendChild(item);
-        }
-      }
-      collList.hidden = false;
-    });
-
+        '<button type="button" class="finishing-add-search">Search problems…</button>' +
+      '</div>';
+    addBlock.querySelector('.finishing-add-from-coll')
+            .addEventListener('click', () => openAddProblemModal('collection'));
+    addBlock.querySelector('.finishing-add-search')
+            .addEventListener('click', () => openAddProblemModal('search'));
     preview.appendChild(addBlock);
+  }
+
+  // ---- Modal: "Add a problem" ------------------------------------------
+  function ensureAddProblemModal() {
+    let modal = document.getElementById('add-problem-modal');
+    if (modal) return modal;
+    modal = document.createElement('div');
+    modal.id = 'add-problem-modal';
+    modal.className = 'exam-modal';
+    modal.hidden = true;
+    modal.innerHTML =
+      '<div class="exam-modal-backdrop"></div>' +
+      '<div class="exam-modal-window">' +
+        '<div class="exam-modal-header">' +
+          '<h2 class="exam-modal-title">Add a problem</h2>' +
+          '<button type="button" class="exam-modal-close" aria-label="Close">×</button>' +
+        '</div>' +
+        '<div class="exam-modal-body"></div>' +
+      '</div>';
+    document.body.appendChild(modal);
+    const close = () => { modal.hidden = true; };
+    modal.querySelector('.exam-modal-backdrop').addEventListener('click', close);
+    modal.querySelector('.exam-modal-close').addEventListener('click', close);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !modal.hidden) close();
+    });
+    return modal;
+  }
+
+  function openAddProblemModal(mode) {
+    const modal = ensureAddProblemModal();
+    const title = modal.querySelector('.exam-modal-title');
+    const body  = modal.querySelector('.exam-modal-body');
+
+    if (mode === 'collection') {
+      title.textContent = 'Add from Collection';
+      body.innerHTML = '<div class="search-results" id="search-results"></div>';
+      renderCollectionInModal(body.querySelector('#search-results'));
+    } else {
+      title.textContent = 'Search problems';
+      // The search-page DOM, with the IDs initSearchPage expects.
+      body.innerHTML =
+        '<div class="filters-panel" id="filters"></div>' +
+        '<div class="search-results-bar">' +
+          '<div class="search-summary" id="result-count">Loading…</div>' +
+          '<button type="button" id="add-all-btn" class="add-all-btn">+ Add all</button>' +
+        '</div>' +
+        '<div class="search-results" id="search-results"></div>';
+      // Run a configured initSearchPage that wires Add → exam.
+      initSearchPage({
+        skipPageInit: true,
+        isMarked:       (n) => getExam().includes(n),
+        onAdd:          (n) => setExam([...getExam(), n]),
+        onAddAll:       (ns) => {
+          const exam = getExam();
+          setExam([...exam, ...ns.filter(n => !exam.includes(n))]);
+        },
+        addLabel:       'Add',
+        markedLabel:    'In exam',
+        markedDisabled: true,
+        markedClass:    'is-in-exam',
+        showEditLink:   false,
+        stateEvent:     'exam-changed',
+      });
+    }
+
+    modal.hidden = false;
+  }
+
+  // Renders the user's collection inside the modal as a flat list of
+  // search-result cards. Items already in the exam are greyed out.
+  function renderCollectionInModal(container) {
+    const collection = [...getSelected()].sort((a, b) => a - b);
+    if (collection.length === 0) {
+      container.innerHTML =
+        '<div class="modal-empty-msg">Your collection is empty. ' +
+        'Add problems via the Search tab first.</div>';
+      return;
+    }
+    const examSet = new Set(getExam().map(Number));
+    const cards = collection
+      .filter(n => byN[n])
+      .map(n => {
+        const inExam = examSet.has(n);
+        const data = byN[n];
+        return `<div class="search-result ${inExam ? 'is-in-exam' : ''}">
+          <span class="result-num">${n}.</span>
+          <div class="result-body" data-id="${n}" data-tikz="${data.tikz_count || 0}"></div>
+          <div class="result-actions">
+            <button type="button" class="result-add ${inExam ? 'is-selected' : ''}"
+                    data-n="${n}" ${inExam ? 'disabled' : ''}>${inExam ? 'In exam' : 'Add'}</button>
+          </div>
+        </div>`;
+      });
+    container.innerHTML = cards.join('');
+    // Render LaTeX previews inside each card.
+    collection.forEach(n => {
+      const data = byN[n];
+      if (!data) return;
+      const bodyEl = container.querySelector('.result-body[data-id="' + n + '"]');
+      if (!bodyEl) return;
+      const ed = effectiveState(n);
+      const latex = (ed.latex !== undefined) ? ed.latex : data.latex;
+      bodyEl.innerHTML = latexToHtml(latex, n, data.tikz_count || 0);
+    });
+    if (window.MathJax && window.MathJax.typesetPromise) {
+      window.MathJax.typesetPromise([container]).catch(() => {});
+    }
+    // Add buttons → add to exam, then update card to "In exam".
+    container.addEventListener('click', (e) => {
+      const btn = e.target.closest('.result-add');
+      if (!btn || btn.disabled) return;
+      e.preventDefault();
+      const n = Number(btn.dataset.n);
+      setExam([...getExam(), n]);
+      btn.classList.add('is-selected');
+      btn.textContent = 'In exam';
+      btn.disabled = true;
+      const card = btn.closest('.search-result');
+      if (card) card.classList.add('is-in-exam');
+    });
   }
 
   // Drag-reorder — standard "insertion line" pattern: while dragging, a
