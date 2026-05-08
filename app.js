@@ -889,7 +889,7 @@ function latexToHtml(src, problemId, tikzCount) {
     } else {
       initial = `<span class="tikz-loading">rendering TikZ…</span>`;
     }
-    return `<div class="tex-tikz" data-tikz-src="${enc}">${initial}</div>`;
+    return `<div class="tex-tikz" data-tikz-idx="${tikzIdx}" data-tikz-src="${enc}">${initial}</div>`;
   });
 
   src = src.replace(/\\begin\{tabular\}\{([^}]+)\}([\s\S]*?)\\end\{tabular\}/g,
@@ -1194,13 +1194,58 @@ function fetchTikzSvg(src) {
   return p;
 }
 
+// Per-(preview node) lock map: figure index -> {w, h} measured once. So
+// every subsequent fresh render of the same TikZ figure (1st, 2nd, …) lands
+// in the same box, preventing the visible jitter the user complained about.
 async function hydrateTikzInPreview(target) {
+  if (!target._tikzLocks) target._tikzLocks = new Map();
+  const locks = target._tikzLocks;
+
   const els = Array.from(target.querySelectorAll('.tex-tikz[data-tikz-src]'));
+
+  // Step 1: re-apply any existing locks immediately. This handles the case
+  // where the latex was edited (innerHTML replaced) and the new .tex-tikz
+  // divs need to inherit the size from the previous render.
+  for (const el of els) {
+    const idx = el.getAttribute('data-tikz-idx');
+    const lock = idx != null && locks.get(idx);
+    if (lock) {
+      el.style.width  = lock.w + 'px';
+      el.style.height = lock.h + 'px';
+      el.classList.add('is-locked');
+    }
+  }
+
   await Promise.all(els.map(async (el) => {
     const enc = el.getAttribute('data-tikz-src');
     if (!enc) return;
     let src;
     try { src = decodeURIComponent(enc); } catch { return; }
+    const idx = el.getAttribute('data-tikz-idx');
+
+    // Step 2: if there's no lock yet for this index, snapshot the current
+    // rendered size of whatever's inside (the build-time <img> or a placeholder)
+    // and pin it. We wait for an unloaded <img> to settle so we measure the
+    // real figure dimensions, not 0×0.
+    if (idx != null && !locks.has(idx)) {
+      const inner = el.firstElementChild;
+      if (inner) {
+        if (inner.tagName === 'IMG' && !inner.complete) {
+          await new Promise(r => {
+            inner.addEventListener('load',  r, { once: true });
+            inner.addEventListener('error', r, { once: true });
+          });
+        }
+        const r = inner.getBoundingClientRect();
+        if (r.width > 1 && r.height > 1) {
+          locks.set(idx, { w: r.width, h: r.height });
+          el.style.width  = r.width  + 'px';
+          el.style.height = r.height + 'px';
+          el.classList.add('is-locked');
+        }
+      }
+    }
+
     const svg = await fetchTikzSvg(src);
     // Bail out if the preview was re-rendered while we waited (the el is
     // detached) or its source attribute changed mid-flight.
@@ -1208,13 +1253,27 @@ async function hydrateTikzInPreview(target) {
     if (el.getAttribute('data-tikz-src') !== enc) return;
     if (!svg) return;
     el.innerHTML = svg;
-    // Strip width/height so the SVG flexes to its container, like the
-    // build-time pre-rendered <img>s do.
     const svgEl = el.querySelector('svg');
     if (svgEl) {
+      // Step 3: if we still don't have a lock for this idx (e.g. the figure
+      // started as a placeholder for a freshly-typed tikz block), capture
+      // the natural size of the just-arrived SVG and lock to it.
+      if (idx != null && !locks.has(idx)) {
+        // Read intrinsic size BEFORE stripping width/height attributes.
+        const r = svgEl.getBoundingClientRect();
+        if (r.width > 1 && r.height > 1) {
+          locks.set(idx, { w: r.width, h: r.height });
+          el.style.width  = r.width  + 'px';
+          el.style.height = r.height + 'px';
+          el.classList.add('is-locked');
+        }
+      }
+      // Strip the SVG's own width/height so the .is-locked CSS rule can
+      // size it 100%/100% within the locked container. preserveAspectRatio
+      // (default xMidYMid meet) letterboxes content if its aspect ratio
+      // differs from the locked box.
       svgEl.removeAttribute('width');
       svgEl.removeAttribute('height');
-      svgEl.style.maxWidth = '100%';
     }
   }));
 }
