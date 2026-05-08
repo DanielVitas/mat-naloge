@@ -536,14 +536,15 @@ button:disabled { opacity: 0.5; cursor: default; }
   gap: 1rem; flex-wrap: wrap;
   margin: 0.4rem 0 0;
 }
-.meta-row > .tags-row,
-.meta-row > .topics-row {
+.meta-left {
   flex: 1 1 auto; min-width: 0;
-  margin: 0;
+  display: flex; flex-direction: column;
+  gap: 0.05rem;
 }
 .tags-row {
   display: flex; align-items: center;
   flex-wrap: wrap; gap: 0.4rem;
+  margin: 0;
 }
 .tags-row .tags { margin: 0; }
 .meta-right {
@@ -556,8 +557,11 @@ button:disabled { opacity: 0.5; cursor: default; }
 /* Topics row: shown right under title-row, distinct color, optional label */
 .topics-row {
   display: flex; align-items: center; gap: 0.5rem;
-  flex-wrap: wrap; margin: 0 0 0.6rem;
+  flex-wrap: wrap; margin: 0;
 }
+/* Index-card topics-row keeps its own breathing room — it's a card, not the
+   tightly-packed problem-page header. */
+.problem-card .topics-row { margin: 0 0 0.6rem; }
 .topics-row .topics-label {
   font-size: 0.78rem; color: var(--muted);
   text-transform: uppercase; letter-spacing: 0.05em;
