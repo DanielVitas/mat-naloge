@@ -1754,11 +1754,15 @@ async function initSearchPage(opts) {
       const dis = sel && markedDisabled ? 'disabled' : '';
       // showEditLink (true on the search page, false in modals) doubles
       // as the "card itself is clickable → opens the problem page" flag.
+      // The data-href lives on the HOT-ZONE so clicks on the body (which
+      // pass through the pointer-events:none card) reach the navigable
+      // target underneath.
       const href = showEditLink
         ? `problem-${String(p.n).padStart(3,'0')}.html` : '';
       const dataHref = href ? `data-href="${href}"` : '';
       return `<div class="search-result-wrap">
-        <div class="search-result ${sel && markedClass ? markedClass : ''}" ${dataHref}>
+        <div class="search-result-hot-zone" ${dataHref}></div>
+        <div class="search-result ${sel && markedClass ? markedClass : ''}">
           <span class="result-num">${p.n}.</span>
           <div class="result-body" data-id="${p.n}" data-tikz="${p.tikz_count || 0}"></div>
           <div class="result-actions">
@@ -1815,10 +1819,12 @@ async function initSearchPage(opts) {
       refreshAddAll();
       return;
     }
-    // Click anywhere else on the card → navigate (search page only).
-    const card = e.target.closest('.search-result');
-    if (card && card.dataset.href) {
-      window.location.href = card.dataset.href;
+    // Click anywhere on the body (passes through to the hot zone) →
+    // navigate to the problem page (search page only — no data-href in
+    // modal mode).
+    const hot = e.target.closest('.search-result-hot-zone');
+    if (hot && hot.dataset.href) {
+      window.location.href = hot.dataset.href;
     }
   });
 

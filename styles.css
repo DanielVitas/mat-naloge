@@ -1092,17 +1092,33 @@ canvas.crop-display {
 @media (max-width: 720px) {
   .search-results { grid-template-columns: 1fr; }
 }
-/* The hot zone: hover only triggers when the cursor is over the
-   ORIGINAL 13em footprint. The expanded card is positioned absolutely
-   so it can grow OUTSIDE the wrap without dragging the rest of the
-   grid down — and moving the cursor below 13em ends the hover. */
+/* Each problem occupies a `.search-result-wrap` cell that's 13em tall
+   in the grid. Inside the cell are TWO sibling absolutely-positioned
+   layers:
+     • `.search-result-hot-zone` — invisible 13em rectangle that IS the
+       hover (and click-to-navigate) target.
+     • `.search-result` — the visible card, drawn over the hot zone with
+       `pointer-events: none` so the cursor falls through to the hot
+       zone underneath. Only the Add button re-enables pointer events.
+   When the hot zone (or the Add button) is hovered, `:has()` flips the
+   card to `height: auto`, so it grows downward, painting OVER the row
+   below. The instant the cursor leaves the 13em footprint the hot zone
+   loses :hover and the card snaps back. */
 .search-result-wrap {
   position: relative;
   height: 13em;
 }
+.search-result-hot-zone {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 13em;
+  z-index: 0;
+}
+.search-result-hot-zone[data-href] { cursor: pointer; }
 .search-result {
   position: absolute;
-  inset: 0;
+  top: 0; left: 0; right: 0;          /* NO bottom — let height grow */
+  height: 13em;
   display: flex; align-items: flex-start; gap: 0.7rem;
   padding: 0.85rem 1rem;
   background: var(--card-bg);
@@ -1111,12 +1127,17 @@ canvas.crop-display {
   color: var(--fg);
   text-decoration: none;
   overflow: hidden;
-  height: 13em;
+  z-index: 1;
+  pointer-events: none;                /* let cursor reach hot zone */
   transition: height 0.25s ease, box-shadow 0.08s, border-color 0.08s,
               z-index 0s linear 0.25s;
 }
-.search-result[data-href] { cursor: pointer; }
-.search-result-wrap:hover .search-result {
+/* The Add icon stays clickable. */
+.search-result .result-actions,
+.search-result .result-add { pointer-events: auto; }
+/* Expand the card when the hot zone — or the Add button — is hovered. */
+.search-result-wrap:has(.search-result-hot-zone:hover) .search-result,
+.search-result-wrap:has(.search-result .result-add:hover) .search-result {
   height: auto;
   max-height: 100em;
   overflow: visible;
