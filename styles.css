@@ -511,10 +511,16 @@ button:disabled { opacity: 0.5; cursor: default; }
   gap: 1rem; flex-wrap: wrap;
   margin: 0.4rem 0 0.7rem;
 }
-.meta-row .topics-row {
+.meta-row > .tags-row,
+.meta-row > .topics-row {
   flex: 1 1 auto; min-width: 0;
   margin: 0;
 }
+.tags-row {
+  display: flex; align-items: center;
+  flex-wrap: wrap; gap: 0.4rem;
+}
+.tags-row .tags { margin: 0; }
 .meta-right {
   display: flex; flex-direction: column;
   align-items: flex-end; gap: 0.4rem;
