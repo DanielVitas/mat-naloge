@@ -1752,15 +1752,18 @@ async function initSearchPage(opts) {
       const sel = isMarked(p.n);
       const cls = sel ? ('is-selected ' + markedClass).trim() : '';
       const dis = sel && markedDisabled ? 'disabled' : '';
-      const editLink = showEditLink
-        ? `<a class="result-edit" href="problem-${String(p.n).padStart(3,'0')}.html" title="Edit">✎</a>`
-        : '';
-      return `<div class="search-result ${sel && markedClass ? markedClass : ''}">
-        <span class="result-num">${p.n}.</span>
-        <div class="result-body" data-id="${p.n}" data-tikz="${p.tikz_count || 0}"></div>
-        <div class="result-actions">
-          <button type="button" class="result-add ${cls}" data-n="${p.n}" ${dis}>${sel ? markedLabel : addLabel}</button>
-          ${editLink}
+      // showEditLink (true on the search page, false in modals) doubles
+      // as the "card itself is clickable → opens the problem page" flag.
+      const href = showEditLink
+        ? `problem-${String(p.n).padStart(3,'0')}.html` : '';
+      const dataHref = href ? `data-href="${href}"` : '';
+      return `<div class="search-result-wrap">
+        <div class="search-result ${sel && markedClass ? markedClass : ''}" ${dataHref}>
+          <span class="result-num">${p.n}.</span>
+          <div class="result-body" data-id="${p.n}" data-tikz="${p.tikz_count || 0}"></div>
+          <div class="result-actions">
+            <button type="button" class="result-add ${cls}" data-n="${p.n}" ${dis}>${sel ? markedLabel : addLabel}</button>
+          </div>
         </div>
       </div>`;
     }).join('');
@@ -1791,23 +1794,32 @@ async function initSearchPage(opts) {
     }
   }
 
-  // Event delegation for Add/Remove buttons.
+  // Event delegation: Add/Remove buttons; otherwise click on the card
+  // body navigates to the problem page (when data-href is set).
   resultsEl.addEventListener('click', (e) => {
     const btn = e.target.closest('.result-add');
-    if (!btn || btn.disabled) return;
-    e.preventDefault();
-    const n = Number(btn.dataset.n);
-    onAdd(n);
-    // Re-render this single button's state without rebuilding everything.
-    const nowSel = isMarked(n);
-    btn.classList.toggle('is-selected', nowSel);
-    btn.textContent = nowSel ? markedLabel : addLabel;
-    if (markedDisabled) btn.disabled = nowSel;
-    if (markedClass) {
-      const card = btn.closest('.search-result');
-      if (card) card.classList.toggle(markedClass, nowSel);
+    if (btn) {
+      if (btn.disabled) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const n = Number(btn.dataset.n);
+      onAdd(n);
+      const nowSel = isMarked(n);
+      btn.classList.toggle('is-selected', nowSel);
+      btn.textContent = nowSel ? markedLabel : addLabel;
+      if (markedDisabled) btn.disabled = nowSel;
+      if (markedClass) {
+        const card = btn.closest('.search-result');
+        if (card) card.classList.toggle(markedClass, nowSel);
+      }
+      refreshAddAll();
+      return;
     }
-    refreshAddAll();
+    // Click anywhere else on the card → navigate (search page only).
+    const card = e.target.closest('.search-result');
+    if (card && card.dataset.href) {
+      window.location.href = card.dataset.href;
+    }
   });
 
   // Add N random — picks N random problems from the filtered set that

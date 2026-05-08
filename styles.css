@@ -438,6 +438,18 @@ button:disabled { opacity: 0.5; cursor: default; }
 
 .problem-body { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1rem; }
 @media (max-width: 800px) { .problem-body { grid-template-columns: 1fr; } }
+/* Crops live BELOW the Preview/LaTeX row, full width. Multiple
+   instances stack vertically. */
+.problem-crops {
+  margin-top: 1.5rem;
+  display: flex; flex-direction: column; gap: 1.5rem;
+}
+.problem-crops .instance-block {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 1rem;
+}
 
 .pane { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 1rem; }
 .pane h3 { margin: 0; font-size: 1rem; }
@@ -479,6 +491,13 @@ textarea#latex-source {
 }
 .preview-box .tex-center,
 .finishing-block-body .tex-center { text-align: center; margin: 0.4rem 0; }
+/* Tables that would otherwise overflow the card scale down to fit
+   (mirrors how TikZ images respect max-width: 100%). */
+.tex-tabular {
+  max-width: 100%;
+  display: block;             /* allow overflow-x to scroll if too wide */
+  overflow-x: auto;
+}
 .preview-box .tex-tabular,
 .finishing-block-body .tex-tabular { margin: 0.5rem auto; border-collapse: collapse; }
 .preview-box .tex-tabular td, .preview-box .tex-tabular th,
@@ -1073,7 +1092,17 @@ canvas.crop-display {
 @media (max-width: 720px) {
   .search-results { grid-template-columns: 1fr; }
 }
+/* The hot zone: hover only triggers when the cursor is over the
+   ORIGINAL 13em footprint. The expanded card is positioned absolutely
+   so it can grow OUTSIDE the wrap without dragging the rest of the
+   grid down — and moving the cursor below 13em ends the hover. */
+.search-result-wrap {
+  position: relative;
+  height: 13em;
+}
 .search-result {
+  position: absolute;
+  inset: 0;
   display: flex; align-items: flex-start; gap: 0.7rem;
   padding: 0.85rem 1rem;
   background: var(--card-bg);
@@ -1081,25 +1110,20 @@ canvas.crop-display {
   border-radius: 8px;
   color: var(--fg);
   text-decoration: none;
-  /* Uniform card height — long problems are clipped + faded; on hover
-     the card extends downward, FLOATING over the row below (the grid
-     row stays the same fixed height). */
-  height: 13em;
   overflow: hidden;
-  position: relative;
-  transition: border-color 0.08s, box-shadow 0.08s,
-              height 0.25s ease, z-index 0s linear 0.25s;
+  height: 13em;
+  transition: height 0.25s ease, box-shadow 0.08s, border-color 0.08s,
+              z-index 0s linear 0.25s;
 }
-.search-result:hover {
+.search-result[data-href] { cursor: pointer; }
+.search-result-wrap:hover .search-result {
   height: auto;
-  min-height: 13em;
   max-height: 100em;
   overflow: visible;
   z-index: 5;
-  /* Lift slightly so the card visually pops above its neighbours. */
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-  transition: border-color 0.08s, box-shadow 0.08s,
-              height 0.25s ease, z-index 0s linear 0s;
+  transition: height 0.25s ease, box-shadow 0.08s, border-color 0.08s,
+              z-index 0s linear 0s;
 }
 .search-result::after {
   /* Fade gradient covering the bottom of the card. */
@@ -1358,8 +1382,9 @@ canvas.crop-display {
 }
 /* Make the LaTeX pane a column flex container so its single big child
    (the textarea) fills exactly the available space — no overflow past
-   the card border, no wasted whitespace. */
-.finishing-left {
+   the card border, no wasted whitespace. (LaTeX pane lives on the right
+   in the Exam page now, hence .finishing-right.) */
+.finishing-right {
   display: flex;
   flex-direction: column;
 }
@@ -1796,7 +1821,7 @@ body.print-finishing > .container > h1,
 body.print-finishing section[data-panel="selection"],
 body.print-finishing .finishing-toolbar,
 body.print-finishing .finishing-heading-adds,
-body.print-finishing .finishing-left,
+body.print-finishing .finishing-right,
 body.print-finishing .pane-header { display: none !important; }
 /* Heading section in print */
 body.print-finishing .exam-heading {
@@ -1810,7 +1835,7 @@ body.print-finishing .finishing-body {
   grid-template-columns: 1fr !important;
   gap: 0 !important;
 }
-body.print-finishing .finishing-right {
+body.print-finishing .finishing-left {
   border: 0 !important;
   padding: 0 !important;
   background: white !important;
@@ -1871,7 +1896,7 @@ body.print-finishing .finishing-block-body .result-num {
   body.page-exam section[data-panel="selection"],
   body.page-exam .finishing-toolbar,
   body.page-exam .finishing-heading-adds,
-  body.page-exam .finishing-left,
+  body.page-exam .finishing-right,
   body.page-exam .pane-header { display: none !important; }
   body.page-exam .exam-heading {
     border-bottom: 0;
@@ -1883,7 +1908,7 @@ body.print-finishing .finishing-block-body .result-num {
     grid-template-columns: 1fr !important;
     gap: 0 !important;
   }
-  body.page-exam .finishing-right {
+  body.page-exam .finishing-left {
     border: 0 !important;
     padding: 0 !important;
     background: white !important;
