@@ -1059,7 +1059,16 @@ canvas.crop-display {
 }
 
 .search-results {
-  display: flex; flex-direction: column; gap: 0.6rem;
+  /* Grid that fits as many ~360 px-wide problem cards as the window
+     allows: 1 column on phones, 2 on a typical laptop, 3 on a wide
+     desktop display. */
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 0.6rem;
+  align-items: start;
+}
+@media (max-width: 720px) {
+  .search-results { grid-template-columns: 1fr; }
 }
 .search-result {
   display: flex; align-items: flex-start; gap: 0.7rem;
