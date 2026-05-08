@@ -2461,112 +2461,123 @@ ${itemsTex}
     URL.revokeObjectURL(url);
   });
   // Two PDF download paths:
-  //   • Main "Download PDF" button — fast (~1 s), uses html2pdf to
-  //     rasterise the live #finishing-preview. Output is the same as the
-  //     on-screen preview, MathJax-rendered as crisp SVG.
+  //   • Main "Download PDF" button — opens a new tab with a self-
+  //     contained printable copy of the preview and auto-triggers the
+  //     browser's Print / Save-as-PDF dialog. Fast, no server needed.
   //   • Dropdown's "Compile via pdflatex" — slower (~3 s), POSTs the .tex
   //     to a Fly.io service that runs real pdflatex. Output is byte-
   //     equivalent to compiling locally.
   const LATEX_COMPILE_URL = 'https://mat-naloge-latex.fly.dev/compile';
 
-  // -- html2pdf-based fast PDF (the original, what worked on desktop) -----
-  async function downloadPdfViaHtml2Pdf() {
-    const btn = document.getElementById('download-pdf');
-    if (typeof html2pdf === 'undefined') {
-      alert('PDF library failed to load. Check your network connection.');
-      return;
-    }
+  // -- Open self-contained HTML in a new tab and auto-trigger the
+  //    browser's Print / Save-as-PDF dialog. This is the version that
+  //    worked nicely on desktop (the user explicitly asked for it).
+  async function downloadPdfViaPrintWindow() {
     const previewEl = document.getElementById('finishing-preview');
     if (!previewEl) return;
+    // Clone preview, strip the interactive bits.
+    const clone = previewEl.cloneNode(true);
+    clone.querySelectorAll(
+      '.finishing-controls-row, .drag-handle, ' +
+      '.finishing-page-break-line, .exam-field-remove, ' +
+      '.finishing-heading-adds'
+    ).forEach(el => el.remove());
+    clone.querySelectorAll('[contenteditable]').forEach(el => {
+      el.removeAttribute('contenteditable');
+      el.removeAttribute('spellcheck');
+    });
 
-    const origLabel = btn.textContent;
-    btn.disabled = true;
+    const cssHref = (document.querySelector('link[rel="stylesheet"]') || {}).href || 'styles.css';
 
-    // Make sure MathJax has finished rendering everything in the preview.
-    if (window.MathJax && window.MathJax.typesetPromise) {
-      try { await window.MathJax.typesetPromise([previewEl]); } catch (_) {}
+    const html = `<!doctype html>
+<html lang="sl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Izpit</title>
+<link rel="stylesheet" href="${cssHref}">
+<style>
+  @page { size: A4; margin: 1.5cm; }
+  body { background: white; margin: 0; padding: 1.5cm; }
+  #finishing-preview {
+    background: white !important;
+    border: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+    display: block !important;
+  }
+  .finishing-block {
+    display: block !important;
+    border: 0 !important;
+    padding: 0 !important;
+    margin: 0 0 0.6em !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .finishing-block.is-page-break {
+    page-break-before: always !important;
+    break-before: page !important;
+  }
+  .drag-handle, .finishing-controls-row, .finishing-page-break-line,
+  .exam-field-remove, .finishing-heading-adds { display: none !important; }
+  .auto-print-hint {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: #fff7c2; border: 1px solid #e8d24c;
+    padding: 0.6rem 0.9rem; border-radius: 6px;
+    margin-bottom: 1rem; font-size: 0.9rem;
+  }
+  @media print { .auto-print-hint { display: none !important; } }
+</style>
+<script>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$']],
+      displayMath: [['$$', '$$']],
+      processEscapes: true,
+      processEnvironments: false
+    },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] },
+    startup: {
+      ready: function() {
+        MathJax.startup.defaultReady();
+        MathJax.startup.promise.then(function() {
+          setTimeout(function() {
+            try { window.print(); } catch (e) {}
+          }, 400);
+        });
+      }
     }
+  };
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<div class="auto-print-hint">If the print dialog doesn't open automatically, use your browser's Print or Share &rarr; Save as PDF.</div>
+${clone.outerHTML}
+</body>
+</html>`;
 
+    // Use a Blob URL so the new tab has a valid origin and same-origin
+    // styling rules apply. Falls back to about:blank+document.write.
+    let opened = null;
     try {
-      await html2pdf().set({
-        margin:      [40, 40, 40, 40],   // pt — A4 1.4cm margin
-        filename:    'izpit.pdf',
-        image:       { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          backgroundColor: '#ffffff',
-          useCORS: true,
-          // html2canvas builds its own clone of the document; this hook
-          // lets us mutate that clone before rasterisation. Hide chrome
-          // but otherwise leave the natural layout alone.
-          onclone: (clonedDoc) => {
-            const p = clonedDoc.getElementById('finishing-preview');
-            if (p) {
-              p.style.setProperty('background', 'white', 'important');
-              p.style.setProperty('border', '0', 'important');
-              p.style.setProperty('padding', '0', 'important');
-              p.style.setProperty('margin', '0', 'important');
-              p.style.setProperty('box-shadow', 'none', 'important');
-              // CRITICAL: live preview is a scrollable card with
-              // max-height: 720px / overflow-y: auto. Without these
-              // overrides, html2canvas only captures the visible 720 px
-              // window — anything past it is lost.
-              p.style.setProperty('max-height', 'none', 'important');
-              p.style.setProperty('min-height', '0', 'important');
-              p.style.setProperty('height', 'auto', 'important');
-              p.style.setProperty('overflow', 'visible', 'important');
-              p.style.setProperty('overflow-y', 'visible', 'important');
-              p.style.setProperty('display', 'block', 'important');
-            }
-            // Hide (don't remove) the interactive bits so the surrounding
-            // flex layout doesn't get re-flowed unpredictably.
-            ['.finishing-controls-row', '.drag-handle',
-             '.finishing-page-break-line', '.exam-field-remove',
-             '.finishing-heading-adds'].forEach(sel => {
-              clonedDoc.querySelectorAll(sel).forEach(el => {
-                el.style.setProperty('display', 'none', 'important');
-              });
-            });
-            // Strip every hidden MathJax companion node — assistive MML,
-            // breakable copies, menu shadow tree. html2canvas ignores
-            // their clip/position:absolute hiding and would rasterise
-            // them on top of the visible <svg>, producing 2-5 ghost
-            // copies of every formula.
-            ['mjx-assistive-mml',
-             'mjx-container > mjx-math',
-             'mjx-container > mjx-mtext',
-             '.MJX_Assistive_MathML', '.MJX-mml', 'mjx-merror'].forEach(sel => {
-              clonedDoc.querySelectorAll(sel).forEach(el => el.remove());
-            });
-            // For each mjx-container, keep ONLY the visible <svg> child.
-            clonedDoc.querySelectorAll('mjx-container').forEach(c => {
-              Array.from(c.childNodes).forEach(child => {
-                if (child.nodeType === 1 && child.tagName.toLowerCase() !== 'svg') {
-                  child.remove();
-                }
-              });
-            });
-            clonedDoc.querySelectorAll('[contenteditable]').forEach(el => {
-              el.removeAttribute('contenteditable');
-              el.removeAttribute('spellcheck');
-            });
-            // Comfortable bottom margin so problems don't smush together.
-            clonedDoc.querySelectorAll('.finishing-block').forEach(b => {
-              b.style.setProperty('margin-bottom', '14px', 'important');
-            });
-          },
-        },
-        jsPDF:       { unit: 'pt', format: 'a4', orientation: 'portrait' },
-        pagebreak:   { mode: ['avoid-all', 'css', 'legacy'],
-                       before: '.finishing-block.is-page-break',
-                       avoid:  '.finishing-block' },
-      }).from(previewEl).save();
-    } catch (err) {
-      console.error('PDF generation failed:', err);
-      alert('PDF generation failed: ' + (err && err.message || err));
-    } finally {
-      btn.disabled = false;
-      btn.textContent = origLabel;
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      opened = window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (err) { /* fall through */ }
+    if (!opened) {
+      opened = window.open('about:blank', '_blank');
+      if (opened) {
+        opened.document.open();
+        opened.document.write(html);
+        opened.document.close();
+      } else {
+        alert('Please allow popups for this site to open the print preview.');
+      }
     }
   }
 
@@ -2615,7 +2626,7 @@ ${itemsTex}
 
   // Wire up the split button + dropdown.
   document.getElementById('download-pdf')
-          .addEventListener('click', downloadPdfViaHtml2Pdf);
+          .addEventListener('click', downloadPdfViaPrintWindow);
   const splitMenu = document.getElementById('pdf-split-menu');
   document.getElementById('download-pdf-menu')
           .addEventListener('click', (e) => {
