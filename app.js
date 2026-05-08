@@ -2491,8 +2491,8 @@ ${itemsTex}
     addBlock.innerHTML =
       '<div class="finishing-add-header">+ Add a problem</div>' +
       '<div class="finishing-add-actions">' +
-        '<button type="button" class="finishing-add-from-coll">From Collection…</button>' +
-        '<button type="button" class="finishing-add-search">Search problems…</button>' +
+        '<button type="button" class="finishing-add-from-coll">Collection</button>' +
+        '<button type="button" class="finishing-add-search">Search</button>' +
       '</div>';
     addBlock.querySelector('.finishing-add-from-coll')
             .addEventListener('click', () => openAddProblemModal('collection'));
