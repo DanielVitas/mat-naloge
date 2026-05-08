@@ -509,7 +509,7 @@ button:disabled { opacity: 0.5; cursor: default; }
 .meta-row {
   display: flex; align-items: flex-start;
   gap: 1rem; flex-wrap: wrap;
-  margin: 0.4rem 0 0.7rem;
+  margin: 0.4rem 0 0.1rem;
 }
 .meta-row > .tags-row,
 .meta-row > .topics-row {
@@ -531,7 +531,7 @@ button:disabled { opacity: 0.5; cursor: default; }
 /* Topics row: shown right under title-row, distinct color, optional label */
 .topics-row {
   display: flex; align-items: center; gap: 0.5rem;
-  flex-wrap: wrap; margin: 0.1rem 0 0.6rem;
+  flex-wrap: wrap; margin: 0 0 0.6rem;
 }
 .topics-row .topics-label {
   font-size: 0.78rem; color: var(--muted);
