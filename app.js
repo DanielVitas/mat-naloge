@@ -2246,8 +2246,9 @@ ${itemsTex}
     if (items.length === 0) {
       const empty = document.createElement('div');
       empty.className = 'exam-empty';
-      empty.textContent = 'No problems in the exam yet. Add some on the Selection tab.';
+      empty.textContent = 'No problems in the exam yet — add one below.';
       preview.appendChild(empty);
+      appendAddBlock();
       if (window.MathJax && window.MathJax.typesetPromise) {
         window.MathJax.typesetPromise([preview]).catch(() => {});
       }
@@ -2336,9 +2337,64 @@ ${itemsTex}
       block.appendChild(body);
       preview.appendChild(block);
     });
+    // "+ Add a problem" affordance pinned at the end of the preview.
+    appendAddBlock();
     if (window.MathJax && window.MathJax.typesetPromise) {
       window.MathJax.typesetPromise([preview]).catch(() => {});
     }
+  }
+
+  // Builds the "Add a problem" pseudo-block at the end of the preview.
+  // Two actions: (1) pick a problem from the user's collection that's not
+  // yet in the exam, (2) jump to the search page.
+  function appendAddBlock() {
+    const addBlock = document.createElement('div');
+    addBlock.className = 'finishing-add-block';
+    addBlock.innerHTML =
+      '<div class="finishing-add-header">+ Add a problem</div>' +
+      '<div class="finishing-add-actions">' +
+        '<button type="button" class="finishing-add-from-coll">From Collection…</button>' +
+        '<a class="finishing-add-search" href="search.html" target="_blank" rel="noopener">Search problems →</a>' +
+      '</div>' +
+      '<div class="finishing-add-coll-list" hidden></div>';
+
+    const collBtn  = addBlock.querySelector('.finishing-add-from-coll');
+    const collList = addBlock.querySelector('.finishing-add-coll-list');
+
+    collBtn.addEventListener('click', () => {
+      if (!collList.hidden) { collList.hidden = true; return; }
+      const inExam = new Set(items.map(it => it.n).filter(n => n != null));
+      const coll = [...getSelected()].sort((a, b) => a - b)
+                                     .filter(n => !inExam.has(n));
+      collList.innerHTML = '';
+      if (coll.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'finishing-add-empty';
+        empty.textContent = 'No collection problems available to add.';
+        collList.appendChild(empty);
+      } else {
+        for (const n of coll) {
+          const data = byN[n] || {};
+          const sec = (data.section_letters || []).join('') || '';
+          const item = document.createElement('button');
+          item.type = 'button';
+          item.className = 'finishing-add-coll-item';
+          item.dataset.n = n;
+          item.innerHTML =
+            '<span class="finishing-add-coll-num">' + n + '.</span>' +
+            (sec ? '<span class="finishing-add-coll-sec">' + sec + '</span>' : '');
+          item.addEventListener('click', () => {
+            // Add to the exam (persisted in localStorage). The
+            // `exam-changed` event triggers refresh() → renderPreview().
+            setExam([...getExam(), n]);
+          });
+          collList.appendChild(item);
+        }
+      }
+      collList.hidden = false;
+    });
+
+    preview.appendChild(addBlock);
   }
 
   // Drag-reorder — standard "insertion line" pattern: while dragging, a

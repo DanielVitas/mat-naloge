@@ -1368,6 +1368,66 @@ canvas.crop-display {
 }
 .finishing-block-body .tex-tikz img { max-width: 100%; max-height: 280px; }
 
+/* "+ Add a problem" pseudo-block at the end of the preview. */
+.finishing-add-block {
+  margin-top: 0.6rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px dashed var(--card-border);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.015);
+}
+.finishing-add-header {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 0.45rem;
+}
+.finishing-add-actions {
+  display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;
+}
+.finishing-add-from-coll,
+.finishing-add-search {
+  font: inherit; font-size: 0.85rem;
+  padding: 0.32rem 0.7rem;
+  background: white;
+  border: 1px solid var(--card-border);
+  border-radius: 5px;
+  color: var(--accent);
+  text-decoration: none;
+  cursor: pointer;
+}
+.finishing-add-from-coll:hover,
+.finishing-add-search:hover {
+  background: rgba(37, 99, 235, 0.06);
+  border-color: var(--accent);
+}
+.finishing-add-coll-list {
+  margin-top: 0.5rem;
+  display: flex; flex-wrap: wrap; gap: 0.3rem;
+}
+.finishing-add-coll-item {
+  font: inherit; font-size: 0.85rem;
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  padding: 0.2rem 0.55rem;
+  background: white;
+  border: 1px solid var(--card-border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+.finishing-add-coll-item:hover {
+  background: rgba(37, 99, 235, 0.08);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.finishing-add-coll-num { font-weight: 600; }
+.finishing-add-coll-sec {
+  font-size: 0.7rem; color: var(--muted);
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.05rem 0.3rem; border-radius: 3px;
+}
+.finishing-add-empty {
+  font-size: 0.85rem; color: var(--muted); font-style: italic;
+}
+
 /* Separator between two consecutive problems */
 .finishing-separator {
   display: flex; flex-direction: column; align-items: stretch;
@@ -1589,7 +1649,8 @@ body.print-finishing .finishing-controls-row,
 body.print-finishing .page-break-toggle,
 body.print-finishing .finishing-space-control,
 body.print-finishing .finishing-block .drag-handle,
-body.print-finishing .finishing-page-break-line {
+body.print-finishing .finishing-page-break-line,
+body.print-finishing .finishing-add-block {
   display: none !important;
 }
 body.print-finishing .finishing-separator { margin: 0; }
@@ -1658,6 +1719,7 @@ body.print-finishing .finishing-block-body .result-num {
   body.page-exam .finishing-space-control,
   body.page-exam .finishing-block .drag-handle,
   body.page-exam .finishing-page-break-line,
+  body.page-exam .finishing-add-block,
   body.page-exam .exam-field-remove {
     display: none !important;
   }
