@@ -465,16 +465,25 @@ function pendingChanges() {
     try { local = JSON.parse(localStorage.getItem(k)); } catch { continue; }
     if (!local) continue;
     const r = remote[id] || {};
-    // A local entry is "pending" if any of its fields differs from remote.
-    const same = (
-      JSON.stringify(local.latex)        === JSON.stringify(r.latex) &&
-      JSON.stringify(local.bbox)         === JSON.stringify(r.bbox)  &&
-      JSON.stringify(local.bboxes || null) === JSON.stringify(r.bboxes || null) &&
-      JSON.stringify(!!local.outdated)   === JSON.stringify(!!r.outdated) &&
-      JSON.stringify(local.approved_by || null) === JSON.stringify(r.approved_by || null) &&
-      JSON.stringify(local.topics || null) === JSON.stringify(r.topics || null)
-    );
-    if (!same) out[id] = local;
+    // A local entry is "pending" only if at least one of the fields the user
+    // actually touched differs from remote. Fields not present in `local`
+    // stay in sync with remote by definition, so we don't compare them.
+    // This means toggling a field back to its remote value cancels out the
+    // pending-change indicator (e.g. ⚠ → ✓ → no change).
+    const norm = {
+      latex:       v => JSON.stringify(v),
+      bbox:        v => JSON.stringify(v),
+      bboxes:      v => JSON.stringify(v || null),
+      outdated:    v => JSON.stringify(!!v),
+      approved_by: v => JSON.stringify(v || null),
+      topics:      v => JSON.stringify(v || null),
+    };
+    let differs = false;
+    for (const f of Object.keys(norm)) {
+      if (!(f in local)) continue;
+      if (norm[f](local[f]) !== norm[f](r[f])) { differs = true; break; }
+    }
+    if (differs) out[id] = local;
   }
   // Display-name overrides count as pending changes too.
   const localNames  = getDisplayNamesLocal();
@@ -1422,10 +1431,12 @@ async function initProblemPage(meta) {
 
   function updateBadge(outdated) {
     if (outdated) {
-      badge.textContent = '⚠ transcript needs redoing';
+      badge.textContent = '⚠';
+      badge.title = 'Transcript needs redoing — click to mark up to date';
       badge.className = 'status-badge outdated';
     } else {
-      badge.textContent = '✓ up to date';
+      badge.textContent = '✓';
+      badge.title = 'Up to date — click to flag as needing redo';
       badge.className = 'status-badge ok';
     }
   }

@@ -467,6 +467,25 @@ button:disabled { opacity: 0.5; cursor: default; }
 }
 
 /* Title row: H1 and tags side-by-side */
+/* Hide the "Preview" / "LaTeX" pane h3 labels on the problem page —
+   layout makes them obvious. */
+.problem-body .pane > .pane-header > h3 { display: none; }
+/* Stand-alone status row sits below the Export row. */
+.status-row {
+  display: flex; align-items: center; gap: 0.6rem;
+  margin: 0.4rem 0 0.6rem;
+}
+/* Inline navigation arrows next to the H1 in the title row. */
+.title-row .nav-arrow {
+  font-size: 1.4rem; line-height: 1;
+  text-decoration: none; color: var(--accent);
+  padding: 0 0.4rem;
+  border-radius: 6px;
+}
+.title-row .nav-arrow:hover { background: rgba(37, 99, 235, 0.08); }
+.title-row .nav-arrow.disabled {
+  color: var(--card-border); cursor: default; pointer-events: none;
+}
 .title-row {
   display: flex; align-items: baseline; gap: 0.9rem;
   flex-wrap: wrap; margin: 0.2rem 0 0.4rem;
