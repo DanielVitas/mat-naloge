@@ -1451,7 +1451,6 @@ canvas.crop-display {
   display: flex; gap: 0.5rem; flex-wrap: wrap;
   align-items: center; justify-content: center;
 }
-.finishing-add-header { text-align: center; }
 .finishing-add-from-coll,
 .finishing-add-search {
   font: inherit; font-size: 0.85rem;
