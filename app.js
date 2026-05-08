@@ -2478,8 +2478,12 @@ ${itemsTex}
         onReadyResolve = res; onReadyReject = rej;
       });
       worker.addEventListener('error', (e) => {
+        console.error('[texlive worker error]', e);
         if (onReadyReject) onReadyReject(new Error(
           'TeX worker failed to load: ' + (e.message || 'unknown')));
+      });
+      worker.addEventListener('messageerror', (e) => {
+        console.error('[texlive messageerror]', e);
       });
       worker.addEventListener('message', (ev) => {
         let data;
@@ -2488,7 +2492,12 @@ ${itemsTex}
           case 'ready':
             onReadyResolve();
             break;
-          case 'stdout': case 'stderr':
+          case 'stdout':
+            console.log('[pdftex]', data.contents);
+            stdoutLines.push(data.contents);
+            break;
+          case 'stderr':
+            console.warn('[pdftex stderr]', data.contents);
             stdoutLines.push(data.contents);
             break;
           default:
