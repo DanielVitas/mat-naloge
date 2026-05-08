@@ -571,13 +571,24 @@ textarea#latex-source {
 }
 .preview-box .tex-list,
 .finishing-block-body .tex-list { margin: 0.4rem 0 0.4rem 1.4rem; padding-left: 0; }
-.preview-box .tex-tikz,
 .finishing-block-body .tex-tikz { text-align: center; margin: 0.5rem 0; }
-.preview-box .tex-tikz img,
-.preview-box .tex-tikz svg {
-  max-width: 100%; max-height: 360px; height: auto;
+/* Live-edited TikZ inside .preview-box uses a fixed-height slot so the
+   figure doesn't grow/shrink on every keystroke (each rebuild from
+   pdflatex would otherwise produce a slightly different bounding box). */
+.preview-box .tex-tikz {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; height: 280px;
+  margin: 0.6rem 0;
   background: white; padding: 4px;
   border: 1px solid var(--card-border); border-radius: 4px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.preview-box .tex-tikz img,
+.preview-box .tex-tikz svg {
+  max-width: 100%; max-height: 100%;
+  width: auto; height: auto;
+  background: transparent; padding: 0; border: none;
 }
 .preview-box .tex-tikz .tikz-loading {
   display: inline-block; padding: 0.4rem 0.8rem;
