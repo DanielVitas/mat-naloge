@@ -13,5 +13,19 @@ else
   git push
   echo "✓ pushed"
 fi
-echo
-read -n 1 -s -r -p "Press any key to close…"
+# Close this Terminal window once the script finishes.
+# We match the window whose tab is running on the current tty.
+TTY="$(tty)"
+osascript >/dev/null 2>&1 <<EOF &
+tell application "Terminal"
+  repeat with w in windows
+    repeat with t in tabs of w
+      if tty of t is "$TTY" then
+        close w saving no
+        return
+      end if
+    end repeat
+  end repeat
+end tell
+EOF
+exit 0
