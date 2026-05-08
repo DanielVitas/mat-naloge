@@ -540,7 +540,9 @@ button:disabled { opacity: 0.5; cursor: default; }
 .meta-left {
   flex: 1 1 auto; min-width: 0;
   display: flex; flex-direction: column;
-  gap: 0.05rem;
+  /* Same vertical gap as .meta-right uses between its status-row and
+     action-row, so the two columns feel consistent. */
+  gap: 0.4rem;
 }
 .tags-row {
   display: flex; align-items: center;
