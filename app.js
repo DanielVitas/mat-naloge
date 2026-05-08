@@ -2460,44 +2460,56 @@ ${itemsTex}
     document.body.appendChild(a); a.click(); a.remove();
     URL.revokeObjectURL(url);
   });
-  // Real LaTeX compilation, run entirely in the browser via SwiftLaTeX
-  // (a WebAssembly port of pdfTeX). No server, no CORS — once the engine
-  // (~7-10 MB, cached after first load) is in memory, every compile is
-  // local and the output is byte-equivalent to running pdflatex locally.
-  let _texEnginePromise = null;
-  function loadSwiftLatexEngine() {
-    if (_texEnginePromise) return _texEnginePromise;
-    _texEnginePromise = (async () => {
-      if (typeof PdfTeXEngine === 'undefined') {
-        await new Promise((resolve, reject) => {
-          const s = document.createElement('script');
-          s.src = 'https://www.swiftlatex.com/CDN/PdfTeXEngine.js';
-          s.crossOrigin = 'anonymous';
-          s.onload = () => resolve();
-          s.onerror = () => reject(new Error(
-            'Failed to load the SwiftLaTeX engine from swiftlatex.com'));
-          document.head.appendChild(s);
-        });
-      }
-      const eng = new PdfTeXEngine();
-      await eng.loadEngine();
-      return eng;
-    })().catch(err => { _texEnginePromise = null; throw err; });
-    return _texEnginePromise;
-  }
-
-  async function compileLatexInBrowser(texSrc) {
-    const eng = await loadSwiftLatexEngine();
-    eng.flushCache();
-    eng.writeMemFSFile('main.tex', texSrc);
-    eng.setEngineMainFile('main.tex');
-    const r = await eng.compileLaTeX();
-    if (r.status !== 0 || !r.pdf) {
-      const log = (r.log || '').slice(-1500);
-      throw new Error('LaTeX compile error:\n\n' + log);
+  // Real LaTeX compilation. Send the .tex source to texlive.net
+  // (TeX Live's official online compiler) and download the resulting
+  // PDF — output is byte-equivalent to running pdflatex locally.
+  // Some networks/browsers block direct cross-origin POSTs to texlive.net,
+  // so we try a few transports in order:
+  //   1. direct POST to texlive.net
+  //   2. POST through corsproxy.io
+  //   3. POST through allorigins
+  //   4. GET to latexonline.cc (works for short LaTeX; no CORS issues)
+  async function postToTexlive(urlBuilder, tex) {
+    const fd = new FormData();
+    fd.append('return',         'pdf');
+    fd.append('engine',         'pdflatex');
+    fd.append('filename[]',     'document.tex');
+    fd.append('filecontents[]', tex);
+    const r = await fetch(urlBuilder('https://texlive.net/cgi-bin/latexcgi'), {
+      method: 'POST',
+      body: fd,
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const ct = (r.headers.get('content-type') || '').toLowerCase();
+    const blob = await r.blob();
+    if (!ct.includes('pdf')) {
+      const txt = await blob.text();
+      throw new Error('compile failed:\n' + txt.slice(0, 600));
     }
-    return new Blob([r.pdf], { type: 'application/pdf' });
+    return blob;
   }
+  const transports = [
+    { name: 'texlive direct',
+      run: tex => postToTexlive(u => u, tex) },
+    { name: 'texlive via corsproxy.io',
+      run: tex => postToTexlive(u => 'https://corsproxy.io/?' + encodeURIComponent(u), tex) },
+    { name: 'texlive via allorigins',
+      run: tex => postToTexlive(u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u), tex) },
+    { name: 'latexonline.cc',
+      run: async tex => {
+        const url = 'https://latexonline.cc/compile?text=' +
+                    encodeURIComponent(tex) + '&command=pdflatex';
+        const r = await fetch(url);
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const ct = (r.headers.get('content-type') || '').toLowerCase();
+        const blob = await r.blob();
+        if (!ct.includes('pdf')) {
+          const txt = await blob.text();
+          throw new Error('compile failed:\n' + txt.slice(0, 600));
+        }
+        return blob;
+      } },
+  ];
 
   document.getElementById('download-pdf').addEventListener('click', async () => {
     const btn = document.getElementById('download-pdf');
@@ -2509,33 +2521,39 @@ ${itemsTex}
 
     const origLabel = btn.textContent;
     btn.disabled = true;
-    btn.textContent = _texEnginePromise
-      ? '⏳ Compiling LaTeX…'
-      : '⏳ Loading TeX engine…';
+    btn.textContent = '⏳ Compiling LaTeX…';
 
-    try {
-      // Switch the label once the engine is in memory so the user knows
-      // the slow part (engine download) is over.
-      const engineReady = loadSwiftLatexEngine();
-      engineReady.then(() => { btn.textContent = '⏳ Compiling LaTeX…'; },
-                       () => {});
-      const pdfBlob = await compileLatexInBrowser(texContent);
-      const url = URL.createObjectURL(pdfBlob);
-      const a = document.createElement('a');
-      a.href = url; a.download = 'izpit.pdf';
-      document.body.appendChild(a); a.click(); a.remove();
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error('PDF compilation failed:', err);
-      alert(
-        'PDF compilation failed.\n\n' +
-        (err && err.message || err) + '\n\n' +
-        'You can still click "Download LaTeX" and run pdflatex locally.'
-      );
-    } finally {
-      btn.disabled = false;
-      btn.textContent = origLabel;
+    let pdfBlob = null;
+    const errors = [];
+    for (const t of transports) {
+      try {
+        console.log('Trying transport:', t.name);
+        pdfBlob = await t.run(texContent);
+        console.log('  → success via', t.name);
+        break;
+      } catch (err) {
+        console.warn('  → failed:', t.name, err);
+        errors.push(t.name + ': ' + (err && err.message || err));
+      }
     }
+
+    btn.disabled = false;
+    btn.textContent = origLabel;
+
+    if (!pdfBlob) {
+      alert(
+        'PDF compilation failed — every backend was unreachable.\n\n' +
+        errors.join('\n') + '\n\n' +
+        'Click "Download LaTeX" and run pdflatex locally instead.'
+      );
+      return;
+    }
+
+    const url = URL.createObjectURL(pdfBlob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'izpit.pdf';
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
   });
 }
 
