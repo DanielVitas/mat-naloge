@@ -2523,7 +2523,12 @@ ${itemsTex}
         await ready;
         stdoutLines.length = 0;
         if (initialized) {
+          // The texlive.js worker can't run pdfTeX twice (Module.run
+          // hangs forever on the second call). For now we never reuse
+          // the worker for a second compile — caller has to make a new
+          // engine. We still attempt the unlink for symmetry.
           try { await send('FS_unlink', ['/input.tex']); } catch (_) {}
+          try { await send('FS_unlink', ['/input.pdf']); } catch (_) {}
         } else {
           await send('FS_createLazyFilesFromList',
                      ['/', 'texlive.lst', './texlive', true, true]);
@@ -2531,18 +2536,27 @@ ${itemsTex}
         }
         await send('FS_createDataFile',
                    ['/', 'input.tex', texSource, true, true]);
-        // Run pdflatex twice for cross-references / toc.
-        await send('run',
-                   ['-interaction=nonstopmode', '-output-format', 'pdf',
-                    'input.tex']);
-        await send('run',
-                   ['-interaction=nonstopmode', '-output-format', 'pdf',
-                    'input.tex']);
+        // Single pdflatex pass. Two passes would be needed for
+        // cross-references/TOC, but our exam document has neither, and
+        // re-entering Module.run hangs this engine.
+        try {
+          await send('run',
+                     ['-interaction=nonstopmode', '-output-format', 'pdf',
+                      'input.tex']);
+        } catch (err) {
+          // pdfTeX errored, but it usually still wrote a partial PDF.
+          // Fall through and try to read it anyway.
+          console.warn('[pdftex] run threw:', err && err.message || err);
+        }
         let pdfStr;
         try {
           pdfStr = await send('FS_readFile', ['/input.pdf']);
         } catch (err) {
-          throw new Error('LaTeX compilation failed.\n\nLog tail:\n' +
+          throw new Error('LaTeX compilation produced no PDF.\n\nLog tail:\n' +
+                          stdoutLines.slice(-25).join('\n'));
+        }
+        if (!pdfStr || pdfStr.length === 0) {
+          throw new Error('LaTeX produced an empty PDF.\n\nLog tail:\n' +
                           stdoutLines.slice(-25).join('\n'));
         }
         // pdfStr is a string of byte-chars — convert back to Uint8Array.
@@ -2587,6 +2601,9 @@ ${itemsTex}
     } finally {
       btn.disabled = false;
       btn.textContent = origLabel;
+      // texlive.js's pdfTeX can't be re-run inside the same Worker —
+      // throw the engine away so the next click spawns a fresh one.
+      _pdftex = null;
     }
   });
 }
