@@ -857,6 +857,10 @@ function latexToHtml(src, problemId, tikzCount) {
   const stash = [];
   const stashIt = (s) => { stash.push(s); return `MJXSTASH${stash.length - 1}MJXSTASH`; };
 
+  // Never let a line break put a comma/dot/semicolon/colon at the start
+  // of the next line. Replace the space (or other whitespace) that
+  // precedes one with a non-breaking space.
+  src = src.replace(/[ \t]+([,.;:!?])/g, ' $1');
   src = src.replace(/\$\$([\s\S]+?)\$\$/g, (_, i) => stashIt('$$' + i + '$$'));
   src = src.replace(/\$([^\$\n]+?)\$/g,    (_, i) => stashIt('$'  + i + '$'));
   src = src.replace(/\\\[([\s\S]+?)\\\]/g, (_, i) => stashIt('\\[' + i + '\\]'));
@@ -1459,8 +1463,8 @@ async function initSearchPage(opts) {
   const onAddAll        = opts.onAddAll   || ((ns) => {
     const sel = getSelected(); ns.forEach(n => sel.add(n)); setSelected(sel);
   });
-  const addLabel        = opts.addLabel    || 'Add';
-  const markedLabel     = opts.markedLabel || 'Remove';
+  const addLabel        = opts.addLabel    || '+';
+  const markedLabel     = opts.markedLabel || '×';
   const markedDisabled  = !!opts.markedDisabled;
   const markedClass     = opts.markedClass || '';
   const showEditLink    = opts.showEditLink !== false;
@@ -1749,7 +1753,7 @@ async function initSearchPage(opts) {
       const cls = sel ? ('is-selected ' + markedClass).trim() : '';
       const dis = sel && markedDisabled ? 'disabled' : '';
       const editLink = showEditLink
-        ? `<a class="result-edit" href="problem-${String(p.n).padStart(3,'0')}.html">Edit</a>`
+        ? `<a class="result-edit" href="problem-${String(p.n).padStart(3,'0')}.html" title="Edit">✎</a>`
         : '';
       return `<div class="search-result ${sel && markedClass ? markedClass : ''}">
         <span class="result-num">${p.n}.</span>
@@ -2576,8 +2580,8 @@ ${itemsTex}
           else          addProblemsToExam([n]);
         },
         onAddAll:       (ns) => addProblemsToExam(ns),
-        addLabel:       'Add',
-        markedLabel:    'Remove',
+        addLabel:       '+',
+        markedLabel:    '×',
         markedDisabled: false,
         markedClass:    'is-in-exam',
         showEditLink:   false,
@@ -2625,7 +2629,7 @@ ${itemsTex}
             <div class="result-body" data-id="${n}" data-tikz="${data.tikz_count || 0}"></div>
             <div class="result-actions">
               <button type="button" class="result-add ${inExam ? 'is-selected' : ''}"
-                      data-n="${n}">${inExam ? 'Remove' : 'Add'}</button>
+                      data-n="${n}" title="${inExam ? 'Remove' : 'Add'}">${inExam ? '×' : '+'}</button>
             </div>
           </div>`;
         })

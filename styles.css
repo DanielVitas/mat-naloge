@@ -1064,6 +1064,9 @@ canvas.crop-display {
      desktop display. */
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  /* Fixed row height — when one card grows on hover its content
+     overflows visibly INSTEAD of pushing the rows below down. */
+  grid-auto-rows: 13em;
   gap: 0.6rem;
   align-items: start;
 }
@@ -1079,19 +1082,24 @@ canvas.crop-display {
   color: var(--fg);
   text-decoration: none;
   /* Uniform card height — long problems are clipped + faded; on hover
-     the card expands so the full content is visible. */
-  min-height: 13em;
-  max-height: 13em;
+     the card extends downward, FLOATING over the row below (the grid
+     row stays the same fixed height). */
+  height: 13em;
   overflow: hidden;
   position: relative;
   transition: border-color 0.08s, box-shadow 0.08s,
-              max-height 0.25s ease, z-index 0s linear 0.25s;
+              height 0.25s ease, z-index 0s linear 0.25s;
 }
 .search-result:hover {
+  height: auto;
+  min-height: 13em;
   max-height: 100em;
-  z-index: 5;                                 /* float above neighbours */
+  overflow: visible;
+  z-index: 5;
+  /* Lift slightly so the card visually pops above its neighbours. */
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   transition: border-color 0.08s, box-shadow 0.08s,
-              max-height 0.25s ease, z-index 0s linear 0s;
+              height 0.25s ease, z-index 0s linear 0s;
 }
 .search-result::after {
   /* Fade gradient covering the bottom of the card. */
@@ -1133,19 +1141,28 @@ canvas.crop-display {
 }
 .search-result:hover .result-arrow { color: var(--accent); }
 
+/* Action icons (+ Add and ✎ Edit) overlay the top-right corner of each
+   card with reduced opacity so they don't obscure the problem text. */
 .search-result .result-actions {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
   flex-shrink: 0;
-  display: flex; flex-direction: column; gap: 0.32rem;
-  align-items: stretch;
+  display: flex; flex-direction: row; gap: 0.3rem;
+  align-items: center;
+  opacity: 0.55;
+  transition: opacity 0.15s ease;
+  z-index: 2;
 }
+.search-result:hover .result-actions { opacity: 1; }
 .search-result .result-edit,
 .search-result .result-add {
   display: inline-flex; align-items: center; justify-content: center;
-  min-width: 4.4rem;
-  padding: 0.28rem 0.7rem;
-  border-radius: 6px;
+  width: 1.9rem; height: 1.9rem;
+  padding: 0;
+  border-radius: 50%;
   font: inherit;
-  font-size: 0.82rem;
+  font-size: 1rem; line-height: 1;
   font-weight: 500;
   cursor: pointer;
   border: 1px solid var(--card-border);
@@ -1154,12 +1171,27 @@ canvas.crop-display {
   text-decoration: none;
 }
 .search-result .result-edit:hover { border-color: var(--accent); color: var(--accent); }
-.search-result .result-add { background: var(--accent); color: white; border-color: var(--accent); }
+.search-result .result-add { background: var(--accent); color: white; border-color: var(--accent); font-size: 1.1rem; }
 .search-result .result-add:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
 .search-result .result-add.is-selected {
   background: white; color: var(--warn); border-color: var(--warn);
+  font-size: 1.1rem;
 }
 .search-result .result-add.is-selected:hover { background: var(--warn-bg); }
+
+/* Border-collapsed tables inside search result cards (same look as the
+   index/preview-box and Finishing preview). */
+.search-result .result-body .tex-tabular {
+  margin: 0.5rem auto; border-collapse: collapse;
+}
+.search-result .result-body .tex-tabular td,
+.search-result .result-body .tex-tabular th {
+  border: 1px solid #999; padding: 0.3rem 0.6rem;
+  text-align: left; vertical-align: middle;
+}
+/* Centred TikZ figures + tex-center inside cards. */
+.search-result .result-body .tex-tikz,
+.search-result .result-body .tex-center { text-align: center; margin: 0.5rem 0; }
 
 .search-results-bar {
   display: flex; align-items: center;
