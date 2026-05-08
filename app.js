@@ -2460,56 +2460,93 @@ ${itemsTex}
     document.body.appendChild(a); a.click(); a.remove();
     URL.revokeObjectURL(url);
   });
-  // Real LaTeX compilation. Send the .tex source to texlive.net
-  // (TeX Live's official online compiler) and download the resulting
-  // PDF — output is byte-equivalent to running pdflatex locally.
-  // Some networks/browsers block direct cross-origin POSTs to texlive.net,
-  // so we try a few transports in order:
-  //   1. direct POST to texlive.net
-  //   2. POST through corsproxy.io
-  //   3. POST through allorigins
-  //   4. GET to latexonline.cc (works for short LaTeX; no CORS issues)
-  async function postToTexlive(urlBuilder, tex) {
-    const fd = new FormData();
-    fd.append('return',         'pdf');
-    fd.append('engine',         'pdflatex');
-    fd.append('filename[]',     'document.tex');
-    fd.append('filecontents[]', tex);
-    const r = await fetch(urlBuilder('https://texlive.net/cgi-bin/latexcgi'), {
-      method: 'POST',
-      body: fd,
-    });
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const ct = (r.headers.get('content-type') || '').toLowerCase();
-    const blob = await r.blob();
-    if (!ct.includes('pdf')) {
-      const txt = await blob.text();
-      throw new Error('compile failed:\n' + txt.slice(0, 600));
-    }
-    return blob;
-  }
-  const transports = [
-    { name: 'texlive direct',
-      run: tex => postToTexlive(u => u, tex) },
-    { name: 'texlive via corsproxy.io',
-      run: tex => postToTexlive(u => 'https://corsproxy.io/?' + encodeURIComponent(u), tex) },
-    { name: 'texlive via allorigins',
-      run: tex => postToTexlive(u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u), tex) },
-    { name: 'latexonline.cc',
-      run: async tex => {
-        const url = 'https://latexonline.cc/compile?text=' +
-                    encodeURIComponent(tex) + '&command=pdflatex';
-        const r = await fetch(url);
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        const ct = (r.headers.get('content-type') || '').toLowerCase();
-        const blob = await r.blob();
-        if (!ct.includes('pdf')) {
-          const txt = await blob.text();
-          throw new Error('compile failed:\n' + txt.slice(0, 600));
+  // Real LaTeX compilation, run entirely in the user's browser. We bundle
+  // a Web Worker (texlive.js, ~3 MB) that contains an emscripten-compiled
+  // pdfTeX, plus a TeX Live distribution served lazily from
+  // /texlive_engine/texlive/. No third-party services, no CORS issues.
+  // Output is byte-equivalent to running pdflatex locally.
+  let _pdftex = null;
+  function getPdfTex() {
+    if (_pdftex) return _pdftex;
+    _pdftex = (() => {
+      const worker = new Worker('texlive_engine/pdftex-worker.js');
+      const pending = new Map();
+      let nextId = 0;
+      const stdoutLines = [];
+      let onReadyResolve, onReadyReject;
+      const ready = new Promise((res, rej) => {
+        onReadyResolve = res; onReadyReject = rej;
+      });
+      worker.addEventListener('error', (e) => {
+        if (onReadyReject) onReadyReject(new Error(
+          'TeX worker failed to load: ' + (e.message || 'unknown')));
+      });
+      worker.addEventListener('message', (ev) => {
+        let data;
+        try { data = JSON.parse(ev.data); } catch (e) { return; }
+        switch (data.command) {
+          case 'ready':
+            onReadyResolve();
+            break;
+          case 'stdout': case 'stderr':
+            stdoutLines.push(data.contents);
+            break;
+          default:
+            if (data.msg_id != null && pending.has(data.msg_id)) {
+              const { resolve, reject } = pending.get(data.msg_id);
+              pending.delete(data.msg_id);
+              if (data.command === 'error') reject(new Error(data.message));
+              else resolve(data.result);
+            }
         }
-        return blob;
-      } },
-  ];
+      });
+      function send(command, args) {
+        return new Promise((resolve, reject) => {
+          const msg_id = nextId++;
+          pending.set(msg_id, { resolve, reject });
+          worker.postMessage(JSON.stringify({
+            command, msg_id, arguments: args || []
+          }));
+        });
+      }
+      let initialized = false;
+      async function compile(texSource) {
+        await ready;
+        stdoutLines.length = 0;
+        if (initialized) {
+          try { await send('FS_unlink', ['/input.tex']); } catch (_) {}
+        } else {
+          await send('FS_createLazyFilesFromList',
+                     ['/', 'texlive.lst', './texlive', true, true]);
+          initialized = true;
+        }
+        await send('FS_createDataFile',
+                   ['/', 'input.tex', texSource, true, true]);
+        // Run pdflatex twice for cross-references / toc.
+        await send('run',
+                   ['-interaction=nonstopmode', '-output-format', 'pdf',
+                    'input.tex']);
+        await send('run',
+                   ['-interaction=nonstopmode', '-output-format', 'pdf',
+                    'input.tex']);
+        let pdfStr;
+        try {
+          pdfStr = await send('FS_readFile', ['/input.pdf']);
+        } catch (err) {
+          throw new Error('LaTeX compilation failed.\n\nLog tail:\n' +
+                          stdoutLines.slice(-25).join('\n'));
+        }
+        // pdfStr is a string of byte-chars — convert back to Uint8Array.
+        const bytes = new Uint8Array(pdfStr.length);
+        for (let i = 0; i < pdfStr.length; i++) {
+          bytes[i] = pdfStr.charCodeAt(i) & 0xff;
+        }
+        return new Blob([bytes], { type: 'application/pdf' });
+      }
+      return { compile, ready };
+    })();
+    return _pdftex;
+  }
 
   document.getElementById('download-pdf').addEventListener('click', async () => {
     const btn = document.getElementById('download-pdf');
@@ -2521,39 +2558,27 @@ ${itemsTex}
 
     const origLabel = btn.textContent;
     btn.disabled = true;
-    btn.textContent = '⏳ Compiling LaTeX…';
+    btn.textContent = '⏳ Loading TeX engine…';
 
-    let pdfBlob = null;
-    const errors = [];
-    for (const t of transports) {
-      try {
-        console.log('Trying transport:', t.name);
-        pdfBlob = await t.run(texContent);
-        console.log('  → success via', t.name);
-        break;
-      } catch (err) {
-        console.warn('  → failed:', t.name, err);
-        errors.push(t.name + ': ' + (err && err.message || err));
-      }
+    try {
+      const engine = getPdfTex();
+      // Once the worker is ready, switch label so the user knows the
+      // slow part (~3 MB worker download) is done.
+      engine.ready.then(() => { btn.textContent = '⏳ Compiling LaTeX…'; },
+                        () => {});
+      const pdfBlob = await engine.compile(texContent);
+      const url = URL.createObjectURL(pdfBlob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'izpit.pdf';
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('PDF compilation failed:', err);
+      alert('PDF compilation failed.\n\n' + (err && err.message || err));
+    } finally {
+      btn.disabled = false;
+      btn.textContent = origLabel;
     }
-
-    btn.disabled = false;
-    btn.textContent = origLabel;
-
-    if (!pdfBlob) {
-      alert(
-        'PDF compilation failed — every backend was unreachable.\n\n' +
-        errors.join('\n') + '\n\n' +
-        'Click "Download LaTeX" and run pdflatex locally instead.'
-      );
-      return;
-    }
-
-    const url = URL.createObjectURL(pdfBlob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'izpit.pdf';
-    document.body.appendChild(a); a.click(); a.remove();
-    URL.revokeObjectURL(url);
   });
 }
 
