@@ -2460,13 +2460,14 @@ ${itemsTex}
     document.body.appendChild(a); a.click(); a.remove();
     URL.revokeObjectURL(url);
   });
-  // Real LaTeX compilation, run entirely in the user's browser. We bundle
-  // a Web Worker (texlive.js, ~3 MB) that contains an emscripten-compiled
-  // pdfTeX, plus a TeX Live distribution served lazily from
-  // /texlive_engine/texlive/. No third-party services, no CORS issues.
-  // Output is byte-equivalent to running pdflatex locally.
+  // Real LaTeX compilation, run on a tiny Fly.io service that hosts a
+  // standard TeX Live `pdflatex`. POST the .tex source, GET the PDF.
+  // Source for the service is in `fly_compiler/` — see its README.md.
+  const LATEX_COMPILE_URL = 'https://mat-naloge-latex.fly.dev/compile';
+
+  // ---- legacy in-browser engine code, no longer wired up ---------------
   let _pdftex = null;
-  function getPdfTex() {
+  function getPdfTex_unused() {
     if (_pdftex) return _pdftex;
     _pdftex = (() => {
       const worker = new Worker('texlive_engine/pdftex-worker.js');
@@ -2601,16 +2602,28 @@ ${itemsTex}
 
     const origLabel = btn.textContent;
     btn.disabled = true;
-    btn.textContent = '⏳ Loading TeX engine…';
+    btn.textContent = '⏳ Compiling LaTeX…';
 
     try {
-      const engine = getPdfTex();
-      // Once the worker is ready, switch label so the user knows the
-      // slow part (~3 MB worker download) is done.
-      engine.ready.then(() => { btn.textContent = '⏳ Compiling LaTeX…'; },
-                        () => {});
-      const pdfBlob = await engine.compile(texContent);
-      const url = URL.createObjectURL(pdfBlob);
+      const r = await fetch(LATEX_COMPILE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/x-latex; charset=utf-8' },
+        body: texContent,
+      });
+      if (!r.ok) {
+        // The service returns JSON {error, log} on compile failure.
+        let detail = '';
+        try {
+          const j = await r.json();
+          detail = j.error || '';
+          if (j.log) detail += '\n\nLog tail:\n' + j.log.slice(-1500);
+        } catch (_) {
+          detail = await r.text();
+        }
+        throw new Error('HTTP ' + r.status + (detail ? ':\n' + detail : ''));
+      }
+      const blob = await r.blob();
+      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url; a.download = 'izpit.pdf';
       document.body.appendChild(a); a.click(); a.remove();
@@ -2621,9 +2634,6 @@ ${itemsTex}
     } finally {
       btn.disabled = false;
       btn.textContent = origLabel;
-      // texlive.js's pdfTeX can't be re-run inside the same Worker —
-      // throw the engine away so the next click spawns a fresh one.
-      _pdftex = null;
     }
   });
 }
