@@ -2480,10 +2480,6 @@ ${itemsTex}
       try { await window.MathJax.typesetPromise([previewEl]); } catch (_) {}
     }
 
-    btn.disabled = true;
-    const origText = btn.textContent;
-    btn.textContent = '⏳ Generating PDF…';
-
     try {
       await html2pdf().set({
         margin:      [40, 40, 40, 40],   // pt — matches A4 1.4cm margin
@@ -2505,8 +2501,16 @@ ${itemsTex}
               p.style.setProperty('padding', '0', 'important');
               p.style.setProperty('margin', '0', 'important');
               p.style.setProperty('box-shadow', 'none', 'important');
+              // CRITICAL: the live preview is a scrollable card with
+              // max-height: 720px / overflow-y: auto. Without these
+              // overrides, html2canvas only captures the visible 720px
+              // window — so anything past it (e.g. problem 15) is lost.
               p.style.setProperty('max-height', 'none', 'important');
+              p.style.setProperty('min-height', '0', 'important');
+              p.style.setProperty('height', 'auto', 'important');
               p.style.setProperty('overflow', 'visible', 'important');
+              p.style.setProperty('overflow-y', 'visible', 'important');
+              p.style.setProperty('display', 'block', 'important');
             }
             // Hide (don't remove) the interactive bits so the surrounding
             // flex layout doesn't get re-flowed unpredictably.
@@ -2563,9 +2567,6 @@ ${itemsTex}
     } catch (err) {
       console.error('PDF generation failed:', err);
       alert('PDF generation failed: ' + (err && err.message || err));
-    } finally {
-      btn.disabled = false;
-      btn.textContent = origText;
     }
   });
 }
