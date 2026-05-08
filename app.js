@@ -2460,47 +2460,43 @@ ${itemsTex}
     document.body.appendChild(a); a.click(); a.remove();
     URL.revokeObjectURL(url);
   });
-  // Real LaTeX compilation. Send the .tex source off to a public
-  // LaTeX-as-a-service backend (texlive.net first, latexonline.cc as
-  // fallback) and download the resulting PDF. Output is byte-equivalent
-  // to running pdflatex locally — no rasterisation, no html2canvas.
-  async function compileViaTexlive(tex) {
-    const fd = new FormData();
-    fd.append('return',         'pdf');
-    fd.append('engine',         'pdflatex');
-    fd.append('filename[]',     'document.tex');
-    fd.append('filecontents[]', tex);
-    const r = await fetch('https://texlive.net/cgi-bin/latexcgi', {
-      method: 'POST',
-      body: fd,
-    });
-    if (!r.ok) throw new Error('texlive.net HTTP ' + r.status);
-    const ct = (r.headers.get('content-type') || '').toLowerCase();
-    const blob = await r.blob();
-    if (!ct.includes('pdf')) {
-      // The endpoint returns HTML or plain-text logs on failure.
-      const txt = await blob.text();
-      throw new Error('texlive.net compile failed:\n' + txt.slice(0, 800));
-    }
-    return blob;
+  // Real LaTeX compilation, run entirely in the browser via SwiftLaTeX
+  // (a WebAssembly port of pdfTeX). No server, no CORS — once the engine
+  // (~7-10 MB, cached after first load) is in memory, every compile is
+  // local and the output is byte-equivalent to running pdflatex locally.
+  let _texEnginePromise = null;
+  function loadSwiftLatexEngine() {
+    if (_texEnginePromise) return _texEnginePromise;
+    _texEnginePromise = (async () => {
+      if (typeof PdfTeXEngine === 'undefined') {
+        await new Promise((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = 'https://www.swiftlatex.com/CDN/PdfTeXEngine.js';
+          s.crossOrigin = 'anonymous';
+          s.onload = () => resolve();
+          s.onerror = () => reject(new Error(
+            'Failed to load the SwiftLaTeX engine from swiftlatex.com'));
+          document.head.appendChild(s);
+        });
+      }
+      const eng = new PdfTeXEngine();
+      await eng.loadEngine();
+      return eng;
+    })().catch(err => { _texEnginePromise = null; throw err; });
+    return _texEnginePromise;
   }
-  async function compileViaLatexOnline(tex) {
-    // latexonline.cc: GET with text in querystring (works for ≲ 30KB).
-    const url = 'https://latexonline.cc/compile?text=' +
-                encodeURIComponent(tex) + '&command=pdflatex';
-    const r = await fetch(url);
-    if (!r.ok) {
-      const txt = await r.text();
-      throw new Error('latexonline.cc HTTP ' + r.status + ':\n' +
-                      txt.slice(0, 800));
+
+  async function compileLatexInBrowser(texSrc) {
+    const eng = await loadSwiftLatexEngine();
+    eng.flushCache();
+    eng.writeMemFSFile('main.tex', texSrc);
+    eng.setEngineMainFile('main.tex');
+    const r = await eng.compileLaTeX();
+    if (r.status !== 0 || !r.pdf) {
+      const log = (r.log || '').slice(-1500);
+      throw new Error('LaTeX compile error:\n\n' + log);
     }
-    const ct = (r.headers.get('content-type') || '').toLowerCase();
-    const blob = await r.blob();
-    if (!ct.includes('pdf')) {
-      const txt = await blob.text();
-      throw new Error('latexonline.cc compile failed:\n' + txt.slice(0, 800));
-    }
-    return blob;
+    return new Blob([r.pdf], { type: 'application/pdf' });
   }
 
   document.getElementById('download-pdf').addEventListener('click', async () => {
@@ -2513,41 +2509,33 @@ ${itemsTex}
 
     const origLabel = btn.textContent;
     btn.disabled = true;
-    btn.textContent = '⏳ Compiling LaTeX…';
+    btn.textContent = _texEnginePromise
+      ? '⏳ Compiling LaTeX…'
+      : '⏳ Loading TeX engine…';
 
-    let lastErr = null;
-    let pdfBlob = null;
-    for (const fn of [compileViaTexlive, compileViaLatexOnline]) {
-      try {
-        pdfBlob = await fn(texContent);
-        break;
-      } catch (err) {
-        console.warn('LaTeX backend failed:', err);
-        lastErr = err;
-      }
-    }
-
-    if (!pdfBlob) {
-      btn.disabled = false;
-      btn.textContent = origLabel;
-      const msg = (lastErr && lastErr.message || lastErr || 'unknown error');
+    try {
+      // Switch the label once the engine is in memory so the user knows
+      // the slow part (engine download) is over.
+      const engineReady = loadSwiftLatexEngine();
+      engineReady.then(() => { btn.textContent = '⏳ Compiling LaTeX…'; },
+                       () => {});
+      const pdfBlob = await compileLatexInBrowser(texContent);
+      const url = URL.createObjectURL(pdfBlob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'izpit.pdf';
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('PDF compilation failed:', err);
       alert(
         'PDF compilation failed.\n\n' +
-        msg + '\n\n' +
+        (err && err.message || err) + '\n\n' +
         'You can still click "Download LaTeX" and run pdflatex locally.'
       );
-      return;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = origLabel;
     }
-
-    // Trigger the browser download — same pattern as Download LaTeX.
-    const url = URL.createObjectURL(pdfBlob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'izpit.pdf';
-    document.body.appendChild(a); a.click(); a.remove();
-    URL.revokeObjectURL(url);
-
-    btn.disabled = false;
-    btn.textContent = origLabel;
   });
 }
 
