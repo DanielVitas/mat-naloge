@@ -1806,6 +1806,40 @@ async function initSearchPage(opts) {
     refreshAddAll();
   });
 
+  // Add N random — picks N random problems from the filtered set that
+  // aren't already in the target state.
+  const addRandomBtn = document.getElementById('add-random-btn');
+  const addRandomN   = document.getElementById('add-random-n');
+  if (addRandomBtn && addRandomN) {
+    addRandomBtn.addEventListener('click', () => {
+      const n = Math.max(1, parseInt(addRandomN.value, 10) || 1);
+      const eligible = lastMatches.filter(p => !isMarked(p.n));
+      if (eligible.length === 0) return;
+      const shuffled = eligible.slice();
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      const chosen = shuffled.slice(0, Math.min(n, shuffled.length));
+      onAddAll(chosen.map(p => p.n));
+      // Update visible buttons that we just acted on
+      chosen.forEach(p => {
+        const b = resultsEl.querySelector('.result-add[data-n="' + p.n + '"]');
+        if (!b) return;
+        if (isMarked(p.n)) {
+          b.classList.add('is-selected');
+          b.textContent = markedLabel;
+          if (markedDisabled) b.disabled = true;
+          if (markedClass) {
+            const card = b.closest('.search-result');
+            if (card) card.classList.add(markedClass);
+          }
+        }
+      });
+      refreshAddAll();
+    });
+  }
+
   // Add-all button
   const addAllBtn = document.getElementById('add-all-btn');
   if (addAllBtn) {
@@ -2383,6 +2417,18 @@ ${itemsTex}
       if (firstP) firstP.insertAdjacentHTML('afterbegin', numHtml);
       else        body.insertAdjacentHTML('afterbegin', numHtml);
       block.appendChild(body);
+      // × button to remove this problem from the exam.
+      const rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'finishing-block-remove exam-field-remove';
+      rm.title = 'Remove this problem from the exam';
+      rm.textContent = '×';
+      rm.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        removeProblemFromExamAt(idx);
+      });
+      block.appendChild(rm);
       preview.appendChild(block);
     });
     // "+ Add a problem" affordance pinned at the end of the preview.
@@ -2390,6 +2436,55 @@ ${itemsTex}
     if (window.MathJax && window.MathJax.typesetPromise) {
       window.MathJax.typesetPromise([preview]).catch(() => {});
     }
+  }
+
+  // ---- Exam mutation helpers (preserve user's reordering & gaps) -------
+  // Append a list of problem numbers to items[] (skipping ones already
+  // present), then sync to localStorage WITHOUT triggering refresh's
+  // rebuild-from-scratch logic.
+  function addProblemsToExam(ns) {
+    const existing = new Set(items.map(it => it.n).filter(n => n != null));
+    const fresh = ns.filter(n => !existing.has(n) && byN[n]);
+    if (fresh.length === 0) return 0;
+    for (const n of fresh) {
+      const data = byN[n] || {};
+      const ed = effectiveState(n);
+      const src = (ed.latex !== undefined) ? ed.latex : (data.latex || '');
+      items.push({ n, content: src.trim() });
+      gaps.push({ space: 0, pageBreak: false });
+    }
+    const newExam = items.map(it => it.n).filter(n => n != null);
+    // Bump fingerprint *before* setExam fires the event so refresh() no-ops.
+    lastExamFingerprint = newExam.slice().sort((a, b) => a - b).join(',');
+    setExam(newExam);
+    regenerateTex();
+    renderPreview();
+    return fresh.length;
+  }
+  // Remove the item at `idx` from items[] and gaps[], persist exam.
+  function removeProblemFromExamAt(idx) {
+    if (idx < 0 || idx >= items.length) return;
+    items.splice(idx, 1);
+    gaps.splice(idx, 1);
+    const newExam = items.map(it => it.n).filter(n => n != null);
+    lastExamFingerprint = newExam.slice().sort((a, b) => a - b).join(',');
+    setExam(newExam);
+    regenerateTex();
+    renderPreview();
+  }
+  // Pick N random problem numbers from `pool` (skipping ones already in
+  // the exam), then add them.
+  function addRandomFromPool(pool, n) {
+    const existing = new Set(items.map(it => it.n).filter(x => x != null));
+    const eligible = pool.filter(p => !existing.has(p));
+    if (eligible.length === 0) return 0;
+    // Fisher-Yates
+    const shuffled = eligible.slice();
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return addProblemsToExam(shuffled.slice(0, Math.max(1, n)));
   }
 
   // Builds the "Add a problem" pseudo-block at the end of the preview.
@@ -2445,8 +2540,17 @@ ${itemsTex}
 
     if (mode === 'collection') {
       title.textContent = 'Add from Collection';
-      body.innerHTML = '<div class="search-results" id="search-results"></div>';
-      renderCollectionInModal(body.querySelector('#search-results'));
+      body.innerHTML =
+        '<div class="search-results-bar">' +
+          '<div class="search-summary" id="modal-coll-summary">Loading…</div>' +
+          '<span class="add-random-control">' +
+            '+ Add <input type="number" id="modal-coll-rand-n" value="1" min="1" max="999"> random' +
+            '<button type="button" id="modal-coll-rand-btn">Add</button>' +
+          '</span>' +
+          '<button type="button" id="modal-coll-all-btn" class="add-all-btn">+ Add all</button>' +
+        '</div>' +
+        '<div class="search-results" id="search-results"></div>';
+      renderCollectionInModal(body);
     } else {
       title.textContent = 'Search problems';
       // The search-page DOM, with the IDs initSearchPage expects.
@@ -2454,18 +2558,19 @@ ${itemsTex}
         '<div class="filters-panel" id="filters"></div>' +
         '<div class="search-results-bar">' +
           '<div class="search-summary" id="result-count">Loading…</div>' +
+          '<span class="add-random-control">' +
+            '+ Add <input type="number" id="add-random-n" value="1" min="1" max="999"> random' +
+            '<button type="button" id="add-random-btn">Add</button>' +
+          '</span>' +
           '<button type="button" id="add-all-btn" class="add-all-btn">+ Add all</button>' +
         '</div>' +
         '<div class="search-results" id="search-results"></div>';
       // Run a configured initSearchPage that wires Add → exam.
       initSearchPage({
         skipPageInit: true,
-        isMarked:       (n) => getExam().includes(n),
-        onAdd:          (n) => setExam([...getExam(), n]),
-        onAddAll:       (ns) => {
-          const exam = getExam();
-          setExam([...exam, ...ns.filter(n => !exam.includes(n))]);
-        },
+        isMarked:       (n) => items.some(it => it.n === n),
+        onAdd:          (n) => addProblemsToExam([n]),
+        onAddAll:       (ns) => addProblemsToExam(ns),
         addLabel:       'Add',
         markedLabel:    'In exam',
         markedDisabled: true,
@@ -2480,55 +2585,81 @@ ${itemsTex}
 
   // Renders the user's collection inside the modal as a flat list of
   // search-result cards. Items already in the exam are greyed out.
-  function renderCollectionInModal(container) {
+  // Toolbar above provides "+ Add N random" and "+ Add all" actions.
+  function renderCollectionInModal(modalBody) {
+    const cardsContainer = modalBody.querySelector('#search-results');
+    const summary        = modalBody.querySelector('#modal-coll-summary');
+    const allBtn         = modalBody.querySelector('#modal-coll-all-btn');
+    const randBtn        = modalBody.querySelector('#modal-coll-rand-btn');
+    const randInput      = modalBody.querySelector('#modal-coll-rand-n');
+
     const collection = [...getSelected()].sort((a, b) => a - b);
-    if (collection.length === 0) {
-      container.innerHTML =
-        '<div class="modal-empty-msg">Your collection is empty. ' +
-        'Add problems via the Search tab first.</div>';
-      return;
-    }
-    const examSet = new Set(getExam().map(Number));
-    const cards = collection
-      .filter(n => byN[n])
-      .map(n => {
-        const inExam = examSet.has(n);
+
+    function refresh() {
+      const examSet = new Set(items.map(it => it.n).filter(n => n != null));
+      const remaining = collection.filter(n => !examSet.has(n));
+      summary.innerHTML = '<strong>' + collection.length +
+        '</strong> in collection · ' + remaining.length + ' not in exam';
+      // Toolbar buttons enabled state
+      allBtn.disabled  = remaining.length === 0;
+      randBtn.disabled = remaining.length === 0;
+
+      if (collection.length === 0) {
+        cardsContainer.innerHTML =
+          '<div class="modal-empty-msg">Your collection is empty. ' +
+          'Add problems via the Search tab first.</div>';
+        return;
+      }
+      cardsContainer.innerHTML = collection
+        .filter(n => byN[n])
+        .map(n => {
+          const inExam = examSet.has(n);
+          const data = byN[n];
+          return `<div class="search-result ${inExam ? 'is-in-exam' : ''}">
+            <span class="result-num">${n}.</span>
+            <div class="result-body" data-id="${n}" data-tikz="${data.tikz_count || 0}"></div>
+            <div class="result-actions">
+              <button type="button" class="result-add ${inExam ? 'is-selected' : ''}"
+                      data-n="${n}" ${inExam ? 'disabled' : ''}>${inExam ? 'In exam' : 'Add'}</button>
+            </div>
+          </div>`;
+        })
+        .join('');
+      // Render LaTeX previews inside each card.
+      collection.forEach(n => {
         const data = byN[n];
-        return `<div class="search-result ${inExam ? 'is-in-exam' : ''}">
-          <span class="result-num">${n}.</span>
-          <div class="result-body" data-id="${n}" data-tikz="${data.tikz_count || 0}"></div>
-          <div class="result-actions">
-            <button type="button" class="result-add ${inExam ? 'is-selected' : ''}"
-                    data-n="${n}" ${inExam ? 'disabled' : ''}>${inExam ? 'In exam' : 'Add'}</button>
-          </div>
-        </div>`;
+        if (!data) return;
+        const bodyEl = cardsContainer.querySelector('.result-body[data-id="' + n + '"]');
+        if (!bodyEl) return;
+        const ed = effectiveState(n);
+        const latex = (ed.latex !== undefined) ? ed.latex : data.latex;
+        bodyEl.innerHTML = latexToHtml(latex, n, data.tikz_count || 0);
       });
-    container.innerHTML = cards.join('');
-    // Render LaTeX previews inside each card.
-    collection.forEach(n => {
-      const data = byN[n];
-      if (!data) return;
-      const bodyEl = container.querySelector('.result-body[data-id="' + n + '"]');
-      if (!bodyEl) return;
-      const ed = effectiveState(n);
-      const latex = (ed.latex !== undefined) ? ed.latex : data.latex;
-      bodyEl.innerHTML = latexToHtml(latex, n, data.tikz_count || 0);
-    });
-    if (window.MathJax && window.MathJax.typesetPromise) {
-      window.MathJax.typesetPromise([container]).catch(() => {});
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise([cardsContainer]).catch(() => {});
+      }
     }
-    // Add buttons → add to exam, then update card to "In exam".
-    container.addEventListener('click', (e) => {
+
+    refresh();
+
+    // Single-card Add button (event delegation).
+    cardsContainer.addEventListener('click', (e) => {
       const btn = e.target.closest('.result-add');
       if (!btn || btn.disabled) return;
       e.preventDefault();
-      const n = Number(btn.dataset.n);
-      setExam([...getExam(), n]);
-      btn.classList.add('is-selected');
-      btn.textContent = 'In exam';
-      btn.disabled = true;
-      const card = btn.closest('.search-result');
-      if (card) card.classList.add('is-in-exam');
+      addProblemsToExam([Number(btn.dataset.n)]);
+      refresh();
+    });
+    // Add all
+    allBtn.addEventListener('click', () => {
+      addProblemsToExam(collection);
+      refresh();
+    });
+    // Add N random
+    randBtn.addEventListener('click', () => {
+      const n = Math.max(1, parseInt(randInput.value, 10) || 1);
+      addRandomFromPool(collection, n);
+      refresh();
     });
   }
 

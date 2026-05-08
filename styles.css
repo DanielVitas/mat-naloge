@@ -1367,6 +1367,49 @@ canvas.crop-display {
   margin-right: 0.2em;
 }
 .finishing-block-body .tex-tikz img { max-width: 100%; max-height: 280px; }
+/* × button to remove a problem from the exam, pinned in the corner. */
+.finishing-block { /* enable absolute positioning of the × */
+  position: relative;
+}
+.finishing-block-remove {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+}
+@media print {
+  body.print-finishing .finishing-block-remove { display: none !important; }
+}
+
+/* "+ Add N random" input + button next to "+ Add all" in the search bar. */
+.add-random-control {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  font-size: 0.88rem; color: var(--muted);
+}
+.add-random-control input {
+  width: 3.4rem;
+  padding: 0.18rem 0.4rem;
+  font: inherit; font-size: 0.88rem;
+  border: 1px solid var(--card-border);
+  border-radius: 4px;
+  text-align: center;
+}
+.add-random-control button {
+  font: inherit; font-size: 0.88rem;
+  padding: 0.25rem 0.7rem;
+  background: white;
+  border: 1px solid var(--card-border);
+  border-radius: 5px;
+  color: var(--accent);
+  cursor: pointer;
+}
+.add-random-control button:hover {
+  background: rgba(37, 99, 235, 0.06);
+  border-color: var(--accent);
+}
+.add-random-control button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 /* "+ Add a problem" pseudo-block at the end of the preview. */
 .finishing-add-block {
