@@ -2548,12 +2548,32 @@ ${itemsTex}
           // Fall through and try to read it anyway.
           console.warn('[pdftex] run threw:', err && err.message || err);
         }
+        // Check the log to see whether pdfTeX actually wrote a PDF —
+        // FS_readFile in this old worker hangs when the file doesn't
+        // exist (no error message is sent back), so we have to inspect
+        // stdout instead of just trying to read.
+        const fullLog = stdoutLines.join('\n');
+        if (/no output PDF file produced/i.test(fullLog) ||
+            !/Output written on .*\.pdf/i.test(fullLog)) {
+          // Surface the salient lines: any "! …" error, "Fatal error",
+          // and the last few log lines.
+          const errLines = stdoutLines.filter(l =>
+            /^!|Fatal error|Error:|not found|not loadable/i.test(l));
+          const tail = errLines.length ? errLines : stdoutLines.slice(-30);
+          throw new Error('LaTeX compilation failed.\n\n' +
+                          tail.join('\n'));
+        }
         let pdfStr;
         try {
-          pdfStr = await send('FS_readFile', ['/input.pdf']);
+          pdfStr = await Promise.race([
+            send('FS_readFile', ['/input.pdf']),
+            new Promise((_, rej) =>
+              setTimeout(() => rej(new Error('FS_readFile timed out — worker hung')),
+                         15000)),
+          ]);
         } catch (err) {
-          throw new Error('LaTeX compilation produced no PDF.\n\nLog tail:\n' +
-                          stdoutLines.slice(-25).join('\n'));
+          throw new Error('LaTeX produced a PDF but reading it failed: ' +
+                          (err && err.message || err));
         }
         if (!pdfStr || pdfStr.length === 0) {
           throw new Error('LaTeX produced an empty PDF.\n\nLog tail:\n' +
