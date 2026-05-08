@@ -438,11 +438,19 @@ button:disabled { opacity: 0.5; cursor: default; }
 
 .problem-body { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1rem; }
 @media (max-width: 800px) { .problem-body { grid-template-columns: 1fr; } }
-/* Crops live BELOW the Preview/LaTeX row, full width. Multiple
-   instances stack vertically. */
+/* Crops live BELOW the Preview/LaTeX row in a 2-column grid that
+   matches the column widths of .problem-body — so each crop is the
+   same width as it had when it lived inside the right pane. Extra
+   instances flow into the next column / row automatically. */
 .problem-crops {
   margin-top: 1.5rem;
-  display: flex; flex-direction: column; gap: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+@media (max-width: 800px) {
+  .problem-crops { grid-template-columns: 1fr; }
 }
 .problem-crops .instance-block {
   background: var(--card-bg);
@@ -1381,8 +1389,20 @@ canvas.crop-display {
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
+/* Hide the "Preview" / "LaTeX" h3 labels on the Exam page (the panes are
+   self-explanatory once chrome is removed). */
+body.page-exam .finishing-left .pane-header h3,
+body.page-exam .finishing-right .pane-header h3 { display: none; }
+/* Default: only the Preview pane is shown — LaTeX is collapsed. The
+   "Edit LaTeX" toolbar button toggles the `latex-open` class. */
+body.page-exam .finishing-body { grid-template-columns: 1fr; }
+body.page-exam.latex-open .finishing-body { grid-template-columns: 1fr 1fr; }
+body.page-exam .finishing-right { display: none; }
+body.page-exam.latex-open .finishing-right { display: flex; }
+.toggle-latex-btn { white-space: nowrap; }
 @media (max-width: 900px) {
   .finishing-body { grid-template-columns: 1fr; }
+  body.page-exam.latex-open .finishing-body { grid-template-columns: 1fr; }
   /* On narrow screens the panes stack — the textarea must not extend past
      its card. Drop the "fill-the-grid-cell" 100% height; rely on min-height. */
   #finishing-tex {
@@ -1715,6 +1735,21 @@ canvas.crop-display {
   font-size: 0.82rem;
 }
 
+/* Wrapper that lets the heading-add chips float at the top-right corner
+   above the Preview content. */
+.finishing-preview-frame {
+  position: relative;
+  flex: 1;
+  display: flex; flex-direction: column;
+  min-height: 0;
+}
+.finishing-preview-frame > .finishing-heading-adds {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.6rem;
+  z-index: 4;
+  margin-left: 0;
+}
 /* "+ Title / + Ime / ..." chips next to the Preview pane header */
 .finishing-heading-adds {
   display: inline-flex; align-items: center; flex-wrap: wrap;

@@ -2805,6 +2805,17 @@ ${itemsTex}
   renderHeadingAdds();
 
   // Downloads
+  // Toggle the LaTeX pane (collapsed by default; the user clicks
+  // "Edit LaTeX" in the toolbar to open it side-by-side with Preview).
+  const toggleLatexBtn = document.getElementById('toggle-latex-btn');
+  if (toggleLatexBtn) {
+    toggleLatexBtn.addEventListener('click', () => {
+      const open = document.body.classList.toggle('latex-open');
+      toggleLatexBtn.setAttribute('aria-pressed', open ? 'true' : 'false');
+      toggleLatexBtn.textContent = open ? '✎ Hide LaTeX' : '✎ Edit LaTeX';
+    });
+  }
+
   document.getElementById('download-tex').addEventListener('click', () => {
     const blob = new Blob([tex.value], { type: 'text/x-latex;charset=utf-8' });
     const url = URL.createObjectURL(blob);
