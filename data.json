@@ -12,7 +12,7 @@
       1410
     ],
     "outdated": false,
-    "approved_by": "DanielVitas"
+    "approved_by": null
   },
   "3": {
     "topics": []
@@ -41,7 +41,8 @@
       "4.6.2 Koti",
       "4.7 Liki",
       "4.7.2 Večkotnik"
-    ]
+    ],
+    "latex": "Na skici spodaj je štirikotnik $ABCD$. Izračunajte kota $\\beta$ in $\\gamma$, če je $\\gamma=2\\beta$.\n\n\\begin{center}\n\\begin{tikzpicture}[scale=1.0,>=latex]\n  \\coordinate (A) at (0,0);\n  \\coordinate (B) at (5.4,0);\n  \\coordinate (C) at (4.6,2.6);\n  \\coordinate (D) at (1.6,3.0);\n  \\draw[thick] (A) -- (B) -- (C) -- (D) -- cycle;\n  \\node[below left]  at (A) {$A$};\n  \\node[below right] at (B) {$B$};\n  \\node[above right] at (C) {$C$};\n  \\node[above left]  at (D) {$D$};\n  \\pic [draw, \"$70^\\circ$\", angle radius=8mm, angle eccentricity=1.45]\n       {angle = B--A--D};\n  \\pic [draw, \"$\\beta$\", angle radius=8mm, angle eccentricity=1.6]\n       {angle = C--B--A};\n  \\pic [draw, \"$101^\\circ$\", angle radius=8mm, angle eccentricity=1.6]\n       {angle = D--C--B};\n  \\pic [draw, \"$\\gamma$\", angle radius=8mm, angle eccentricity=1.55]\n       {angle = A--D--C};\n\\end{tikzpicture}\n\\end{center}"
   },
   "7": {
     "bbox": [
@@ -52,11 +53,26 @@
     ],
     "outdated": false
   },
+  "8": {
+    "approved_by": [
+      "DanielVitas"
+    ],
+    "bboxes": {
+      "0": [
+        175,
+        1136,
+        1485,
+        1718
+      ]
+    },
+    "outdated": true
+  },
   "12": {
     "topics": [
       "4.10 Funkcije",
       "4.10.6 Logaritemska funkcija"
-    ]
+    ],
+    "outdated": true
   },
   "15": {
     "bboxes": {
