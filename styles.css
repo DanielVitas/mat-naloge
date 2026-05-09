@@ -1478,20 +1478,37 @@ canvas.crop-display {
 
 .menu-h-secondary { margin-top: 0.5rem; }
 
-/* Home page: lead paragraph + a row of feature cards. */
+/* Home page: centered hero + a row of feature cards. */
+.home-hero {
+  text-align: center;
+  margin: 2.2rem auto 2.5rem;
+  padding: 0 1rem;
+  max-width: 44rem;
+}
 .home-lead {
-  margin: 0.4rem 0 1.2rem; max-width: 60ch;
-  color: var(--muted); font-size: 0.95rem;
+  margin: 0;
+  font-size: 1.6rem; font-weight: 600; line-height: 1.25;
+  color: var(--fg);
+  letter-spacing: -0.01em;
+}
+.home-sublead {
+  margin: 0.6rem 0 0;
+  font-size: 0.95rem; color: var(--muted);
+  letter-spacing: 0.04em;
+}
+@media (max-width: 600px) {
+  .home-lead { font-size: 1.3rem; }
 }
 .home-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem;
-  margin-bottom: 1.5rem;
+  max-width: 60rem;
+  margin: 0 auto 1.8rem;
 }
 .home-card {
   display: block;
-  padding: 1rem 1.1rem;
+  padding: 1.1rem 1.2rem;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 10px;
@@ -1506,11 +1523,11 @@ canvas.crop-display {
   text-decoration: none;
 }
 .home-card-title {
-  margin: 0 0 0.4rem; font-size: 1.1rem; font-weight: 600;
+  margin: 0 0 0.35rem; font-size: 1.1rem; font-weight: 600;
   color: var(--accent);
 }
 .home-card-desc {
-  margin: 0; font-size: 0.92rem; color: var(--fg); line-height: 1.45;
+  margin: 0; font-size: 0.92rem; color: var(--muted); line-height: 1.45;
 }
 
 /* Generic page-level tabs (Problems: Matura/Textbook · Exam: Selection/Finishing) */
