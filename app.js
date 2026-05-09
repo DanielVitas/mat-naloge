@@ -620,6 +620,27 @@ function initMenuBar() {
   });
   refreshMenuBranches();
   window.addEventListener('hashchange', refreshMenuBranches);
+
+  // Hide-or-show the trailing "Sign in" menu item based on auth state.
+  // Clicking it opens the sync bar's existing sign-in dropdown so we don't
+  // have to duplicate the token-input UX.
+  const signinItem = bar.querySelector('#menu-signin');
+  function refreshMenuSignin() {
+    if (!signinItem) return;
+    signinItem.hidden = !!getToken();
+  }
+  refreshMenuSignin();
+  window.addEventListener('storage', refreshMenuSignin);
+  if (signinItem) {
+    signinItem.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dd.hidden = true;
+      const syncBtn = document.getElementById('gh-signin-btn');
+      if (syncBtn) syncBtn.click();
+    });
+  }
+  // Expose so the sync bar's refresh() can re-evaluate after sign-in/out.
+  window.refreshMenuSignin = refreshMenuSignin;
 }
 
 // Show only menu branches that are part of the current context — the URL
@@ -769,6 +790,10 @@ function initSyncBar() {
     // re-render them whenever the auth state changes.
     if (typeof window.refreshApprovalChip === 'function') {
       window.refreshApprovalChip();
+    }
+    // Hamburger-menu Sign in entry depends on the same state.
+    if (typeof window.refreshMenuSignin === 'function') {
+      window.refreshMenuSignin();
     }
   }
 
@@ -1180,8 +1205,10 @@ function bindCardSectionToggles() {
 // that combination with a half/half gradient.
 function applyIndexStatuses() {
   const me = getName();
-  document.querySelectorAll('.problem-card').forEach(card => {
-    const id = card.dataset.id;
+  document.querySelectorAll('.search-result-wrap[data-id]').forEach(wrap => {
+    const card = wrap.querySelector('.search-result');
+    if (!card) return;
+    const id = wrap.dataset.id;
     const s = effectiveState(id);
     card.classList.remove('status-outdated', 'status-approved-me', 'status-approved-other');
     const approvers = approverList(s.approved_by);
@@ -1190,6 +1217,41 @@ function applyIndexStatuses() {
       else                              card.classList.add('status-approved-other');
     }
     if (s.outdated) card.classList.add('status-outdated');
+  });
+}
+
+// Index-page card hydration: render LaTeX previews from window.PROBLEMS_LATEX,
+// wire hover-to-expand on each .search-result-wrap, and route hot-zone
+// clicks to the corresponding problem page.
+function hydrateIndexCards() {
+  const data = window.PROBLEMS_LATEX || {};
+  document.querySelectorAll('.search-result-wrap[data-id] .result-body').forEach(body => {
+    const n = body.dataset.id;
+    const entry = data[n];
+    if (!entry) return;
+    const ed = effectiveState(n);
+    const latex = (ed.latex !== undefined) ? ed.latex : entry.latex;
+    body.innerHTML = latexToHtml(latex, n, entry.tikz_count || 0);
+  });
+  if (window.MathJax && window.MathJax.typesetPromise) {
+    window.MathJax.typesetPromise(
+      Array.from(document.querySelectorAll('.search-result-wrap[data-id] .result-body'))
+    ).catch(() => {});
+  }
+  document.querySelectorAll('.search-result-wrap[data-id]').forEach(wrap => {
+    const hot = wrap.querySelector('.search-result-hot-zone');
+    if (!hot) return;
+    const enter = () => wrap.classList.add('is-hovered');
+    const leave = () => {
+      setTimeout(() => {
+        if (!hot.matches(':hover')) wrap.classList.remove('is-hovered');
+      }, 0);
+    };
+    hot.addEventListener('mouseenter', enter);
+    hot.addEventListener('mouseleave', leave);
+    hot.addEventListener('click', () => {
+      if (hot.dataset.href) window.location.href = hot.dataset.href;
+    });
   });
 }
 
@@ -3288,10 +3350,8 @@ async function initIndexPage() {
   window.addEventListener('hashchange', handleSectionHash);
   // Make sure we have the latest reviewer name from /user before colouring.
   await ensureNameFromToken();
-  applyIndexTopics();
+  hydrateIndexCards();
   applyIndexStatuses();
-  applyCardSectionsState();
-  bindCardSectionToggles();
   const exportAllBtn = document.getElementById('export-all');
   if (exportAllBtn) {
     exportAllBtn.addEventListener('click', () => {
