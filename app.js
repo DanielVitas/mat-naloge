@@ -1361,13 +1361,17 @@ async function hydrateTikzInPreview(target) {
     if (!target.contains(el)) return;
     if (el.getAttribute('data-tikz-src') !== enc) return;
     if (!svg) {
-      // Compile failed. Keep whatever the user had visible (the previous
-      // good render is already in place from step 1's lastSvg replay) and
-      // surface a small "didn't compile" warning. If we have NO previous
-      // good render to keep, show a clear error instead of leaving the
-      // perpetual "rendering TikZ…" placeholder.
-      el.classList.add('tikz-compile-error');
-      if (idx == null || !lastSvg.has(idx)) {
+      // Compile failed. Two display modes:
+      //   • If we have a previous good render to keep visible, leave it
+      //     in place (already painted by step 1's lastSvg replay) and pin
+      //     a corner badge to flag that the latest source didn't compile.
+      //   • If we have nothing previous to fall back on, replace the body
+      //     with an explicit "TikZ failed to compile" message — and skip
+      //     the badge so we don't say it twice.
+      if (idx != null && lastSvg.has(idx)) {
+        el.classList.add('tikz-compile-error');
+      } else {
+        el.classList.remove('tikz-compile-error');
         el.innerHTML = '<span class="tikz-error-msg">TikZ failed to compile</span>';
       }
       return;
