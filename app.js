@@ -1194,6 +1194,20 @@ function applyIndexStatuses() {
 }
 
 function renderTeXPreview(srcText, target, problemId, tikzCount, hydrateTikz) {
+  // Snapshot the rendered box size of every existing .tex-tikz before we
+  // wipe the DOM. Saved into target._tikzLocks so the freshly-emitted
+  // placeholder divs inherit the same dimensions on the very next paint —
+  // otherwise the box collapses to the width of "rendering TikZ…" text.
+  if (hydrateTikz) {
+    if (!target._tikzLocks) target._tikzLocks = new Map();
+    const locks = target._tikzLocks;
+    target.querySelectorAll('.tex-tikz[data-tikz-idx]').forEach(el => {
+      const idx = el.getAttribute('data-tikz-idx');
+      if (idx == null) return;
+      const r = el.getBoundingClientRect();
+      if (r.width > 1 && r.height > 1) locks.set(idx, { w: r.width, h: r.height });
+    });
+  }
   target.innerHTML = latexToHtml(srcText, problemId, tikzCount, hydrateTikz);
   if (window.MathJax && window.MathJax.typesetPromise) {
     MathJax.typesetPromise([target]).catch(() => {});
@@ -1228,28 +1242,44 @@ function fetchTikzSvg(src) {
   return p;
 }
 
-// Fetch each build-time .svg file and cache its text on the preview node so
-// the first edit's hydrate has a smooth placeholder instead of "rendering…".
-// Same-origin so no CORS dance; fires asynchronously after first paint.
+// Once the build-time TikZ <img>s finish loading, capture both their box
+// dimensions (as locks) and their SVG text (as lastSvg). The first edit's
+// hydrate then has a same-size box AND a synchronous placeholder image —
+// no flicker, no collapse, no "rendering…" gap.
 async function primeTikzCacheFromBuildTime(target) {
   if (!target._tikzLastSvg) target._tikzLastSvg = new Map();
+  if (!target._tikzLocks)   target._tikzLocks   = new Map();
   const lastSvg = target._tikzLastSvg;
+  const locks   = target._tikzLocks;
   const imgs = Array.from(target.querySelectorAll('.tex-tikz[data-tikz-idx] img[src]'));
   await Promise.all(imgs.map(async (img) => {
     const el = img.closest('.tex-tikz');
     if (!el) return;
     const idx = el.getAttribute('data-tikz-idx');
-    if (idx == null || lastSvg.has(idx)) return;
-    try {
-      const r = await fetch(img.getAttribute('src'));
-      if (!r.ok) return;
-      const text = await r.text();
-      const head = text.trimStart().slice(0, 5).toLowerCase();
-      if (head.startsWith('<?xml') || head.startsWith('<svg')) {
-        lastSvg.set(idx, text);
-      }
-    } catch (_e) { /* offline / 404 — fine, we'll fall back to the loading
-                     placeholder if/when the user edits */ }
+    if (idx == null) return;
+    // Wait for the <img> to load so we measure the real rendered dimensions.
+    if (!img.complete) {
+      await new Promise(r => {
+        img.addEventListener('load',  r, { once: true });
+        img.addEventListener('error', r, { once: true });
+      });
+    }
+    if (!locks.has(idx)) {
+      const r = el.getBoundingClientRect();
+      if (r.width > 1 && r.height > 1) locks.set(idx, { w: r.width, h: r.height });
+    }
+    if (!lastSvg.has(idx)) {
+      try {
+        const r = await fetch(img.getAttribute('src'));
+        if (!r.ok) return;
+        const text = await r.text();
+        const head = text.trimStart().slice(0, 5).toLowerCase();
+        if (head.startsWith('<?xml') || head.startsWith('<svg')) {
+          lastSvg.set(idx, text);
+        }
+      } catch (_e) { /* offline / 404 — fine, we'll fall back to the loading
+                       placeholder if/when the user edits */ }
+    }
   }));
 }
 

@@ -623,7 +623,10 @@ textarea#latex-source {
 .finishing-block-body .tex-tikz { text-align: center; margin: 0.5rem 0; }
 .preview-box .tex-tikz {
   /* Inline-block so width: <px>; height: <px> set by JS after the first
-     hydrate locks the figure size for all subsequent edits. */
+     hydrate locks the figure size for all subsequent edits. The min-*
+     fallbacks keep the box from collapsing to text width if a render
+     starts before the build-time img has loaded (the sync lock-snapshot
+     in renderTeXPreview only works once the image is rendered). */
   display: inline-flex;
   align-items: center; justify-content: center;
   background: white; padding: 4px;
@@ -631,6 +634,7 @@ textarea#latex-source {
   box-sizing: border-box;
   overflow: hidden;
   max-width: 100%;
+  min-width: 200px; min-height: 100px;
 }
 .preview-box .tex-tikz img,
 .preview-box .tex-tikz svg {
