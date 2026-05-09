@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Exam</title>
-<link rel="stylesheet" href="styles.css?v=bc2cd225">
+<link rel="stylesheet" href="styles.css?v=ff8ff8c5">
 <script>
   window.MathJax = {
     tex: {
@@ -13,17 +13,10 @@
       processEscapes: true,
       processEnvironments: false
     },
-    options: {
-      skipHtmlTags: ['script','noscript','style','textarea','pre','code'],
-      // Disable the assistive-MML and the menu shadow nodes — html2canvas
-      // ignores their CSS clipping and would render duplicate copies.
-      enableAssistiveMml: false,
-      enableMenu: false
-    },
-    svg: { fontCache: 'none' }  // every <svg> is self-contained — html2canvas can rasterise it cleanly
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
   };
 </script>
-<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-svg.js"></script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body class="page-exam">
 <div class="container">

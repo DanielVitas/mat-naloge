@@ -2088,6 +2088,12 @@ body.print-finishing #finishing-preview {
   border: 0 !important;
   padding: 0 !important;
   margin: 0 !important;
+  /* The on-screen preview is min-height: 29.7cm so the page metaphor
+     stays intact for short exams. In print that's deadly: the @page
+     margins (1.5cm top + 1.5cm bottom) leave only ~26.7cm of usable
+     space, so a 29.7cm preview always overflows by 3cm and forces a
+     second blank page. Reset it here. */
+  min-height: 0 !important;
   max-height: none !important;
   overflow: visible !important;
   background: white !important;
@@ -2160,6 +2166,7 @@ body.print-finishing .finishing-block-body .result-num {
     border: 0 !important;
     padding: 0 !important;
     margin: 0 !important;
+    min-height: 0 !important;
     max-height: none !important;
     overflow: visible !important;
     background: white !important;
