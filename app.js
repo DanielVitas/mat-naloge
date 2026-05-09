@@ -2670,10 +2670,8 @@ ${itemsTex}
     if (any) preview.appendChild(hh);
 
     if (items.length === 0) {
-      const empty = document.createElement('div');
-      empty.className = 'exam-empty';
-      empty.textContent = 'No problems in the exam yet — add one below.';
-      preview.appendChild(empty);
+      // Empty exam — render just the "+ Add a problem" affordance, no
+      // explanatory placeholder text.
       appendAddBlock();
       if (window.MathJax && window.MathJax.typesetPromise) {
         window.MathJax.typesetPromise([preview]).catch(() => {});
@@ -3165,6 +3163,11 @@ ${itemsTex}
   //    (in styles.css) hide chrome and reset the preview pane to flow
   //    cleanly across pages.
   function downloadPdfViaPrint() {
+    // Drop focus from any contenteditable (e.g. the exam title) so its
+    // text caret isn't captured into the rendered PDF.
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+      document.activeElement.blur();
+    }
     document.body.classList.add('print-finishing');
     let cleaned = false;
     const cleanup = () => {

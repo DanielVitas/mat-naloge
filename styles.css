@@ -1993,8 +1993,20 @@ body.page-exam.latex-open .finishing-right { display: flex; }
   outline-offset: 2px;
 }
 @media print {
-  body.print-finishing .exam-heading-title { background: transparent !important; outline: 0 !important; padding: 0 !important; cursor: default; }
+  body.print-finishing .exam-heading-title,
+  body.page-exam .exam-heading-title {
+    background: transparent !important;
+    outline: 0 !important;
+    padding: 0 !important;
+    cursor: default;
+    /* If the user was still in the contenteditable title when they hit
+       Print, Chrome captures the focused element's caret onto the page. */
+    caret-color: transparent !important;
+  }
 }
+/* Same caret hide outside @media print, so the on-tab Download PDF path
+   (body.print-finishing) gets it too. */
+body.print-finishing .exam-heading-title { caret-color: transparent !important; }
 .exam-heading-fields {
   display: grid;
   grid-template-columns: 1fr 1fr;
