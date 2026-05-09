@@ -979,6 +979,11 @@ canvas.crop-display {
 .gh-sync { position: relative; display: inline-flex; gap: 0.3rem; }
 .gh-sync .gh-state { position: relative; display: inline-flex; gap: 0.3rem; }
 .gh-sync .gh-state[hidden] { display: none !important; }
+/* The Sign in button has been moved into the hamburger menu — hide the
+   duplicate one in the top-right. The dropdown form (#gh-signin-dropdown)
+   stays in the DOM, anchored to .gh-sync, and is opened by the menu item
+   programmatically clicking #gh-signin-btn. */
+#gh-signin-btn { display: none !important; }
 .gh-sync .dropdown-toggle {
   width: 2.3rem;
   padding: 0 0 0.32rem 0;
