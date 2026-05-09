@@ -1604,6 +1604,19 @@ body.page-exam.latex-open .finishing-right { display: flex; }
   max-height: none;
   overflow-y: visible;
 }
+/* On phones the A4 simulation crushes the content area — most of the
+   viewport ends up as the cm-sized print margin. Drop the page metaphor
+   on small screens so problems use the full available width. */
+@media (max-width: 720px) {
+  .finishing-preview-pane {
+    width: 100%;
+    padding: 0.6rem;
+    min-height: 0;
+    box-shadow: none;
+  }
+  .finishing-block { padding: 0.4rem 0.4rem 0.5rem; }
+  .finishing-block-body { font-size: 0.95rem; }
+}
 /* Drag insertion indicator: a thin accent-colored line that shows where a
    dragged problem would land if dropped now. */
 .finishing-insert-line {
