@@ -653,6 +653,30 @@ textarea#latex-source {
   font-size: 0.8rem; color: var(--muted);
   background: #f5f5f5; border: 1px dashed #ccc; border-radius: 6px;
 }
+/* When the latest TikZ source fails to compile, we keep whatever was last
+   shown visible and overlay a warning badge in the corner. If there's no
+   previous render to keep, .tikz-error-msg replaces the body. */
+.preview-box .tex-tikz.tikz-compile-error {
+  position: relative;
+}
+.preview-box .tex-tikz.tikz-compile-error::after {
+  content: "⚠ TikZ didn't compile";
+  position: absolute;
+  top: 4px; right: 4px;
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  background: var(--warn-bg);
+  color: var(--warn);
+  border: 1px solid var(--warn);
+  border-radius: 999px;
+  pointer-events: none;
+}
+.preview-box .tex-tikz .tikz-error-msg {
+  display: inline-block; padding: 0.4rem 0.8rem;
+  font-size: 0.85rem; color: var(--warn);
+  background: var(--warn-bg);
+  border: 1px dashed var(--warn); border-radius: 6px;
+}
 .preview-box .tex-figure-placeholder,
 .finishing-block-body .tex-figure-placeholder {
   margin: 0.5rem 0; padding: 0.5rem 0.8rem; background: var(--warn-bg);

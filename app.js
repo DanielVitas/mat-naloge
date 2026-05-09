@@ -1198,12 +1198,19 @@ function renderTeXPreview(srcText, target, problemId, tikzCount, hydrateTikz) {
   // wipe the DOM. Saved into target._tikzLocks so the freshly-emitted
   // placeholder divs inherit the same dimensions on the very next paint —
   // otherwise the box collapses to the width of "rendering TikZ…" text.
+  // We only carry forward locks taken from a real img/svg — measuring an
+  // empty "rendering…" placeholder would freeze later renders at the CSS
+  // min-size fallback (200×100), making the next good SVG render tiny.
   if (hydrateTikz) {
     if (!target._tikzLocks) target._tikzLocks = new Map();
     const locks = target._tikzLocks;
     target.querySelectorAll('.tex-tikz[data-tikz-idx]').forEach(el => {
       const idx = el.getAttribute('data-tikz-idx');
       if (idx == null) return;
+      const inner = el.firstElementChild;
+      if (!inner) return;
+      const t = inner.tagName;
+      if (t !== 'IMG' && t !== 'SVG' && t !== 'svg') return;
       const r = el.getBoundingClientRect();
       if (r.width > 1 && r.height > 1) locks.set(idx, { w: r.width, h: r.height });
     });
@@ -1353,7 +1360,19 @@ async function hydrateTikzInPreview(target) {
     // detached) or its source attribute changed mid-flight.
     if (!target.contains(el)) return;
     if (el.getAttribute('data-tikz-src') !== enc) return;
-    if (!svg) return;
+    if (!svg) {
+      // Compile failed. Keep whatever the user had visible (the previous
+      // good render is already in place from step 1's lastSvg replay) and
+      // surface a small "didn't compile" warning. If we have NO previous
+      // good render to keep, show a clear error instead of leaving the
+      // perpetual "rendering TikZ…" placeholder.
+      el.classList.add('tikz-compile-error');
+      if (idx == null || !lastSvg.has(idx)) {
+        el.innerHTML = '<span class="tikz-error-msg">TikZ failed to compile</span>';
+      }
+      return;
+    }
+    el.classList.remove('tikz-compile-error');
     el.innerHTML = svg;
     if (idx != null) lastSvg.set(idx, svg);
     const svgEl = el.querySelector('svg');
