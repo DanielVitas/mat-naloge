@@ -765,6 +765,11 @@ function initSyncBar() {
     pushBtn.textContent = n === 0
       ? '⬆ Push'
       : `⬆ Push (${n} edit${n === 1 ? '' : 's'})`;
+    // Approvers chip + outdated badge depend on the signed-in state, so
+    // re-render them whenever the auth state changes.
+    if (typeof window.refreshApprovalChip === 'function') {
+      window.refreshApprovalChip();
+    }
   }
 
   // ----- Sign in flow -----
@@ -875,7 +880,13 @@ function initSyncBar() {
 }
 
 // ---------------- LaTeX -> HTML (with TikZ SVG substitution) ---------------
-function latexToHtml(src, problemId, tikzCount) {
+// `hydrateTikz` (default false): pass true when the caller will follow up by
+// fetching fresh SVGs from the backend. In that mode we omit the stale
+// build-time <img src="…"> placeholder so the user never sees the old image
+// flash through during edits. The hydrator either fills the slot from its
+// per-index last-render cache (synchronously) or shows a "rendering TikZ…"
+// label until the new SVG arrives.
+function latexToHtml(src, problemId, tikzCount, hydrateTikz) {
   if (!src) return '';
   const padded = (problemId == null) ? null : String(problemId).padStart(3, '0');
   let tikzIdx = 0;
@@ -900,7 +911,12 @@ function latexToHtml(src, problemId, tikzCount) {
     // and embeddable as an attribute value.
     const enc = encodeURIComponent(match);
     let initial;
-    if (padded && tikzIdx <= (tikzCount || 0)) {
+    if (hydrateTikz) {
+      // Hydrator will replace this synchronously (from cache / lastSvg) or
+      // asynchronously (from the backend). Showing the build-time SVG here
+      // would just flash the *previous* render before the new one arrives.
+      initial = `<span class="tikz-loading">rendering TikZ…</span>`;
+    } else if (padded && tikzIdx <= (tikzCount || 0)) {
       const url = `tikz/prob-${padded}-fig${tikzIdx}.svg`;
       initial = `<img src="${url}" alt="TikZ figure ${tikzIdx}">`;
     } else {
@@ -1178,7 +1194,7 @@ function applyIndexStatuses() {
 }
 
 function renderTeXPreview(srcText, target, problemId, tikzCount, hydrateTikz) {
-  target.innerHTML = latexToHtml(srcText, problemId, tikzCount);
+  target.innerHTML = latexToHtml(srcText, problemId, tikzCount, hydrateTikz);
   if (window.MathJax && window.MathJax.typesetPromise) {
     MathJax.typesetPromise([target]).catch(() => {});
   }
@@ -1212,18 +1228,48 @@ function fetchTikzSvg(src) {
   return p;
 }
 
-// Per-(preview node) lock map: figure index -> {w, h} measured once. So
-// every subsequent fresh render of the same TikZ figure (1st, 2nd, …) lands
-// in the same box, preventing the visible jitter the user complained about.
+// Fetch each build-time .svg file and cache its text on the preview node so
+// the first edit's hydrate has a smooth placeholder instead of "rendering…".
+// Same-origin so no CORS dance; fires asynchronously after first paint.
+async function primeTikzCacheFromBuildTime(target) {
+  if (!target._tikzLastSvg) target._tikzLastSvg = new Map();
+  const lastSvg = target._tikzLastSvg;
+  const imgs = Array.from(target.querySelectorAll('.tex-tikz[data-tikz-idx] img[src]'));
+  await Promise.all(imgs.map(async (img) => {
+    const el = img.closest('.tex-tikz');
+    if (!el) return;
+    const idx = el.getAttribute('data-tikz-idx');
+    if (idx == null || lastSvg.has(idx)) return;
+    try {
+      const r = await fetch(img.getAttribute('src'));
+      if (!r.ok) return;
+      const text = await r.text();
+      const head = text.trimStart().slice(0, 5).toLowerCase();
+      if (head.startsWith('<?xml') || head.startsWith('<svg')) {
+        lastSvg.set(idx, text);
+      }
+    } catch (_e) { /* offline / 404 — fine, we'll fall back to the loading
+                     placeholder if/when the user edits */ }
+  }));
+}
+
+// Per-(preview node) state:
+//   _tikzLocks:   idx -> {w, h}     (lock the figure box to a stable size)
+//   _tikzLastSvg: idx -> svgString  (last successfully fetched SVG, used as
+//                                    a flicker-free placeholder while the
+//                                    next fetch is in flight)
 async function hydrateTikzInPreview(target) {
-  if (!target._tikzLocks) target._tikzLocks = new Map();
-  const locks = target._tikzLocks;
+  if (!target._tikzLocks)   target._tikzLocks   = new Map();
+  if (!target._tikzLastSvg) target._tikzLastSvg = new Map();
+  const locks   = target._tikzLocks;
+  const lastSvg = target._tikzLastSvg;
 
   const els = Array.from(target.querySelectorAll('.tex-tikz[data-tikz-src]'));
 
-  // Step 1: re-apply any existing locks immediately. This handles the case
-  // where the latex was edited (innerHTML replaced) and the new .tex-tikz
-  // divs need to inherit the size from the previous render.
+  // Step 1 (fully synchronous, runs before the browser paints): apply locks
+  // and inject the previous render's SVG. This is what stops the build-time
+  // figure from flickering through during edits — the user sees the most
+  // recent good render until the new one arrives.
   for (const el of els) {
     const idx = el.getAttribute('data-tikz-idx');
     const lock = idx != null && locks.get(idx);
@@ -1232,8 +1278,18 @@ async function hydrateTikzInPreview(target) {
       el.style.height = lock.h + 'px';
       el.classList.add('is-locked');
     }
+    const last = idx != null && lastSvg.get(idx);
+    if (last) {
+      el.innerHTML = last;
+      const svgEl = el.querySelector('svg');
+      if (svgEl) {
+        svgEl.removeAttribute('width');
+        svgEl.removeAttribute('height');
+      }
+    }
   }
 
+  // Step 2 (async): fetch each SVG, replace, capture lock if needed.
   await Promise.all(els.map(async (el) => {
     const enc = el.getAttribute('data-tikz-src');
     if (!enc) return;
@@ -1241,13 +1297,11 @@ async function hydrateTikzInPreview(target) {
     try { src = decodeURIComponent(enc); } catch { return; }
     const idx = el.getAttribute('data-tikz-idx');
 
-    // Step 2: if there's no lock yet for this index, snapshot the current
-    // rendered size of whatever's inside (the build-time <img> or a placeholder)
-    // and pin it. We wait for an unloaded <img> to settle so we measure the
-    // real figure dimensions, not 0×0.
+    // If lock not set yet AND the inner is a real figure (img / svg, not
+    // the loading placeholder), snapshot its rendered size now.
     if (idx != null && !locks.has(idx)) {
       const inner = el.firstElementChild;
-      if (inner) {
+      if (inner && (inner.tagName === 'IMG' || inner.tagName === 'svg' || inner.tagName === 'SVG')) {
         if (inner.tagName === 'IMG' && !inner.complete) {
           await new Promise(r => {
             inner.addEventListener('load',  r, { once: true });
@@ -1271,13 +1325,13 @@ async function hydrateTikzInPreview(target) {
     if (el.getAttribute('data-tikz-src') !== enc) return;
     if (!svg) return;
     el.innerHTML = svg;
+    if (idx != null) lastSvg.set(idx, svg);
     const svgEl = el.querySelector('svg');
     if (svgEl) {
-      // Step 3: if we still don't have a lock for this idx (e.g. the figure
-      // started as a placeholder for a freshly-typed tikz block), capture
-      // the natural size of the just-arrived SVG and lock to it.
+      // If we still don't have a lock for this idx, capture the natural
+      // size of the just-arrived SVG and lock to it (only happens on the
+      // very first hydrate of a freshly typed tikz block).
       if (idx != null && !locks.has(idx)) {
-        // Read intrinsic size BEFORE stripping width/height attributes.
         const r = svgEl.getBoundingClientRect();
         if (r.width > 1 && r.height > 1) {
           locks.set(idx, { w: r.width, h: r.height });
@@ -1338,7 +1392,15 @@ async function initProblemPage(meta) {
   // away from the build-time source — otherwise the pre-rendered SVGs that
   // ship with the page are already correct and there's no point waiting for
   // a network round-trip.
-  renderTeXPreview(ta.value, preview, meta.n, meta.tikz_count, ta.value !== meta.latex);
+  const initialHydrate = ta.value !== meta.latex;
+  renderTeXPreview(ta.value, preview, meta.n, meta.tikz_count, initialHydrate);
+  if (!initialHydrate) {
+    // Pre-fetch each build-time SVG as text and stash it as the hydrator's
+    // "last successful render" for that figure. So when the user first
+    // edits the LaTeX, the placeholder is filled synchronously with the
+    // correct figure (instead of flashing "rendering TikZ…").
+    primeTikzCacheFromBuildTime(preview);
+  }
 
   let timer;
   ta.addEventListener('input', () => {
@@ -1565,11 +1627,12 @@ async function initProblemPage(meta) {
   }
 
   function renderApprovers() {
-    const eff      = effectiveState(id);
-    const list     = approverList(eff.approved_by);
-    const me       = getName();
-    const others   = list.filter(x => !me || x !== me);
-    const meIn     = !!me && list.includes(me);
+    const eff       = effectiveState(id);
+    const list      = approverList(eff.approved_by);
+    const me        = getName();
+    const signedIn  = !!getToken() && !!me;
+    const others    = signedIn ? list.filter(x => x !== me) : list.slice();
+    const meIn      = signedIn && list.includes(me);
 
     approversEl.innerHTML = '';
     // Other approvers (read-only chips), in stable display order.
@@ -1580,23 +1643,28 @@ async function initProblemPage(meta) {
       chip.textContent = `${displayNameFor(login)} ✓`;
       approversEl.appendChild(chip);
     }
-    // Self chip (always present once we know who "me" is). Greyed-out × when
-    // not approved, accent-colored ✓ when approved. Clicking toggles.
-    const selfChip = document.createElement('button');
-    selfChip.type = 'button';
-    selfChip.id   = 'self-approval-chip';
-    selfChip.className = 'approval-chip approval-chip--self '
-                       + (meIn ? 'is-approved' : 'is-unapproved');
-    selfChip.title = meIn
-      ? 'Click to remove your approval'
-      : (me ? 'Click to approve' : 'Sign in (top-right) to approve');
-    const label = me ? displayNameFor(me) : 'Approve';
-    const mark  = meIn ? '✓' : '×';
-    selfChip.innerHTML =
-      `<span class="self-name">${escapeHtml(label)}</span>`
-    + `<span class="self-mark">${mark}</span>`;
-    selfChip.addEventListener('click', toggleSelfApproval);
-    approversEl.appendChild(selfChip);
+    // Self chip is only meaningful for signed-in users. When signed out,
+    // visitors see other approvers but no toggle / status of their own.
+    if (signedIn) {
+      const selfChip = document.createElement('button');
+      selfChip.type = 'button';
+      selfChip.id   = 'self-approval-chip';
+      selfChip.className = 'approval-chip approval-chip--self '
+                         + (meIn ? 'is-approved' : 'is-unapproved');
+      selfChip.title = meIn
+        ? 'Click to remove your approval'
+        : 'Click to approve';
+      const label = displayNameFor(me);
+      const mark  = meIn ? '✓' : '×';
+      selfChip.innerHTML =
+        `<span class="self-name">${escapeHtml(label)}</span>`
+      + `<span class="self-mark">${mark}</span>`;
+      selfChip.addEventListener('click', toggleSelfApproval);
+      approversEl.appendChild(selfChip);
+    }
+    // The ✓/⚠ outdated badge is also signed-in-only — visitors who can't
+    // push shouldn't be able to flip the flag.
+    badge.hidden = !signedIn;
   }
 
   exportBtn.addEventListener('click', () => {
