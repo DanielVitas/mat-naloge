@@ -2967,12 +2967,20 @@ ${itemsTex}
         .map(n => {
           const inExam = examSet.has(n);
           const data = byN[n];
-          return `<div class="search-result ${inExam ? 'is-in-exam' : ''}">
-            <span class="result-num">${n}.</span>
-            <div class="result-body" data-id="${n}" data-tikz="${data.tikz_count || 0}"></div>
-            <div class="result-actions">
-              <button type="button" class="result-add ${inExam ? 'is-selected' : ''}"
-                      data-n="${n}" title="${inExam ? 'Remove' : 'Add'}">${inExam ? '×' : '+'}</button>
+          // The .search-result on the search page is position: absolute
+          // inside a .search-result-wrap grid cell. Without the wrap, every
+          // bare .search-result lands at top:0/left:0 of #search-results
+          // and the last one paints on top of all the others — that's why
+          // only problem 15 was visible. Render the wrap+hot-zone here too.
+          return `<div class="search-result-wrap">
+            <div class="search-result-hot-zone"></div>
+            <div class="search-result ${inExam ? 'is-in-exam' : ''}">
+              <span class="result-num">${n}.</span>
+              <div class="result-body" data-id="${n}" data-tikz="${data.tikz_count || 0}"></div>
+              <div class="result-actions">
+                <button type="button" class="result-add ${inExam ? 'is-selected' : ''}"
+                        data-n="${n}" title="${inExam ? 'Remove' : 'Add'}">${inExam ? '×' : '+'}</button>
+              </div>
             </div>
           </div>`;
         })
@@ -2990,6 +2998,24 @@ ${itemsTex}
       if (window.MathJax && window.MathJax.typesetPromise) {
         window.MathJax.typesetPromise([cardsContainer]).catch(() => {});
       }
+      // Wire the same JS-managed hover as the search page so cards expand
+      // when hovered without pushing the rest of the grid down.
+      cardsContainer.querySelectorAll('.search-result-wrap').forEach(wrap => {
+        const hot    = wrap.querySelector('.search-result-hot-zone');
+        const addBtn = wrap.querySelector('.result-add');
+        const targets = [hot, addBtn].filter(Boolean);
+        const enter = () => wrap.classList.add('is-hovered');
+        const leave = () => {
+          setTimeout(() => {
+            const stillIn = targets.some(t => t.matches(':hover'));
+            if (!stillIn) wrap.classList.remove('is-hovered');
+          }, 0);
+        };
+        targets.forEach(t => {
+          t.addEventListener('mouseenter', enter);
+          t.addEventListener('mouseleave', leave);
+        });
+      });
     }
 
     refresh();
