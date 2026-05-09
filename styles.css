@@ -1452,6 +1452,10 @@ canvas.crop-display {
   border-bottom-color: var(--accent);
   font-weight: 600;
 }
+/* Spacer that pushes any trailing action (e.g. "Export (JSON)" on the
+   Problems page) to the far right of the tab row. */
+.page-tabs-spacer { flex: 1 1 auto; }
+.page-tabs-action { align-self: center; margin-bottom: 0.4rem; }
 .page-tab .count {
   color: var(--muted);
   font-weight: 400;
