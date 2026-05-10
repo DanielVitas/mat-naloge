@@ -1224,6 +1224,36 @@ function applyIndexStatuses() {
   });
 }
 
+// Hovering a card in a .search-results grid can expand the card downward
+// past its row. When the card is in the LAST visible row of the grid, the
+// expansion has nowhere to overflow into (the grid's bounds are determined
+// by `grid-auto-rows: 13em`), so the bottom of the card gets clipped or
+// runs off the page. This helper pads the grid bottom dynamically so the
+// expanded card has room — and so the document scrollHeight grows when an
+// expanded card extends below the viewport.
+function adjustHoverOverflowGuard(wrap, isHovered) {
+  const grid = wrap && wrap.closest('.search-results');
+  const card = wrap && wrap.querySelector('.search-result');
+  if (!grid || !card) return;
+  if (!isHovered) {
+    grid.style.paddingBottom = '';
+    return;
+  }
+  // Measure after the next paint so the .is-hovered styles have applied.
+  requestAnimationFrame(() => {
+    const cardRect = card.getBoundingClientRect();
+    const gridRect = grid.getBoundingClientRect();
+    const overflow = cardRect.bottom - gridRect.bottom;
+    // (gridRect.bottom is the bottom edge ignoring our temporary padding,
+    // because padding-bottom was just cleared on enter.)
+    if (overflow > 0) {
+      grid.style.paddingBottom = (overflow + 12) + 'px';
+    } else {
+      grid.style.paddingBottom = '';
+    }
+  });
+}
+
 // Index-page card hydration: render LaTeX previews from window.PROBLEMS_LATEX,
 // wire hover-to-expand on each .search-result-wrap, and route hot-zone
 // clicks to the corresponding problem page.
@@ -1248,10 +1278,16 @@ function hydrateIndexCards() {
   document.querySelectorAll('.search-result-wrap[data-id]').forEach(wrap => {
     const hot = wrap.querySelector('.search-result-hot-zone');
     if (!hot) return;
-    const enter = () => wrap.classList.add('is-hovered');
+    const enter = () => {
+      wrap.classList.add('is-hovered');
+      adjustHoverOverflowGuard(wrap, true);
+    };
     const leave = () => {
       setTimeout(() => {
-        if (!hot.matches(':hover')) wrap.classList.remove('is-hovered');
+        if (!hot.matches(':hover')) {
+          wrap.classList.remove('is-hovered');
+          adjustHoverOverflowGuard(wrap, false);
+        }
       }, 0);
     };
     hot.addEventListener('mouseenter', enter);
@@ -2214,13 +2250,19 @@ async function initSearchPage(opts) {
       const hot    = wrap.querySelector('.search-result-hot-zone');
       const addBtn = wrap.querySelector('.result-add');
       const targets = [hot, addBtn].filter(Boolean);
-      const enter = () => wrap.classList.add('is-hovered');
+      const enter = () => {
+        wrap.classList.add('is-hovered');
+        adjustHoverOverflowGuard(wrap, true);
+      };
       const leave = () => {
         // Defer one task so transitions between hot-zone and Add button
         // (cursor crossing the boundary) don't flicker the class off.
         setTimeout(() => {
           const stillIn = targets.some(t => t.matches(':hover'));
-          if (!stillIn) wrap.classList.remove('is-hovered');
+          if (!stillIn) {
+            wrap.classList.remove('is-hovered');
+            adjustHoverOverflowGuard(wrap, false);
+          }
         }, 0);
       };
       targets.forEach(t => {
@@ -3131,11 +3173,17 @@ ${itemsTex}
         const hot    = wrap.querySelector('.search-result-hot-zone');
         const addBtn = wrap.querySelector('.result-add');
         const targets = [hot, addBtn].filter(Boolean);
-        const enter = () => wrap.classList.add('is-hovered');
+        const enter = () => {
+          wrap.classList.add('is-hovered');
+          adjustHoverOverflowGuard(wrap, true);
+        };
         const leave = () => {
           setTimeout(() => {
             const stillIn = targets.some(t => t.matches(':hover'));
-            if (!stillIn) wrap.classList.remove('is-hovered');
+            if (!stillIn) {
+              wrap.classList.remove('is-hovered');
+              adjustHoverOverflowGuard(wrap, false);
+            }
           }, 0);
         };
         targets.forEach(t => {

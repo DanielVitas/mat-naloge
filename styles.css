@@ -4,7 +4,7 @@
      readable contrast. */
   --bg: #faf6f1; --fg: #3b3540; --muted: #8a8190;
   --card-bg: #ffffff; --card-border: #ebe4ef;
-  --accent: #8b9cd6; --accent-hover: #6f80c0;
+  --accent: #c84a4a; --accent-hover: #a83838;
   --warn: #b97a55; --warn-bg: #fdebd8;
   --ok: #6c9a72; --ok-bg: #ddecd9;
   --tag-source-bg: #fce0ea; --tag-source-fg: #a85878;
@@ -246,7 +246,12 @@ a:hover { text-decoration: underline; }
   border: 1px solid var(--card-border);
   border-radius: 8px;
   background: var(--card-bg);
-  overflow: hidden;
+  /* No `overflow: hidden` here — when an .is-hovered .search-result inside
+     the grid expands downward, it needs to escape past the bottom of this
+     section. Clipping was previously cutting off the last row's hover
+     expansion. The border-radius still draws cleanly because the section's
+     own background fills the rounded box; only absolutely-positioned
+     descendants overflow it. */
 }
 .collection > summary {
   list-style: none;
@@ -550,7 +555,7 @@ button:disabled { opacity: 0.5; cursor: default; }
   padding: 0 0.4rem;
   border-radius: 6px;
 }
-.title-row .nav-arrow:hover { background: rgba(37, 99, 235, 0.08); }
+.title-row .nav-arrow:hover { background: rgba(200, 74, 74, 0.08); }
 .title-row .nav-arrow.disabled {
   color: var(--card-border); cursor: default; pointer-events: none;
 }
@@ -863,7 +868,7 @@ canvas.crop-display {
 .canvas-wrap .selection-box {
   position: absolute;
   border: 2px solid var(--accent);
-  background: rgba(37, 99, 235, 0.10);
+  background: rgba(200, 74, 74, 0.10);
   pointer-events: none;
 }
 .editor-actions {
@@ -1791,7 +1796,7 @@ body.page-exam.latex-open .finishing-right { display: flex; }
   background: var(--accent);
   border-radius: 2px;
   pointer-events: none;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.18);
+  box-shadow: 0 0 0 2px rgba(200, 74, 74, 0.18);
   display: none;
   z-index: 5;
 }
@@ -1847,7 +1852,7 @@ body.page-exam.latex-open .finishing-right { display: flex; }
   overflow: hidden;
   cursor: pointer;
 }
-.add-random-control:hover { background: rgba(37, 99, 235, 0.06); }
+.add-random-control:hover { background: rgba(200, 74, 74, 0.06); }
 .add-random-control:hover button { color: var(--accent); }
 .add-random-prefix,
 .add-random-suffix {
@@ -1872,7 +1877,7 @@ body.page-exam.latex-open .finishing-right { display: flex; }
 .add-random-control input::-webkit-outer-spin-button {
   -webkit-appearance: none; margin: 0;
 }
-.add-random-control input:focus { outline: none; background: rgba(37, 99, 235, 0.08); }
+.add-random-control input:focus { outline: none; background: rgba(200, 74, 74, 0.08); }
 .add-random-control button {
   background: transparent;
   border: 0;
@@ -1918,7 +1923,7 @@ body.page-exam.latex-open .finishing-right { display: flex; }
 }
 .finishing-add-from-coll:hover,
 .finishing-add-search:hover {
-  background: rgba(37, 99, 235, 0.06);
+  background: rgba(200, 74, 74, 0.06);
   border-color: var(--accent);
 }
 .finishing-add-coll-list {
@@ -1935,7 +1940,7 @@ body.page-exam.latex-open .finishing-right { display: flex; }
   cursor: pointer;
 }
 .finishing-add-coll-item:hover {
-  background: rgba(37, 99, 235, 0.08);
+  background: rgba(200, 74, 74, 0.08);
   border-color: var(--accent);
   color: var(--accent);
 }
@@ -2096,7 +2101,7 @@ body.page-exam.latex-open .finishing-right { display: flex; }
 .finishing-heading-add:hover {
   color: var(--accent);
   border-color: var(--accent);
-  background: rgba(37, 99, 235, 0.06);
+  background: rgba(200, 74, 74, 0.06);
 }
 
 /* Heading preview (Title + name/surname/points/grade fields) */
@@ -2122,10 +2127,10 @@ body.page-exam.latex-open .finishing-right { display: flex; }
   cursor: text;
 }
 .exam-heading-title[contenteditable="true"]:hover {
-  background: rgba(37, 99, 235, 0.06);
+  background: rgba(200, 74, 74, 0.06);
 }
 .exam-heading-title[contenteditable="true"]:focus {
-  background: rgba(37, 99, 235, 0.10);
+  background: rgba(200, 74, 74, 0.10);
   outline: 1px dashed var(--accent);
   outline-offset: 2px;
 }
