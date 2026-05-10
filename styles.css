@@ -602,15 +602,25 @@ button:disabled { opacity: 0.5; cursor: default; }
 }
 .meta-right .action-row { margin: 0; }
 
-/* "Show original image" / "Show LaTeX render" toggle on the problem
-   page. Hidden by default (only shown when both views are available);
-   filled accent when active. */
-#prefer-image-toggle { font-size: 0.85rem; }
-#prefer-image-toggle.is-active {
+/* Per-figure TikZ-vs-original toggle. The button is added by JS inside
+   every .tex-tikz that has a `data-tikz-orig` attribute (i.e. a
+   companion original-figure crop is available). The button is pinned to
+   the top-right of the figure box. */
+.preview-box .tex-tikz { position: relative; }
+.tikz-toggle {
+  position: absolute; top: 4px; right: 4px;
+  font-size: 0.7rem; padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  background: var(--card-bg); color: var(--accent);
+  border: 1px solid var(--card-border);
+  cursor: pointer; z-index: 2;
+}
+.tikz-toggle:hover {
   background: var(--accent); color: white; border-color: var(--accent);
 }
-#prefer-image-toggle.is-active:hover {
-  background: var(--accent-hover); border-color: var(--accent-hover); color: white;
+.tikz-orig-img {
+  display: block; max-width: 100%; max-height: 100%;
+  width: auto; height: auto;
 }
 
 /* Topics row: shown right under title-row, distinct color, optional label */

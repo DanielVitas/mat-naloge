@@ -263,7 +263,7 @@ function initCollectionBar() {
           n: n, latex: data.latex || '',
           tikzCount: data.tikz_count || 0,
           bodyImage: data.body_image,
-          preferImage: !!effectiveState(n).prefer_image,
+          tikzOriginals: data.tikz_originals || [],
         });
       } else {
         previewEl.textContent = '…';
@@ -496,10 +496,10 @@ function pendingChanges() {
       latex:       v => JSON.stringify(v),
       bbox:        v => JSON.stringify(v),
       bboxes:      v => JSON.stringify(v || null),
-      outdated:     v => JSON.stringify(!!v),
-      approved_by:  v => JSON.stringify(v || null),
-      topics:       v => JSON.stringify(v || null),
-      prefer_image: v => JSON.stringify(!!v),
+      outdated:    v => JSON.stringify(!!v),
+      approved_by: v => JSON.stringify(v || null),
+      topics:      v => JSON.stringify(v || null),
+      tikz_orig:   v => JSON.stringify(v || null),
     };
     let differs = false;
     for (const f of Object.keys(norm)) {
@@ -917,7 +917,11 @@ function initSyncBar() {
 // flash through during edits. The hydrator either fills the slot from its
 // per-index last-render cache (synchronously) or shows a "rendering TikZ…"
 // label until the new SVG arrives.
-function latexToHtml(src, problemId, tikzCount, hydrateTikz) {
+// `tikzOriginals` (optional): array of URLs, the i-th entry is the path to
+// the original cropped figure for the i-th tikzpicture block. When set,
+// the resulting .tex-tikz div carries a `data-tikz-orig` attribute that
+// the per-figure toggle wired by installTikzOrigToggles can swap to.
+function latexToHtml(src, problemId, tikzCount, hydrateTikz, tikzOriginals) {
   if (!src) return '';
   const padded = (problemId == null) ? null : String(problemId).padStart(3, '0');
   let tikzIdx = 0;
@@ -935,14 +939,28 @@ function latexToHtml(src, problemId, tikzCount, hydrateTikz) {
   src = src.replace(/\\begin\{align\*?\}([\s\S]*?)\\end\{align\*?\}/g,
     (_, i) => stashIt('$$\\begin{aligned}' + i + '\\end{aligned}$$'));
 
+  // Per-figure "show original instead of TikZ render" state for THIS
+  // problem, keyed by 1-indexed figure number. Stored under prob-N
+  // localStorage by the toggle button on the problem page; also
+  // persisted to data.json via pendingChanges.
+  const tikzOrigState = (problemId != null
+                         ? (effectiveState(problemId).tikz_orig || {})
+                         : {});
   src = src.replace(/\\begin\{tikzpicture\}[\s\S]*?\\end\{tikzpicture\}/g, (match) => {
     tikzIdx++;
     // Encode the source so the live-preview hydrator can ship it to the
     // pdflatex backend on demand. encodeURIComponent keeps this UTF-8 safe
     // and embeddable as an attribute value.
     const enc = encodeURIComponent(match);
+    const origUrl = (tikzOriginals && tikzOriginals[tikzIdx - 1]) || '';
+    const showOrig = !!(origUrl && tikzOrigState[tikzIdx]);
     let initial;
-    if (hydrateTikz) {
+    if (showOrig) {
+      // User toggled THIS figure to its original cropped image. The
+      // hydrator skips elements with .using-orig and the toggle button
+      // shows the "TikZ render" label.
+      initial = `<img class="tikz-orig-img" src="${origUrl}" alt="original figure ${tikzIdx}">`;
+    } else if (hydrateTikz) {
       // Hydrator will replace this synchronously (from cache / lastSvg) or
       // asynchronously (from the backend). Showing the build-time SVG here
       // would just flash the *previous* render before the new one arrives.
@@ -953,7 +971,9 @@ function latexToHtml(src, problemId, tikzCount, hydrateTikz) {
     } else {
       initial = `<span class="tikz-loading">rendering TikZ…</span>`;
     }
-    return `<div class="tex-tikz" data-tikz-idx="${tikzIdx}" data-tikz-src="${enc}">${initial}</div>`;
+    const origAttr = origUrl ? ` data-tikz-orig="${origUrl}"` : '';
+    const cls = 'tex-tikz' + (showOrig ? ' using-orig' : '');
+    return `<div class="${cls}" data-tikz-idx="${tikzIdx}" data-tikz-src="${enc}"${origAttr}>${initial}</div>`;
   });
 
   src = src.replace(/\\begin\{tabular\}\{([^}]+)\}([\s\S]*?)\\end\{tabular\}/g,
@@ -1270,7 +1290,7 @@ function hydrateIndexCards() {
     renderProblemBody(body, {
       n: n, latex: latex, tikzCount: entry.tikz_count || 0,
       bodyImage: entry.body_image,
-      preferImage: !!ed.prefer_image,
+      tikzOriginals: entry.tikz_originals || [],
     });
   });
   if (window.MathJax && window.MathJax.typesetPromise) {
@@ -1301,28 +1321,27 @@ function hydrateIndexCards() {
   });
 }
 
-// Choose between an image-only body (the original cropped page image) and
-// the normal LaTeX-to-HTML render. Pick the image when:
-//   • there is no LaTeX yet (textbook fallback), or
-//   • the user has explicitly set state.prefer_image = true for this
-//     problem via the toggle on the problem page.
-// Otherwise render the LaTeX (with TikZ pre-rendered to SVG).
+// Pick between the body-image fallback (used when no LaTeX is available)
+// and the normal LaTeX-to-HTML render. Per-figure original-image toggles
+// inside the LaTeX are handled by latexToHtml + installTikzOrigToggles,
+// scoped to individual tikzpicture blocks rather than the whole body.
 function renderProblemBody(target, opts) {
   opts = opts || {};
   const bodyImg = opts.bodyImage;
   const latex   = opts.latex || '';
-  const preferImage = !!opts.preferImage;
-  if (bodyImg && (preferImage || !latex)) {
+  if (bodyImg && !latex) {
     target.innerHTML = '<img class="textbook-body-img" src="'
       + bodyImg + '" alt="Exercise ' + (opts.n != null ? opts.n : '') + '">';
     return;
   }
   target.innerHTML = latexToHtml(latex, opts.n,
                                  opts.tikzCount || 0,
-                                 !!opts.hydrateTikz);
+                                 !!opts.hydrateTikz,
+                                 opts.tikzOriginals || []);
 }
 
-function renderTeXPreview(srcText, target, problemId, tikzCount, hydrateTikz) {
+function renderTeXPreview(srcText, target, problemId, tikzCount, hydrateTikz,
+                          tikzOriginals) {
   // Snapshot the rendered box size of every existing .tex-tikz before we
   // wipe the DOM. Saved into target._tikzLocks so the freshly-emitted
   // placeholder divs inherit the same dimensions on the very next paint —
@@ -1344,7 +1363,8 @@ function renderTeXPreview(srcText, target, problemId, tikzCount, hydrateTikz) {
       if (r.width > 1 && r.height > 1) locks.set(idx, { w: r.width, h: r.height });
     });
   }
-  target.innerHTML = latexToHtml(srcText, problemId, tikzCount, hydrateTikz);
+  target.innerHTML = latexToHtml(srcText, problemId, tikzCount, hydrateTikz,
+                                 tikzOriginals || []);
   if (window.MathJax && window.MathJax.typesetPromise) {
     MathJax.typesetPromise([target]).catch(() => {});
   }
@@ -1424,13 +1444,57 @@ async function primeTikzCacheFromBuildTime(target) {
 //   _tikzLastSvg: idx -> svgString  (last successfully fetched SVG, used as
 //                                    a flicker-free placeholder while the
 //                                    next fetch is in flight)
+// For every .tex-tikz block inside `target` that carries a
+// `data-tikz-orig` attribute (i.e. a companion original cropped figure
+// exists), add a small "TikZ"/"Original" toggle button pinned to the
+// top-right of the figure. Clicking it flips state.tikz_orig[idx] for
+// the given problem and calls refreshFn (typically the preview's own
+// updatePreview) so the figure re-renders in the new mode.
+function installTikzOrigToggles(target, problemId, refreshFn) {
+  if (!target || problemId == null) return;
+  const wraps = target.querySelectorAll('.tex-tikz[data-tikz-orig]');
+  wraps.forEach(el => {
+    if (el.querySelector(':scope > .tikz-toggle')) return;  // already wired
+    const idx    = parseInt(el.getAttribute('data-tikz-idx') || '0', 10);
+    const orig   = el.getAttribute('data-tikz-orig') || '';
+    if (!idx || !orig) return;
+    const cur    = (loadState(problemId).tikz_orig || {})[idx];
+    const btn    = document.createElement('button');
+    btn.type     = 'button';
+    btn.className = 'tikz-toggle';
+    btn.textContent = cur ? 'TikZ render' : 'Original';
+    btn.title    = cur ? 'Show the compiled TikZ figure'
+                       : 'Show the original cropped figure from the textbook';
+    btn.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      const s = loadState(problemId);
+      s.tikz_orig = s.tikz_orig || {};
+      if (s.tikz_orig[idx]) {
+        delete s.tikz_orig[idx];
+        if (Object.keys(s.tikz_orig).length === 0) delete s.tikz_orig;
+      } else {
+        s.tikz_orig[idx] = true;
+      }
+      saveState(problemId, s);
+      if (typeof refreshFn === 'function') refreshFn();
+      const bar = document.getElementById('gh-sync');
+      if (bar && typeof bar._refresh === 'function') bar._refresh();
+    });
+    el.appendChild(btn);
+  });
+}
+
 async function hydrateTikzInPreview(target) {
   if (!target._tikzLocks)   target._tikzLocks   = new Map();
   if (!target._tikzLastSvg) target._tikzLastSvg = new Map();
   const locks   = target._tikzLocks;
   const lastSvg = target._tikzLastSvg;
 
-  const els = Array.from(target.querySelectorAll('.tex-tikz[data-tikz-src]'));
+  // Skip .tex-tikz blocks the user has explicitly switched to the
+  // original cropped figure — there's no TikZ to compile in those.
+  const els = Array.from(target.querySelectorAll(
+    '.tex-tikz[data-tikz-src]:not(.using-orig)'));
 
   // Step 1 (fully synchronous, runs before the browser paints): apply locks
   // and inject the previous render's SVG. This is what stops the build-time
@@ -1577,45 +1641,19 @@ async function initProblemPage(meta) {
   // user types a transcript.
   ta.value = state.latex !== undefined ? state.latex : meta.latex;
 
-  // Render the preview. Three cases:
-  //   • No LaTeX yet  → show the body crop image (textbook fallback).
-  //   • LaTeX present + user toggled "show original"  → body crop image.
-  //   • LaTeX present, default  → LaTeX → HTML render (with TikZ to SVG).
+  // Render the preview. Two cases:
+  //   • No LaTeX yet            → body crop image (textbook fallback).
+  //   • LaTeX present (default) → LaTeX → HTML render (with TikZ → SVG).
+  // Per-figure original-image toggles live INSIDE each .tex-tikz block and
+  // are wired by installTikzOrigToggles() after every preview render.
   function updatePreview(hydrateTikz) {
-    const wantImage = !!loadState(id).prefer_image;
-    if (meta.body_image && (wantImage || !ta.value)) {
+    if (!ta.value && meta.body_image) {
       renderProblemBody(preview, { n: meta.n, bodyImage: meta.body_image });
     } else {
-      renderTeXPreview(ta.value, preview, meta.n, meta.tikz_count, hydrateTikz);
+      renderTeXPreview(ta.value, preview, meta.n, meta.tikz_count, hydrateTikz,
+                       meta.tikz_originals || []);
     }
-  }
-
-  // The toggle is only meaningful when there are two valid views to flip
-  // between: a cropped page image AND a LaTeX transcript that contains
-  // a TikZ figure (i.e. the figure was redrawn in TikZ, not just text).
-  const toggleBtn = $('prefer-image-toggle');
-  const hasTikzLatex = /\\begin\{tikzpicture\}/.test(meta.latex || '');
-  function refreshPreferImageToggle() {
-    if (!toggleBtn) return;
-    const show = !!meta.body_image && hasTikzLatex;
-    toggleBtn.hidden = !show;
-    if (!show) return;
-    const on = !!loadState(id).prefer_image;
-    toggleBtn.textContent = on ? 'Show LaTeX render' : 'Show original image';
-    toggleBtn.classList.toggle('is-active', on);
-  }
-  refreshPreferImageToggle();
-  if (toggleBtn) {
-    toggleBtn.addEventListener('click', () => {
-      const s = loadState(id);
-      s.prefer_image = !s.prefer_image;
-      if (!s.prefer_image) delete s.prefer_image;   // keep state minimal
-      saveState(id, s);
-      refreshPreferImageToggle();
-      updatePreview(false);
-      const bar = document.getElementById('gh-sync');
-      if (bar && typeof bar._refresh === 'function') bar._refresh();
-    });
+    installTikzOrigToggles(preview, meta.n, () => updatePreview(false));
   }
 
   // On first render, only hit the /tikz backend if the LaTeX has been edited
@@ -2278,7 +2316,7 @@ async function initSearchPage(opts) {
       renderProblemBody(body, {
         n: p.n, latex: latex, tikzCount: p.tikz_count || 0,
         bodyImage: p.body_image,
-        preferImage: !!ed.prefer_image,
+        tikzOriginals: p.tikz_originals || [],
       });
     });
     if (window.MathJax && window.MathJax.typesetPromise) {
@@ -2956,11 +2994,11 @@ ${itemsTex}
       const meta = (item.n != null) ? byN[item.n] : null;
       const tikz = meta ? (meta.tikz_count || 0) : 0;
       const bodyImg = meta ? meta.body_image : undefined;
-      const eff = (item.n != null) ? effectiveState(item.n) : {};
+      const figOrig = meta ? (meta.tikz_originals || []) : [];
       renderProblemBody(body, {
         n: item.n, latex: item.content || '', tikzCount: tikz,
         bodyImage: bodyImg,
-        preferImage: !!eff.prefer_image,
+        tikzOriginals: figOrig,
       });
       // Inline the problem number with the first paragraph (no line break).
       const numHtml = `<strong class="result-num">${idx + 1}. </strong>`;
@@ -3205,7 +3243,7 @@ ${itemsTex}
         renderProblemBody(bodyEl, {
           n: n, latex: latex, tikzCount: data.tikz_count || 0,
           bodyImage: data.body_image,
-          preferImage: !!ed.prefer_image,
+          tikzOriginals: data.tikz_originals || [],
         });
       });
       if (window.MathJax && window.MathJax.typesetPromise) {
