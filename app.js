@@ -263,6 +263,7 @@ function initCollectionBar() {
           n: n, latex: data.latex || '',
           tikzCount: data.tikz_count || 0,
           bodyImage: data.body_image,
+          preferImage: !!effectiveState(n).prefer_image,
         });
       } else {
         previewEl.textContent = '…';
@@ -495,9 +496,10 @@ function pendingChanges() {
       latex:       v => JSON.stringify(v),
       bbox:        v => JSON.stringify(v),
       bboxes:      v => JSON.stringify(v || null),
-      outdated:    v => JSON.stringify(!!v),
-      approved_by: v => JSON.stringify(v || null),
-      topics:      v => JSON.stringify(v || null),
+      outdated:     v => JSON.stringify(!!v),
+      approved_by:  v => JSON.stringify(v || null),
+      topics:       v => JSON.stringify(v || null),
+      prefer_image: v => JSON.stringify(!!v),
     };
     let differs = false;
     for (const f of Object.keys(norm)) {
@@ -1268,6 +1270,7 @@ function hydrateIndexCards() {
     renderProblemBody(body, {
       n: n, latex: latex, tikzCount: entry.tikz_count || 0,
       bodyImage: entry.body_image,
+      preferImage: !!ed.prefer_image,
     });
   });
   if (window.MathJax && window.MathJax.typesetPromise) {
@@ -1298,18 +1301,23 @@ function hydrateIndexCards() {
   });
 }
 
-// Choose between an image-only body (textbook crops, where there is no
-// LaTeX) and the normal LaTeX-to-HTML render. When body_image is set on
-// the problem entry, we just emit a single <img>; the rest of the page
-// (filters, hover, click-to-navigate) keeps working unchanged.
+// Choose between an image-only body (the original cropped page image) and
+// the normal LaTeX-to-HTML render. Pick the image when:
+//   • there is no LaTeX yet (textbook fallback), or
+//   • the user has explicitly set state.prefer_image = true for this
+//     problem via the toggle on the problem page.
+// Otherwise render the LaTeX (with TikZ pre-rendered to SVG).
 function renderProblemBody(target, opts) {
-  const bodyImg = opts && opts.bodyImage;
-  if (bodyImg) {
+  opts = opts || {};
+  const bodyImg = opts.bodyImage;
+  const latex   = opts.latex || '';
+  const preferImage = !!opts.preferImage;
+  if (bodyImg && (preferImage || !latex)) {
     target.innerHTML = '<img class="textbook-body-img" src="'
       + bodyImg + '" alt="Exercise ' + (opts.n != null ? opts.n : '') + '">';
     return;
   }
-  target.innerHTML = latexToHtml(opts.latex || '', opts.n,
+  target.innerHTML = latexToHtml(latex, opts.n,
                                  opts.tikzCount || 0,
                                  !!opts.hydrateTikz);
 }
@@ -1569,13 +1577,45 @@ async function initProblemPage(meta) {
   // user types a transcript.
   ta.value = state.latex !== undefined ? state.latex : meta.latex;
 
-  // Render the preview: LaTeX if there is any, otherwise the body image.
+  // Render the preview. Three cases:
+  //   • No LaTeX yet  → show the body crop image (textbook fallback).
+  //   • LaTeX present + user toggled "show original"  → body crop image.
+  //   • LaTeX present, default  → LaTeX → HTML render (with TikZ to SVG).
   function updatePreview(hydrateTikz) {
-    if (!ta.value && meta.body_image) {
+    const wantImage = !!loadState(id).prefer_image;
+    if (meta.body_image && (wantImage || !ta.value)) {
       renderProblemBody(preview, { n: meta.n, bodyImage: meta.body_image });
     } else {
       renderTeXPreview(ta.value, preview, meta.n, meta.tikz_count, hydrateTikz);
     }
+  }
+
+  // The toggle is only meaningful when there are two valid views to flip
+  // between: a cropped page image AND a LaTeX transcript that contains
+  // a TikZ figure (i.e. the figure was redrawn in TikZ, not just text).
+  const toggleBtn = $('prefer-image-toggle');
+  const hasTikzLatex = /\\begin\{tikzpicture\}/.test(meta.latex || '');
+  function refreshPreferImageToggle() {
+    if (!toggleBtn) return;
+    const show = !!meta.body_image && hasTikzLatex;
+    toggleBtn.hidden = !show;
+    if (!show) return;
+    const on = !!loadState(id).prefer_image;
+    toggleBtn.textContent = on ? 'Show LaTeX render' : 'Show original image';
+    toggleBtn.classList.toggle('is-active', on);
+  }
+  refreshPreferImageToggle();
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      const s = loadState(id);
+      s.prefer_image = !s.prefer_image;
+      if (!s.prefer_image) delete s.prefer_image;   // keep state minimal
+      saveState(id, s);
+      refreshPreferImageToggle();
+      updatePreview(false);
+      const bar = document.getElementById('gh-sync');
+      if (bar && typeof bar._refresh === 'function') bar._refresh();
+    });
   }
 
   // On first render, only hit the /tikz backend if the LaTeX has been edited
@@ -2238,6 +2278,7 @@ async function initSearchPage(opts) {
       renderProblemBody(body, {
         n: p.n, latex: latex, tikzCount: p.tikz_count || 0,
         bodyImage: p.body_image,
+        preferImage: !!ed.prefer_image,
       });
     });
     if (window.MathJax && window.MathJax.typesetPromise) {
@@ -2915,9 +2956,11 @@ ${itemsTex}
       const meta = (item.n != null) ? byN[item.n] : null;
       const tikz = meta ? (meta.tikz_count || 0) : 0;
       const bodyImg = meta ? meta.body_image : undefined;
+      const eff = (item.n != null) ? effectiveState(item.n) : {};
       renderProblemBody(body, {
         n: item.n, latex: item.content || '', tikzCount: tikz,
         bodyImage: bodyImg,
+        preferImage: !!eff.prefer_image,
       });
       // Inline the problem number with the first paragraph (no line break).
       const numHtml = `<strong class="result-num">${idx + 1}. </strong>`;
@@ -3162,6 +3205,7 @@ ${itemsTex}
         renderProblemBody(bodyEl, {
           n: n, latex: latex, tikzCount: data.tikz_count || 0,
           bodyImage: data.body_image,
+          preferImage: !!ed.prefer_image,
         });
       });
       if (window.MathJax && window.MathJax.typesetPromise) {

@@ -602,6 +602,17 @@ button:disabled { opacity: 0.5; cursor: default; }
 }
 .meta-right .action-row { margin: 0; }
 
+/* "Show original image" / "Show LaTeX render" toggle on the problem
+   page. Hidden by default (only shown when both views are available);
+   filled accent when active. */
+#prefer-image-toggle { font-size: 0.85rem; }
+#prefer-image-toggle.is-active {
+  background: var(--accent); color: white; border-color: var(--accent);
+}
+#prefer-image-toggle.is-active:hover {
+  background: var(--accent-hover); border-color: var(--accent-hover); color: white;
+}
+
 /* Topics row: shown right under title-row, distinct color, optional label */
 .topics-row {
   display: flex; align-items: center; gap: 0.5rem;
