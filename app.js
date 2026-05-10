@@ -259,7 +259,11 @@ function initCollectionBar() {
       previewEl.className = 'collection-preview';
       const data = latexMap[n] || latexMap[String(n)];
       if (data) {
-        previewEl.innerHTML = latexToHtml(data.latex || '', n, data.tikz_count || 0);
+        renderProblemBody(previewEl, {
+          n: n, latex: data.latex || '',
+          tikzCount: data.tikz_count || 0,
+          bodyImage: data.body_image,
+        });
       } else {
         previewEl.textContent = '…';
       }
@@ -1231,7 +1235,10 @@ function hydrateIndexCards() {
     if (!entry) return;
     const ed = effectiveState(n);
     const latex = (ed.latex !== undefined) ? ed.latex : entry.latex;
-    body.innerHTML = latexToHtml(latex, n, entry.tikz_count || 0);
+    renderProblemBody(body, {
+      n: n, latex: latex, tikzCount: entry.tikz_count || 0,
+      bodyImage: entry.body_image,
+    });
   });
   if (window.MathJax && window.MathJax.typesetPromise) {
     window.MathJax.typesetPromise(
@@ -1253,6 +1260,22 @@ function hydrateIndexCards() {
       if (hot.dataset.href) window.location.href = hot.dataset.href;
     });
   });
+}
+
+// Choose between an image-only body (textbook crops, where there is no
+// LaTeX) and the normal LaTeX-to-HTML render. When body_image is set on
+// the problem entry, we just emit a single <img>; the rest of the page
+// (filters, hover, click-to-navigate) keeps working unchanged.
+function renderProblemBody(target, opts) {
+  const bodyImg = opts && opts.bodyImage;
+  if (bodyImg) {
+    target.innerHTML = '<img class="textbook-body-img" src="'
+      + bodyImg + '" alt="Exercise ' + (opts.n != null ? opts.n : '') + '">';
+    return;
+  }
+  target.innerHTML = latexToHtml(opts.latex || '', opts.n,
+                                 opts.tikzCount || 0,
+                                 !!opts.hydrateTikz);
 }
 
 function renderTeXPreview(srcText, target, problemId, tikzCount, hydrateTikz) {
@@ -1495,14 +1518,22 @@ async function initProblemPage(meta) {
   const approversEl   = $('approvers');
   const exportBtn     = $('export-changes');
 
-  // -------- LaTeX --------
-  ta.value = state.latex !== undefined ? state.latex : meta.latex;
   updateBadge(state.outdated);
   renderApprovers();
   renderTopicsEditor(meta);
   // Expose a refresh hook so changes to display names elsewhere (e.g. from
   // the dropdown) update the chip text without a reload.
   window.refreshApprovalChip = renderApprovers;
+  wireExportAndBadge();
+
+  // Textbook problems have no LaTeX editor, no separate crop view, and
+  // no TikZ figures — the body image rendered server-side IS the entire
+  // problem display. Skip the LaTeX + crop wiring for them; the rest of
+  // the page (status badge, approve, topics, export) still applies.
+  if (meta.is_textbook) return;
+
+  // -------- LaTeX --------
+  ta.value = state.latex !== undefined ? state.latex : meta.latex;
   // On first render, only hit the /tikz backend if the LaTeX has been edited
   // away from the build-time source — otherwise the pre-rendered SVGs that
   // ship with the page are already correct and there's no point waiting for
@@ -1702,16 +1733,6 @@ async function initProblemPage(meta) {
     window.addEventListener('touchend', () => { dragStart = null; });
   }
 
-  // -------- Outdated flag (click the status badge to toggle) --------
-  badge.addEventListener('click', () => {
-    const s = loadState(id);
-    s.outdated = !s.outdated;
-    saveState(id, s);
-    updateBadge(s.outdated);
-    const bar = document.getElementById('gh-sync');
-    if (bar && typeof bar._refresh === 'function') bar._refresh();
-  });
-
   // -------- Approve --------
   // Click the self chip to toggle whether MY login is in approved_by.
   // Other approvers are rendered as read-only chips to the left.
@@ -1782,17 +1803,30 @@ async function initProblemPage(meta) {
     badge.hidden = !signedIn;
   }
 
-  exportBtn.addEventListener('click', () => {
-    const s = loadState(id);
-    const blob = new Blob([JSON.stringify({id, ...s}, null, 2)],
-      { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `prob-${String(id).padStart(3,'0')}-changes.json`;
-    document.body.appendChild(a); a.click(); a.remove();
-    URL.revokeObjectURL(url);
-  });
+  // Common wiring used by both Matura and Textbook problem pages:
+  // status-badge toggle (Matura only — Textbook problems aren't outdate-able)
+  // and the per-problem JSON export button.
+  function wireExportAndBadge() {
+    badge.addEventListener('click', () => {
+      const s = loadState(id);
+      s.outdated = !s.outdated;
+      saveState(id, s);
+      updateBadge(s.outdated);
+      const bar = document.getElementById('gh-sync');
+      if (bar && typeof bar._refresh === 'function') bar._refresh();
+    });
+    exportBtn.addEventListener('click', () => {
+      const s = loadState(id);
+      const blob = new Blob([JSON.stringify({id, ...s}, null, 2)],
+        { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `prob-${String(id).padStart(3,'0')}-changes.json`;
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    });
+  }
 
   function updateBadge(outdated) {
     if (outdated) {
@@ -2086,6 +2120,19 @@ async function initSearchPage(opts) {
   // Filter + render. A problem matches if its scalar fields are in range
   // and at least one value of each multi-valued field is selected.
   function matches(p) {
+    if (!state.sources.has(p.source)) return false;
+    // Textbook problems don't carry the Matura-paper fields (year, season,
+    // pola, level, section letter, points), so skip those filters and only
+    // honour Source + Topic. (Topics will be filterable once they're tagged.)
+    if (p.source === 'Textbook') {
+      const topics = effectiveTopics(p.n, p.topics);
+      if (topics.length === 0) {
+        if (state.topics.size !== allTopicsArr.length) return false;
+      } else if (!topics.some(t => state.topics.has(t))) {
+        return false;
+      }
+      return true;
+    }
     const yr = parseInt(p.year, 10);
     if (yr < state.yearMin || yr > state.yearMax) return false;
     const pointsNs = p.points_ns || [];
@@ -2093,7 +2140,6 @@ async function initSearchPage(opts) {
       ? state.pointsMin <= 0 && 0 <= state.pointsMax
       : pointsNs.some(n => n >= state.pointsMin && n <= state.pointsMax);
     if (!ptsOk) return false;
-    if (!state.sources.has(p.source)) return false;
     if (!(p.polas_n || []).some(v => state.polas.has(v))) return false;
     if (!(p.levels  || []).some(v => state.levels.has(v))) return false;
     if (!(p.section_letters || []).some(v => state.sections.has(v))) return false;
@@ -2139,13 +2185,16 @@ async function initSearchPage(opts) {
         </div>
       </div>`;
     }).join('');
-    // Render the LaTeX previews
+    // Render the LaTeX previews (or the textbook crop image, if any).
     out.forEach(p => {
       const body = resultsEl.querySelector(`.result-body[data-id="${p.n}"]`);
       if (!body) return;
       const ed = effectiveState(p.n);
       const latex = (ed.latex !== undefined) ? ed.latex : p.latex;
-      body.innerHTML = latexToHtml(latex, p.n, p.tikz_count || 0);
+      renderProblemBody(body, {
+        n: p.n, latex: latex, tikzCount: p.tikz_count || 0,
+        bodyImage: p.body_image,
+      });
     });
     if (window.MathJax && window.MathJax.typesetPromise) {
       window.MathJax.typesetPromise([resultsEl]).catch(() => {});
@@ -2813,8 +2862,13 @@ ${itemsTex}
       block.appendChild(dragH);
       const body = document.createElement('div');
       body.className = 'finishing-block-body';
-      const tikz = (item.n != null && byN[item.n]) ? (byN[item.n].tikz_count || 0) : 0;
-      body.innerHTML = latexToHtml(item.content || '', item.n, tikz);
+      const meta = (item.n != null) ? byN[item.n] : null;
+      const tikz = meta ? (meta.tikz_count || 0) : 0;
+      const bodyImg = meta ? meta.body_image : undefined;
+      renderProblemBody(body, {
+        n: item.n, latex: item.content || '', tikzCount: tikz,
+        bodyImage: bodyImg,
+      });
       // Inline the problem number with the first paragraph (no line break).
       const numHtml = `<strong class="result-num">${idx + 1}. </strong>`;
       const firstP = body.querySelector('p');
@@ -3047,7 +3101,7 @@ ${itemsTex}
           </div>`;
         })
         .join('');
-      // Render LaTeX previews inside each card.
+      // Render LaTeX previews (or textbook crop image) inside each card.
       collection.forEach(n => {
         const data = byN[n];
         if (!data) return;
@@ -3055,7 +3109,10 @@ ${itemsTex}
         if (!bodyEl) return;
         const ed = effectiveState(n);
         const latex = (ed.latex !== undefined) ? ed.latex : data.latex;
-        bodyEl.innerHTML = latexToHtml(latex, n, data.tikz_count || 0);
+        renderProblemBody(bodyEl, {
+          n: n, latex: latex, tikzCount: data.tikz_count || 0,
+          bodyImage: data.body_image,
+        });
       });
       if (window.MathJax && window.MathJax.typesetPromise) {
         window.MathJax.typesetPromise([cardsContainer]).catch(() => {});

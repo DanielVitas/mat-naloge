@@ -38,6 +38,8 @@ a:hover { text-decoration: underline; }
 .tag.level   { background: var(--tag-level-bg);   color: var(--tag-level-fg); }
 .tag.section { background: var(--tag-section-bg); color: var(--tag-section-fg); }
 .tag.points  { background: var(--tag-points-bg);  color: var(--tag-points-fg); }
+.tag.book          { background: #f5e9d6; color: #6b4a18; }
+.tag.book-section  { background: #fef3c7; color: #78350f; }
 .tag.topic   {
   background: var(--tag-topic-bg);  color: var(--tag-topic-fg);
   border: 1px solid var(--tag-topic-sub-border);
@@ -682,6 +684,33 @@ textarea#latex-source {
   width: 100%; height: 100%;
   max-width: none; max-height: none;
 }
+/* Textbook problems are image-only: a single PNG crop replaces the LaTeX
+   preview body. Sizing rules per surface so the same image looks reasonable
+   inside a 13em search-result card, on the index, in the exam preview, in
+   the collection dropdown, and on the standalone problem page. */
+.textbook-body-img {
+  display: block; max-width: 100%; height: auto;
+  border-radius: 4px;
+}
+.search-result .result-body .textbook-body-img {
+  /* Fits inside the 13em fixed-height card; the bottom-fade gradient still
+     hides any overflow until the card expands on hover. */
+  max-height: 11em; width: auto;
+}
+.search-result-wrap.is-hovered .search-result .result-body .textbook-body-img {
+  max-height: none;
+}
+.collection-preview .textbook-body-img {
+  max-height: 4.5em; width: auto;
+}
+.finishing-block-body .textbook-body-img {
+  max-width: 100%; height: auto;
+  margin: 0.2rem 0;
+}
+.preview-box .textbook-body-img {
+  max-width: 100%;
+}
+
 .preview-box .tex-tikz .tikz-loading {
   display: inline-block; padding: 0.4rem 0.8rem;
   font-size: 0.8rem; color: var(--muted);
