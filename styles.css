@@ -1,19 +1,22 @@
 :root {
-  --bg: #fafafa; --fg: #1a1a1a; --muted: #666;
-  --card-bg: #fff; --card-border: #e3e3e3;
-  --accent: #2563eb; --accent-hover: #1d4ed8;
-  --warn: #d97706; --warn-bg: #fef3c7;
-  --ok: #047857; --ok-bg: #d1fae5;
-  --tag-source-bg: #fce7f3; --tag-source-fg: #9d174d;
-  --tag-year-bg: #dbeafe; --tag-year-fg: #1e40af;
-  --tag-season-bg: #d1fae5; --tag-season-fg: #065f46;
-  --tag-pola-bg: #ede9fe; --tag-pola-fg: #5b21b6;
-  --tag-level-bg: #fed7aa; --tag-level-fg: #9a3412;
-  --tag-section-bg: #fef3c7; --tag-section-fg: #92400e;
-  --tag-points-bg: #e5e7eb; --tag-points-fg: #374151;
-  --tag-topic-bg: #e0f2fe; --tag-topic-fg: #0369a1;
-  --tag-topic-main-bg: #e0e7ff; --tag-topic-main-fg: #3730a3; --tag-topic-main-border: #c7d2fe;
-  --tag-topic-sub-bg:  #e0f2fe; --tag-topic-sub-fg:  #0369a1; --tag-topic-sub-border:  #bae6fd;
+  /* Soft pastel palette: warm cream background, dusty-periwinkle accent,
+     muted pastel tag chips. Foreground text stays a soft dark plum for
+     readable contrast. */
+  --bg: #faf6f1; --fg: #3b3540; --muted: #8a8190;
+  --card-bg: #ffffff; --card-border: #ebe4ef;
+  --accent: #8b9cd6; --accent-hover: #6f80c0;
+  --warn: #b97a55; --warn-bg: #fdebd8;
+  --ok: #6c9a72; --ok-bg: #ddecd9;
+  --tag-source-bg: #fce0ea; --tag-source-fg: #a85878;
+  --tag-year-bg: #e0e8f7; --tag-year-fg: #5e76b0;
+  --tag-season-bg: #dcebde; --tag-season-fg: #56856a;
+  --tag-pola-bg: #e6dffa; --tag-pola-fg: #7867b0;
+  --tag-level-bg: #fce0c7; --tag-level-fg: #b97349;
+  --tag-section-bg: #fdf1c8; --tag-section-fg: #a88347;
+  --tag-points-bg: #ecedef; --tag-points-fg: #5c6477;
+  --tag-topic-bg: #e3f1f9; --tag-topic-fg: #5990b5;
+  --tag-topic-main-bg: #e7e3f8; --tag-topic-main-fg: #6f659f; --tag-topic-main-border: #d4ccf0;
+  --tag-topic-sub-bg:  #e3f1f9; --tag-topic-sub-fg:  #5990b5; --tag-topic-sub-border:  #c9e3f1;
 }
 * { box-sizing: border-box; }
 body {
@@ -38,9 +41,9 @@ a:hover { text-decoration: underline; }
 .tag.level   { background: var(--tag-level-bg);   color: var(--tag-level-fg); }
 .tag.section { background: var(--tag-section-bg); color: var(--tag-section-fg); }
 .tag.points  { background: var(--tag-points-bg);  color: var(--tag-points-fg); }
-.tag.book          { background: #f5e9d6; color: #6b4a18; }
-.tag.book-chapter  { background: #fde7c7; color: #92400e; }
-.tag.book-section  { background: #fef3c7; color: #78350f; }
+.tag.book          { background: #f1e3d0; color: #a07a4a; }
+.tag.book-chapter  { background: #f5dbb8; color: #b07549; }
+.tag.book-section  { background: #fdf1c8; color: #a88347; }
 .tag.topic   {
   background: var(--tag-topic-bg);  color: var(--tag-topic-fg);
   border: 1px solid var(--tag-topic-sub-border);
@@ -388,18 +391,18 @@ a:hover { text-decoration: underline; }
   background: var(--warn-bg);                                   /* yellow */
 }
 .problem-card.status-approved-other:not(.status-outdated) {
-  background: #d1fae5;                                          /* light green */
+  background: #ddecd9;                                          /* light green */
 }
 .problem-card.status-approved-me:not(.status-outdated) {
-  background: #34d399;                                          /* dark green */
+  background: #b8e0bd;                                          /* dark green */
 }
 .problem-card.status-outdated.status-approved-other {
-  background: linear-gradient(to right, var(--warn-bg) 50%, #d1fae5 50%);
+  background: linear-gradient(to right, var(--warn-bg) 50%, #ddecd9 50%);
 }
 .problem-card.status-outdated.status-approved-me {
-  background: linear-gradient(to right, var(--warn-bg) 50%, #34d399 50%);
+  background: linear-gradient(to right, var(--warn-bg) 50%, #b8e0bd 50%);
 }
-.problem-card.status-approved-me .card-num { color: #064e3b; }
+.problem-card.status-approved-me .card-num { color: #4a6e51; }
 
 /* Same status-driven background colours, applied to .search-result cards
    on the Problems page. (.search-result-wrap[data-id] > .search-result is
@@ -409,28 +412,28 @@ a:hover { text-decoration: underline; }
   background: var(--warn-bg);
 }
 .search-result-wrap[data-id] > .search-result.status-approved-other:not(.status-outdated) {
-  background: #d1fae5;
+  background: #ddecd9;
 }
 .search-result-wrap[data-id] > .search-result.status-approved-me:not(.status-outdated) {
-  background: #34d399;
+  background: #b8e0bd;
 }
 .search-result-wrap[data-id] > .search-result.status-outdated.status-approved-other {
-  background: linear-gradient(to right, var(--warn-bg) 50%, #d1fae5 50%);
+  background: linear-gradient(to right, var(--warn-bg) 50%, #ddecd9 50%);
 }
 .search-result-wrap[data-id] > .search-result.status-outdated.status-approved-me {
-  background: linear-gradient(to right, var(--warn-bg) 50%, #34d399 50%);
+  background: linear-gradient(to right, var(--warn-bg) 50%, #b8e0bd 50%);
 }
-.search-result-wrap[data-id] > .search-result.status-approved-me .result-num { color: #064e3b; }
+.search-result-wrap[data-id] > .search-result.status-approved-me .result-num { color: #4a6e51; }
 /* Match the bottom-fade gradient to the card's status background — without
    this the gradient blends from var(--card-bg) (white) on coloured cards. */
 .search-result-wrap[data-id] > .search-result.status-outdated:not(.status-approved-me):not(.status-approved-other)::after {
   background: linear-gradient(to bottom, transparent, var(--warn-bg));
 }
 .search-result-wrap[data-id] > .search-result.status-approved-other:not(.status-outdated)::after {
-  background: linear-gradient(to bottom, transparent, #d1fae5);
+  background: linear-gradient(to bottom, transparent, #ddecd9);
 }
 .search-result-wrap[data-id] > .search-result.status-approved-me:not(.status-outdated)::after {
-  background: linear-gradient(to bottom, transparent, #34d399);
+  background: linear-gradient(to bottom, transparent, #b8e0bd);
 }
 
 .status-bar {
