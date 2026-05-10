@@ -1526,21 +1526,29 @@ async function initProblemPage(meta) {
   window.refreshApprovalChip = renderApprovers;
   wireExportAndBadge();
 
-  // Textbook problems have no LaTeX editor, no separate crop view, and
-  // no TikZ figures — the body image rendered server-side IS the entire
-  // problem display. Skip the LaTeX + crop wiring for them; the rest of
-  // the page (status badge, approve, topics, export) still applies.
-  if (meta.is_textbook) return;
-
   // -------- LaTeX --------
+  // Textbook problems (and any Matura problem that hasn't been transcribed
+  // yet) start with empty LaTeX. We still render the same Preview / LaTeX
+  // / crop layout — the preview just shows the body crop image until the
+  // user types a transcript.
   ta.value = state.latex !== undefined ? state.latex : meta.latex;
+
+  // Render the preview: LaTeX if there is any, otherwise the body image.
+  function updatePreview(hydrateTikz) {
+    if (!ta.value && meta.body_image) {
+      renderProblemBody(preview, { n: meta.n, bodyImage: meta.body_image });
+    } else {
+      renderTeXPreview(ta.value, preview, meta.n, meta.tikz_count, hydrateTikz);
+    }
+  }
+
   // On first render, only hit the /tikz backend if the LaTeX has been edited
   // away from the build-time source — otherwise the pre-rendered SVGs that
   // ship with the page are already correct and there's no point waiting for
   // a network round-trip.
-  const initialHydrate = ta.value !== meta.latex;
-  renderTeXPreview(ta.value, preview, meta.n, meta.tikz_count, initialHydrate);
-  if (!initialHydrate) {
+  const initialHydrate = !!ta.value && ta.value !== meta.latex;
+  updatePreview(initialHydrate);
+  if (!initialHydrate && ta.value) {
     // Pre-fetch each build-time SVG as text and stash it as the hydrator's
     // "last successful render" for that figure. So when the user first
     // edits the LaTeX, the placeholder is filled synchronously with the
@@ -1557,7 +1565,7 @@ async function initProblemPage(meta) {
       saveState(id, s);
       // Hydrate TikZ live: every keystroke (after debounce) re-fetches a
       // fresh SVG from pdflatex; identical sources are served from cache.
-      renderTeXPreview(ta.value, preview, meta.n, meta.tikz_count, true);
+      updatePreview(!!ta.value);
       // Push counter is derived from pendingChanges() — rebuild it now so
       // the badge reflects the new edit without waiting for a page refresh.
       const bar = document.getElementById('gh-sync');

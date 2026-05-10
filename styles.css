@@ -39,6 +39,7 @@ a:hover { text-decoration: underline; }
 .tag.section { background: var(--tag-section-bg); color: var(--tag-section-fg); }
 .tag.points  { background: var(--tag-points-bg);  color: var(--tag-points-fg); }
 .tag.book          { background: #f5e9d6; color: #6b4a18; }
+.tag.book-chapter  { background: #fde7c7; color: #92400e; }
 .tag.book-section  { background: #fef3c7; color: #78350f; }
 .tag.topic   {
   background: var(--tag-topic-bg);  color: var(--tag-topic-fg);
