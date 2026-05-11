@@ -326,6 +326,36 @@ function initCollectionBar() {
   refresh();
 }
 
+// Bump this number every time the build-side bbox computation changes
+// (frame-stripping, header detection, anything that moves the default
+// crop). On the very next client visit we wipe every prob-N.bbox(es)
+// override out of localStorage so the freshly-rebuilt defaults take
+// effect — even on pages where the user previously dragged the crop by
+// hand. This lets us re-crop the entire matura corpus and have every
+// visitor see the new crops automatically.
+const BBOX_MIGRATION_VERSION = 2;
+const BBOX_MIGRATION_KEY     = 'bbox-migration-version';
+
+function migrateLocalBboxes() {
+  const stored = parseInt(localStorage.getItem(BBOX_MIGRATION_KEY) || '0', 10);
+  if (stored >= BBOX_MIGRATION_VERSION) return;     // already migrated
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (!k || !k.startsWith('prob-')) continue;
+    let s;
+    try { s = JSON.parse(localStorage.getItem(k)); } catch { continue; }
+    if (!s) continue;
+    let dirty = false;
+    if ('bbox' in s)   { delete s.bbox;   dirty = true; }
+    if ('bboxes' in s) { delete s.bboxes; dirty = true; }
+    if (dirty) {
+      if (Object.keys(s).length === 0) localStorage.removeItem(k);
+      else                              localStorage.setItem(k, JSON.stringify(s));
+    }
+  }
+  localStorage.setItem(BBOX_MIGRATION_KEY, String(BBOX_MIGRATION_VERSION));
+}
+
 // Drop any topics from localStorage that aren't in the current vocabulary.
 // Runs once on init for every prob-N entry so legacy entries (e.g. an old
 // "Complex numbers" string) disappear without manual intervention.
@@ -1886,6 +1916,7 @@ function drawCropFromImage(canvas, img, bbox, [imgW, imgH]) {
 async function initProblemPage(meta) {
   await fetchRemoteData();
   migrateLocalTopics();
+  migrateLocalBboxes();
   const id    = meta.n;
   const state = effectiveState(id);
   initMenuBar();
@@ -2288,6 +2319,7 @@ async function initSearchPage(opts) {
   if (!opts.skipPageInit) {
     await fetchRemoteData();
     migrateLocalTopics();
+    migrateLocalBboxes();
     initMenuBar();
     initSyncBar();
     initCollectionBar();
@@ -3929,6 +3961,7 @@ ${itemsTex}
 async function initIndexPage() {
   await fetchRemoteData();
   migrateLocalTopics();
+  migrateLocalBboxes();
   initMenuBar();
   initSyncBar();
   initCollectionBar();
