@@ -4036,6 +4036,264 @@ ${itemsTex}
   });
 }
 
+// Source / year / pola / level / section filter for the Problems index
+// page. Shown ONLY in the By-topic / By-year browse modes (the By-source
+// mode already has its own Matura/Textbook split, so the filter would be
+// redundant there). Mirrors the Search page filter UI 1:1 — same chips
+// and dropdown panels — but instead of re-rendering a results list it
+// hides cards in-place and rewrites the summary/year/topic counts so
+// only matching problems are visible.
+function initIndexSourceFilter() {
+  const root = document.getElementById('index-source-filter');
+  if (!root) return;
+  const PROBLEMS = (window.PROBLEMS || []).slice();
+  if (PROBLEMS.length === 0) return;
+
+  function gather(arr, field) {
+    const out = new Set();
+    arr.forEach(p => (p[field] || []).forEach(v => v && out.add(v)));
+    return [...out];
+  }
+  function sectionsBySource(src) {
+    const out = new Set();
+    PROBLEMS.forEach(p => {
+      if (p.source !== src) return;
+      (p.section_letters || []).forEach(v => v && out.add(v));
+    });
+    return [...out].sort();
+  }
+  const yearVals = PROBLEMS.map(p => parseInt(p.year, 10)).filter(n => !isNaN(n));
+  const yearMin = yearVals.length ? Math.min(...yearVals) : 0;
+  const yearMax = yearVals.length ? Math.max(...yearVals) : 0;
+  const ptsArr = [];
+  PROBLEMS.forEach(p => (p.points_ns || []).forEach(n => ptsArr.push(n)));
+  const pointsMin = ptsArr.length ? Math.min(...ptsArr) : 0;
+  const pointsMax = ptsArr.length ? Math.max(...ptsArr) : 0;
+  const allSources = [...new Set(PROBLEMS.map(p => p.source).filter(Boolean))];
+  const allPolas   = gather(PROBLEMS, 'polas_n').sort();
+  const allLevels  = gather(PROBLEMS, 'levels').sort(
+    (a,b) => (LEVEL_ORDER_JS[a]||9) - (LEVEL_ORDER_JS[b]||9));
+  const maturaSections   = sectionsBySource('Matura');
+  const textbookSections = sectionsBySource('Textbook');
+
+  const state = {
+    yearMin, yearMax, pointsMin, pointsMax,
+    sources:  new Set(allSources),
+    polas:    new Set(allPolas),
+    levels:   new Set(allLevels),
+    sections: new Set([...maturaSections, ...textbookSections]),
+  };
+
+  const hasTextbookSecs = textbookSections.length > 0;
+  root.innerHTML = `
+    <div class="filter-cell filter-source-cell">
+      <label class="filter-label">Source</label>
+      <div class="filter-chip-group" id="ix-sources">
+        ${allSources.map(s => {
+          const slug = s === 'Matura' ? 'matura'
+                      : s === 'Textbook' ? 'textbook' : '';
+          const panelId = slug ? `ix-panel-${slug}` : '';
+          return `<span class="filter-source-chip-combo">`
+            + `<button type="button" class="filter-chip filter-chip-source filter-chip-source-combo${slug ? ' filter-chip-source-' + slug : ''}" `
+            +         `data-val="${escapeHtml(s)}" aria-pressed="true">${escapeHtml(s)}</button>`
+            + (panelId
+                ? `<button type="button" class="filter-source-arrow" `
+                  +         `data-target="${panelId}" aria-expanded="false" `
+                  +         `aria-label="Toggle ${escapeHtml(s)} filters">▾</button>`
+                : '')
+            + `</span>`;
+        }).join('')}
+      </div>
+    </div>
+    <div class="filter-panel filter-panel-matura" id="ix-panel-matura" hidden>
+      <div class="filter-grid">
+        <div class="filter-cell">
+          <label class="filter-label">Year</label>
+          <div class="range-inputs">
+            <input type="number" id="ix-year-min" value="${yearMin}" min="${yearMin}" max="${yearMax}">
+            <span>–</span>
+            <input type="number" id="ix-year-max" value="${yearMax}" min="${yearMin}" max="${yearMax}">
+          </div>
+        </div>
+        <div class="filter-cell">
+          <label class="filter-label">Points</label>
+          <div class="range-inputs">
+            <input type="number" id="ix-points-min" value="${pointsMin}" min="${pointsMin}" max="${pointsMax}">
+            <span>–</span>
+            <input type="number" id="ix-points-max" value="${pointsMax}" min="${pointsMin}" max="${pointsMax}">
+          </div>
+        </div>
+        <div class="filter-cell">
+          <label class="filter-label">Pola</label>
+          <div class="filter-chip-group" id="ix-polas">
+            ${allPolas.map(p =>
+              `<button type="button" class="filter-chip filter-chip-pola" data-val="${escapeHtml(p)}" aria-pressed="true">${escapeHtml(p)}. pola</button>`
+            ).join('')}
+          </div>
+        </div>
+        <div class="filter-cell">
+          <label class="filter-label">Level</label>
+          <div class="filter-chip-group" id="ix-levels">
+            ${allLevels.map(l =>
+              `<button type="button" class="filter-chip filter-chip-level" data-val="${escapeHtml(l)}" aria-pressed="true">${escapeHtml(l)}</button>`
+            ).join('')}
+          </div>
+        </div>
+        <div class="filter-cell">
+          <label class="filter-label">Section</label>
+          <div class="filter-chip-group" id="ix-sections-matura">
+            ${maturaSections.map(s =>
+              `<button type="button" class="filter-chip filter-chip-section" data-val="${escapeHtml(s)}" aria-pressed="true">${escapeHtml(s)}</button>`
+            ).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+    ${hasTextbookSecs ? `
+    <div class="filter-panel filter-panel-textbook" id="ix-panel-textbook" hidden>
+      <div class="filter-grid">
+        <div class="filter-cell">
+          <label class="filter-label">Section</label>
+          <div class="filter-chip-group" id="ix-sections-textbook">
+            ${textbookSections.map(s =>
+              `<button type="button" class="filter-chip filter-chip-section filter-chip-section-textbook" data-val="${escapeHtml(s)}" aria-pressed="true">${escapeHtml(s)}</button>`
+            ).join('')}
+          </div>
+        </div>
+      </div>
+    </div>` : ''}
+  `;
+
+  // Predicate: a problem passes the filter when at least one of its
+  // values is in each multi-valued set. Textbook problems carry no
+  // year/points/pola/level/section letter, so they only honour Source.
+  function matches(p) {
+    if (!state.sources.has(p.source)) return false;
+    if (p.source === 'Textbook') return true;
+    const yr = parseInt(p.year, 10);
+    if (yr < state.yearMin || yr > state.yearMax) return false;
+    const pointsNs = p.points_ns || [];
+    const ptsOk = pointsNs.length === 0
+      ? state.pointsMin <= 0 && 0 <= state.pointsMax
+      : pointsNs.some(n => n >= state.pointsMin && n <= state.pointsMax);
+    if (!ptsOk) return false;
+    if (!(p.polas_n || []).some(v => state.polas.has(v))) return false;
+    if (!(p.levels  || []).some(v => state.levels.has(v))) return false;
+    if (!(p.section_letters || []).some(v => state.sections.has(v))) return false;
+    return true;
+  }
+
+  // Map id -> matches(). Recomputed on every state change.
+  function applyFilter() {
+    const pass = new Map();
+    PROBLEMS.forEach(p => pass.set(String(p.n), matches(p)));
+    // Walk every card on the page, toggling .filter-hidden.
+    document.querySelectorAll('.search-result-wrap[data-id]').forEach(w => {
+      const ok = pass.get(w.dataset.id) !== false;
+      w.classList.toggle('filter-hidden', !ok);
+    });
+    // Recompute <details> summary counts (skip filter-hidden + already-
+    // unapproved cards). Stash the build-time total in data-total so
+    // toggling filters doesn't accumulate stale values.
+    document.querySelectorAll('details.collection').forEach(d => {
+      const span = d.querySelector(':scope > summary .count');
+      if (!span) return;
+      if (!span.dataset.total) {
+        const m = span.textContent.match(/\d+/);
+        if (m) span.dataset.total = m[0];
+      }
+      const seen = new Set();
+      d.querySelectorAll('.search-result-wrap[data-id]').forEach(w => {
+        if (!w.classList.contains('filter-hidden')
+            && !w.classList.contains('unapproved-hidden')) {
+          seen.add(w.dataset.id);
+        }
+      });
+      span.textContent = `(${seen.size})`;
+    });
+  }
+
+  function wireChipGroup(containerId, set) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    el.addEventListener('click', (e) => {
+      const btn = e.target.closest('.filter-chip');
+      if (!btn) return;
+      e.preventDefault();
+      const val = btn.dataset.val;
+      const next = btn.getAttribute('aria-pressed') !== 'true';
+      btn.setAttribute('aria-pressed', String(next));
+      if (next) set.add(val); else set.delete(val);
+      applyFilter();
+    });
+  }
+  ['ix-year-min','ix-year-max','ix-points-min','ix-points-max'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('input', () => {
+      state.yearMin   = parseInt(document.getElementById('ix-year-min').value, 10);
+      state.yearMax   = parseInt(document.getElementById('ix-year-max').value, 10);
+      state.pointsMin = parseInt(document.getElementById('ix-points-min').value, 10);
+      state.pointsMax = parseInt(document.getElementById('ix-points-max').value, 10);
+      applyFilter();
+    });
+  });
+  wireChipGroup('ix-sources',          state.sources);
+  wireChipGroup('ix-polas',            state.polas);
+  wireChipGroup('ix-levels',           state.levels);
+  wireChipGroup('ix-sections-matura',  state.sections);
+  if (document.getElementById('ix-sections-textbook')) {
+    wireChipGroup('ix-sections-textbook', state.sections);
+  }
+
+  // Source-toggle → show/hide each Matura / Textbook chip's dropdown
+  // arrow + the panel below.
+  function syncSourcePanels() {
+    root.classList.toggle('no-matura',   !state.sources.has('Matura'));
+    root.classList.toggle('no-textbook', !state.sources.has('Textbook'));
+  }
+  syncSourcePanels();
+  document.getElementById('ix-sources').addEventListener('click', syncSourcePanels);
+
+  // Source-chip dropdown arrows → expand/collapse the matching panel.
+  // Mutually exclusive — only one panel open at a time.
+  const allArrows = document.querySelectorAll('.filter-source-arrow');
+  allArrows.forEach(arrow => {
+    arrow.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const target = document.getElementById(arrow.dataset.target);
+      if (!target) return;
+      const willOpen = !!target.hidden;
+      allArrows.forEach(a => {
+        const t = document.getElementById(a.dataset.target);
+        if (t) t.hidden = true;
+        a.setAttribute('aria-expanded', 'false');
+      });
+      if (willOpen) {
+        target.hidden = false;
+        arrow.setAttribute('aria-expanded', 'true');
+      }
+    });
+  });
+
+  // Show the filter row only when the active browse-mode is by-topic
+  // or by-year — the by-source view doesn't need it (Matura/Textbook
+  // are already separate sub-panels there).
+  function updateFilterVisibility() {
+    const activeMode = document.querySelector('.browse-mode-tab.active');
+    const name = activeMode ? activeMode.dataset.mode : '';
+    const show = (name === 'by-topic' || name === 'by-year');
+    root.hidden = !show;
+  }
+  updateFilterVisibility();
+  document.querySelectorAll('.browse-mode-tab').forEach(t => {
+    t.addEventListener('click', () => setTimeout(updateFilterVisibility, 0));
+  });
+
+  applyFilter();
+}
+
 async function initIndexPage() {
   await fetchRemoteData();
   migrateLocalTopics();
@@ -4054,6 +4312,9 @@ async function initIndexPage() {
   // Hide unapproved cards for signed-out viewers (default) and refresh
   // the summary/tab counts to reflect what's actually visible.
   applyApprovalFilter();
+  // Source / year / pola / level / section filter for the By-topic
+  // and By-year views (mirrors the Search page's filter UI).
+  initIndexSourceFilter();
   const exportAllBtn = document.getElementById('export-all');
   if (exportAllBtn) {
     exportAllBtn.addEventListener('click', () => {
