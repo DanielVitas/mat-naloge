@@ -1600,7 +1600,11 @@ function installTikzOrigToggles(target, problemId, refreshFn) {
     const idx    = parseInt(el.getAttribute('data-tikz-idx') || '0', 10);
     const orig   = el.getAttribute('data-tikz-orig') || '';
     if (!idx || !orig) return;
-    const cur    = (loadState(problemId).tikz_orig || {})[idx];
+    // Read from EFFECTIVE state so a pushed default ('tikz_orig' in
+    // REMOTE_DATA) shows up correctly on a fresh visit — without this
+    // the toggle button would mis-label itself any time a curator had
+    // already set a default.
+    const cur    = !!(effectiveState(problemId).tikz_orig || {})[idx];
     const btn    = document.createElement('button');
     btn.type     = 'button';
     btn.className = 'tikz-toggle';
@@ -1610,13 +1614,40 @@ function installTikzOrigToggles(target, problemId, refreshFn) {
     btn.addEventListener('click', (ev) => {
       ev.preventDefault();
       ev.stopPropagation();
+      // Flip relative to the *effective* current state (which already
+      // accounts for any remote-pushed default).
+      const effNow = !!(effectiveState(problemId).tikz_orig || {})[idx];
+      const newVal = !effNow;
+      const remoteTikz = ((REMOTE_DATA && REMOTE_DATA[problemId]
+                           && REMOTE_DATA[problemId].tikz_orig) || {});
       const s = loadState(problemId);
-      s.tikz_orig = s.tikz_orig || {};
-      if (s.tikz_orig[idx]) {
-        delete s.tikz_orig[idx];
-        if (Object.keys(s.tikz_orig).length === 0) delete s.tikz_orig;
+      // effectiveState merges shallowly — `local.tikz_orig` replaces
+      // `remote.tikz_orig` wholesale rather than per-key. So the local
+      // override must carry the FULL desired map (remote's entries +
+      // every prior local override + this click) or remote's other
+      // figures' defaults would silently disappear.
+      const desired = { ...remoteTikz, ...(s.tikz_orig || {}) };
+      desired[idx] = newVal;
+      // Drop entries that match remote (treating missing as false).
+      // This keeps the JSON small without affecting effective state — a
+      // missing key in `desired` falls through to remote's value via
+      // the shallow merge.
+      for (const k of Object.keys(desired)) {
+        if (!!desired[k] === !!remoteTikz[k]) delete desired[k];
+      }
+      // After pruning, if `desired` is empty there are no overrides at
+      // all; drop the local key entirely so pendingChanges() sees no
+      // tikz_orig diff and the push counter stays clean. If non-empty,
+      // store it — note we still need to include any remote entries
+      // that aren't being overridden so a future curator session
+      // re-pushes the same complete map (see normalizer below).
+      const finalLocal = (Object.keys(desired).length === 0)
+                          ? null
+                          : { ...remoteTikz, ...desired };
+      if (finalLocal === null) {
+        delete s.tikz_orig;
       } else {
-        s.tikz_orig[idx] = true;
+        s.tikz_orig = finalLocal;
       }
       saveState(problemId, s);
       if (typeof refreshFn === 'function') refreshFn();
