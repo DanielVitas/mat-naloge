@@ -747,8 +747,12 @@ function refreshMenuBranches() {
 // and shows the matching .page-panel section.
 function switchTab(name) {
   if (!name) return false;
-  const tabs   = document.querySelectorAll('.page-tab, .exam-tab');
-  const panels = document.querySelectorAll('.page-panel, .exam-panel');
+  // Scope to elements that carry the `data-tab` / `data-panel` attribute
+  // so the (separate) browse-mode-tabs — which use `data-mode` — aren't
+  // accidentally caught by this selector and have their active state
+  // toggled off.
+  const tabs   = document.querySelectorAll('.page-tab[data-tab], .exam-tab[data-tab]');
+  const panels = document.querySelectorAll('.page-panel[data-panel], .exam-panel[data-panel]');
   let any = false;
   tabs.forEach(t => {
     const matches = t.dataset.tab === name;
@@ -789,6 +793,46 @@ function handleSectionHash() {
   }
 }
 
+// Switch the top-level Problems-page browse mode (by-source / by-topic /
+// by-year). Operates on `.browse-mode-tab` buttons + `.browse-mode-panel`
+// sections, scoped to the index page only — separate from `switchTab`
+// which targets the Matura/Textbook sub-tabs inside the by-source panel.
+function switchBrowseMode(name) {
+  if (!name) return false;
+  const tabs   = document.querySelectorAll('.browse-mode-tab');
+  const panels = document.querySelectorAll('.browse-mode-panel');
+  if (!tabs.length) return false;
+  let any = false;
+  tabs.forEach(t => {
+    const matches = t.dataset.mode === name;
+    t.classList.toggle('active', matches);
+    if (matches) any = true;
+  });
+  if (!any) return false;
+  panels.forEach(p => { p.hidden = p.dataset.mode !== name; });
+  return true;
+}
+
+function bindBrowseModeTabs(defaultMode) {
+  const tabs = document.querySelectorAll('.browse-mode-tab');
+  if (!tabs.length) return;
+  tabs.forEach(t => {
+    t.addEventListener('click', (e) => {
+      e.preventDefault();
+      const name = t.dataset.mode;
+      if (switchBrowseMode(name)) {
+        // Use hash to deep-link the mode. We don't include source-side
+        // sub-tab state here — that's still owned by bindPageTabs.
+        history.replaceState(null, '', '#' + name);
+      }
+    });
+  });
+  // If the hash names a known mode, honour it. Otherwise default.
+  const valid = new Set(['by-source', 'by-topic', 'by-year']);
+  const initial = (location.hash || '').replace('#', '').split('/')[0];
+  switchBrowseMode(valid.has(initial) ? initial : defaultMode);
+}
+
 // Wire up tab click → switch + update hash. `defaultName` is used when
 // there's no hash on initial load.
 function bindPageTabs(defaultName) {
@@ -804,7 +848,10 @@ function bindPageTabs(defaultName) {
     });
   });
   const initial = (location.hash || '').replace('#', '').split('/')[0];
-  switchTab(initial || defaultName);
+  // If the hash names a browse-mode (handled separately), switchTab will
+  // fail to match and leave every page-tab inactive. Fall back to the
+  // default so the inner Matura/Textbook tabs always have one active.
+  if (!switchTab(initial)) switchTab(defaultName);
 }
 
 // Wire up the GitHub-sync UI block (shared between index and problem pages).
@@ -3824,6 +3871,7 @@ async function initIndexPage() {
   initMenuBar();
   initSyncBar();
   initCollectionBar();
+  bindBrowseModeTabs('by-source');
   bindPageTabs('matura');
   handleSectionHash();
   window.addEventListener('hashchange', handleSectionHash);

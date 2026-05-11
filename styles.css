@@ -1725,6 +1725,22 @@ canvas.crop-display {
   margin-left: 0.18em;
 }
 .page-tab.active .count { color: var(--accent); }
+/* Sub-row of Matura/Textbook tabs sits inside the by-source mode panel.
+   Visually subordinate: lighter text, a small left indent, and a
+   shallower active underline so the eye reads "top-level mode → sub
+   filter" without ambiguity. */
+.page-tabs-sub {
+  margin-top: 0.4rem;
+  padding-left: 0.25rem;
+}
+.page-tabs-sub .page-tab {
+  font-size: 0.88rem;
+  padding: 0.32rem 0.7rem 0.42rem;
+  color: var(--muted);
+}
+.page-tabs-sub .page-tab.active {
+  color: var(--fg);
+}
 .exam-options {
   display: flex; flex-wrap: wrap; align-items: center;
   gap: 0.7rem 1.5rem;
