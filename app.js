@@ -4277,14 +4277,17 @@ function initIndexSourceFilter() {
     });
   });
 
-  // Show the filter row only when the active browse-mode is by-topic
-  // or by-year — the by-source view doesn't need it (Matura/Textbook
-  // are already separate sub-panels there).
+  // Show the filter wrapper (the small "Source ▾" pill) only when the
+  // active browse-mode is by-topic or by-year — the by-source view
+  // doesn't need it (Matura/Textbook are already separate sub-panels
+  // there).
+  const wrap = document.getElementById('index-source-filter-wrap');
   function updateFilterVisibility() {
+    if (!wrap) return;
     const activeMode = document.querySelector('.browse-mode-tab.active');
     const name = activeMode ? activeMode.dataset.mode : '';
     const show = (name === 'by-topic' || name === 'by-year');
-    root.hidden = !show;
+    wrap.hidden = !show;
   }
   updateFilterVisibility();
   document.querySelectorAll('.browse-mode-tab').forEach(t => {

@@ -1113,11 +1113,58 @@ canvas.crop-display {
 .unapproved-hidden { display: none !important; }
 /* Same idea for the index-page source-filter (By-topic / By-year). */
 .filter-hidden { display: none !important; }
-/* The index-page source filter row sits between the browse-mode tabs
-   and the panels. Slim it down vs. the Search-page filter (no Topics
-   row inside, so the grid has more breathing room). */
+/* The index-page source filter is COLLAPSED by default: visitors see
+   only a small "Source ▾" pill on the right; clicking expands the
+   full chip+panel UI below it (still pinned to the right edge so it
+   doesn't push the topic / year groupings around). */
+.index-source-filter-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;       /* pin pill + expanded panel to the right */
+  margin: 0.3rem 0 0.5rem;
+}
+.index-source-filter-wrap[hidden] { display: none !important; }
+.index-source-filter-wrap > summary { list-style: none; }
+.index-source-filter-wrap > summary::-webkit-details-marker { display: none; }
+.index-source-filter-summary {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.32rem 0.7rem;
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  background: var(--card-bg);
+  color: var(--fg);
+  cursor: pointer;
+  font-size: 0.84rem; line-height: 1;
+  transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+}
+.index-source-filter-summary:hover { border-color: var(--accent); color: var(--accent); }
+.index-source-filter-wrap[open] > .index-source-filter-summary {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.index-source-filter-label { font-weight: 500; }
+.index-source-filter-arrow {
+  color: var(--muted);
+  font-size: 0.85rem; line-height: 1;
+  transition: transform 140ms ease;
+}
+.index-source-filter-wrap[open] > .index-source-filter-summary .index-source-filter-arrow {
+  transform: rotate(180deg);
+  color: var(--accent);
+}
+/* Expanded chip/panel container. Keep it right-aligned, give it the
+   same card background as the Search filter so the dropdown panels
+   read clearly. */
 .index-source-filter {
-  margin: 0.4rem 0 0.7rem;
+  margin-top: 0.4rem;
+  padding: 0.6rem 0.8rem 0.4rem;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  max-width: 100%;
+  min-width: 280px;
+  align-self: flex-end;
 }
 .gh-sync { position: relative; display: inline-flex; gap: 0.3rem; }
 .gh-sync .gh-state { position: relative; display: inline-flex; gap: 0.3rem; }
