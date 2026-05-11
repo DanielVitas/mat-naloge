@@ -1639,7 +1639,18 @@ async function initProblemPage(meta) {
   // yet) start with empty LaTeX. We still render the same Preview / LaTeX
   // / crop layout — the preview just shows the body crop image until the
   // user types a transcript.
-  ta.value = state.latex !== undefined ? state.latex : meta.latex;
+  //
+  // If the local override is an empty string but the build-time LaTeX is
+  // non-empty, fall through to the build-time value. This happens when a
+  // user once cleared the textarea for a problem that later gained a
+  // build-time transcript (e.g. problem 19 after _transcripts.json was
+  // updated) — without this fall-through, the stale empty override would
+  // hide the new transcript forever.
+  if (state.latex === '' && meta.latex) {
+    ta.value = meta.latex;
+  } else {
+    ta.value = state.latex !== undefined ? state.latex : meta.latex;
+  }
 
   // Render the preview. Two cases:
   //   • No LaTeX yet            → body crop image (textbook fallback).
@@ -1675,7 +1686,15 @@ async function initProblemPage(meta) {
     clearTimeout(timer);
     timer = setTimeout(() => {
       const s = loadState(id);
-      s.latex = ta.value;
+      // Drop the override when it matches the build-time value, or when
+      // the textarea is cleared on a problem that has a build-time
+      // transcript. This keeps stale `state.latex = ""` from hiding the
+      // baseline (see also the load-side fall-through above).
+      if (ta.value === meta.latex || (ta.value === '' && meta.latex)) {
+        delete s.latex;
+      } else {
+        s.latex = ta.value;
+      }
       saveState(id, s);
       // Hydrate TikZ live: every keystroke (after debounce) re-fetches a
       // fresh SVG from pdflatex; identical sources are served from cache.
