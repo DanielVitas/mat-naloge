@@ -2284,9 +2284,13 @@ async function initSearchPage(opts) {
     return out;
   }
 
-  // Compute available ranges/options from data
-  const yearMin = Math.min(...PROBLEMS.map(p => parseInt(p.year, 10)));
-  const yearMax = Math.max(...PROBLEMS.map(p => parseInt(p.year, 10)));
+  // Compute available ranges/options from data. Textbook problems carry
+  // year="" (an empty string), so parseInt → NaN and Math.min over a
+  // NaN-containing array returns NaN — which would render the year
+  // input as empty and break the range default. Filter to valid ints.
+  const yearVals = PROBLEMS.map(p => parseInt(p.year, 10)).filter(n => !isNaN(n));
+  const yearMin = yearVals.length ? Math.min(...yearVals) : 0;
+  const yearMax = yearVals.length ? Math.max(...yearVals) : 0;
   const ptsArr  = flatPointsNs();
   const pointsMin = ptsArr.length ? Math.min(...ptsArr) : 0;
   const pointsMax = ptsArr.length ? Math.max(...ptsArr) : 0;
@@ -2339,16 +2343,25 @@ async function initSearchPage(opts) {
     <div class="filter-cell filter-source-cell">
       <label class="filter-label">Source</label>
       <div class="filter-chip-group" id="f-sources">
-        ${allSources.map(s =>
-          `<button type="button" class="filter-chip filter-chip-source" data-val="${escapeHtml(s)}" aria-pressed="true">${escapeHtml(s)}</button>`
-        ).join('')}
+        ${allSources.map(s => {
+          // Only Matura and Textbook have a per-source filter panel — any
+          // other source value gets a plain chip (no arrow).
+          const slug = s === 'Matura' ? 'matura'
+                      : s === 'Textbook' ? 'textbook' : '';
+          const panelId = slug ? `panel-${slug}` : '';
+          return `<span class="filter-source-chip-combo">`
+            + `<button type="button" class="filter-chip filter-chip-source filter-chip-source-combo${slug ? ' filter-chip-source-' + slug : ''}" `
+            +         `data-val="${escapeHtml(s)}" aria-pressed="true">${escapeHtml(s)}</button>`
+            + (panelId
+                ? `<button type="button" class="filter-source-arrow" `
+                  +         `data-target="${panelId}" aria-expanded="false" `
+                  +         `aria-label="Toggle ${escapeHtml(s)} filters">▾</button>`
+                : '')
+            + `</span>`;
+        }).join('')}
       </div>
     </div>
-    <details class="filter-panel filter-panel-matura" id="panel-matura">
-      <summary class="filter-panel-header">
-        <span class="filter-panel-badge filter-chip-source">Matura</span>
-        <span class="filter-panel-arrow" aria-hidden="true">▾</span>
-      </summary>
+    <div class="filter-panel filter-panel-matura" id="panel-matura" hidden>
       <div class="filter-grid">
         <div class="filter-cell">
           <label class="filter-label">Year</label>
@@ -2391,13 +2404,9 @@ async function initSearchPage(opts) {
           </div>
         </div>
       </div>
-    </details>
+    </div>
     ${hasTextbookSecs ? `
-    <details class="filter-panel filter-panel-textbook" id="panel-textbook">
-      <summary class="filter-panel-header">
-        <span class="filter-panel-badge filter-chip-source filter-chip-source-textbook">Textbook</span>
-        <span class="filter-panel-arrow" aria-hidden="true">▾</span>
-      </summary>
+    <div class="filter-panel filter-panel-textbook" id="panel-textbook" hidden>
       <div class="filter-grid">
         <div class="filter-cell">
           <label class="filter-label">Section</label>
@@ -2408,7 +2417,7 @@ async function initSearchPage(opts) {
           </div>
         </div>
       </div>
-    </details>` : ''}
+    </div>` : ''}
     <div class="filter-cell topics-cell">
       <div class="filter-label-row">
         <label class="filter-label">Topics</label>
@@ -2463,6 +2472,22 @@ async function initSearchPage(opts) {
   }
   syncSourcePanels();
   document.getElementById('f-sources').addEventListener('click', syncSourcePanels);
+
+  // Source-chip dropdown arrow → expand/collapse the matching filter
+  // panel. The arrow lives INSIDE the Source row as a sibling of the
+  // toggling chip, so we stop propagation to avoid double-triggering
+  // the chip-group click handler (which would deselect the source).
+  document.querySelectorAll('.filter-source-arrow').forEach(arrow => {
+    arrow.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const target = document.getElementById(arrow.dataset.target);
+      if (!target) return;
+      const open = !target.hidden;
+      target.hidden = open;            // toggle
+      arrow.setAttribute('aria-expanded', String(!open));
+    });
+  });
   // Topic filter: hierarchical groups with synced parent/sub toggle.
   // - Parent is "selected" iff every one of its subs is selected (or, for a
   //   parent with no subs, iff the parent itself is in state.topics).
