@@ -2248,6 +2248,20 @@ async function initSearchPage(opts) {
   const allLevels   = gather(PROBLEMS, 'levels')
                         .sort((a, b) => (LEVEL_ORDER_JS[a]||9) - (LEVEL_ORDER_JS[b]||9));
   const allSections = gather(PROBLEMS, 'section_letters').sort();
+  // Section letters live on both Matura ("A"/"B"/"C") and Textbook
+  // ("Kotne", …) problems. Split them so we can put each variant under
+  // its own source-coloured panel — and so the Source toggle can hide
+  // the irrelevant ones.
+  function sectionsBySource(src) {
+    const out = new Set();
+    PROBLEMS.forEach(p => {
+      if (p.source !== src) return;
+      (p.section_letters || []).forEach(v => v && out.add(v));
+    });
+    return [...out].sort();
+  }
+  const maturaSections   = sectionsBySource('Matura');
+  const textbookSections = sectionsBySource('Textbook');
   // Topics vocabulary = union of master + actually-used (incl any custom)
   const usedTopics = new Set();
   PROBLEMS.forEach(p => {
@@ -2268,57 +2282,86 @@ async function initSearchPage(opts) {
   // Build filter UI
   const root = document.getElementById('filters');
   if (!root) return;
+  // The Source-aware panel structure: every filter cell that only
+  // applies to Matura (or only to Textbook) lives inside its own
+  // tinted panel. Toggling the Source chip flips a class on #filters
+  // that hides the irrelevant panel — and the (CSS-hidden) cells stop
+  // affecting the layout immediately.
+  const hasTextbookSecs = textbookSections.length > 0;
   root.innerHTML = `
-    <div class="filter-grid">
-      <div class="filter-cell">
-        <label class="filter-label">Year</label>
-        <div class="range-inputs">
-          <input type="number" id="f-year-min" value="${yearMin}" min="${yearMin}" max="${yearMax}">
-          <span>–</span>
-          <input type="number" id="f-year-max" value="${yearMax}" min="${yearMin}" max="${yearMax}">
-        </div>
+    <div class="filter-cell filter-source-cell">
+      <label class="filter-label">Source</label>
+      <div class="filter-chip-group" id="f-sources">
+        ${allSources.map(s =>
+          `<button type="button" class="filter-chip filter-chip-source" data-val="${escapeHtml(s)}" aria-pressed="true">${escapeHtml(s)}</button>`
+        ).join('')}
       </div>
-      <div class="filter-cell">
-        <label class="filter-label">Points</label>
-        <div class="range-inputs">
-          <input type="number" id="f-points-min" value="${pointsMin}" min="${pointsMin}" max="${pointsMax}">
-          <span>–</span>
-          <input type="number" id="f-points-max" value="${pointsMax}" min="${pointsMin}" max="${pointsMax}">
-        </div>
+    </div>
+    <div class="filter-panel filter-panel-matura" id="panel-matura">
+      <div class="filter-panel-header">
+        <span class="filter-panel-badge filter-chip-source">Matura</span>
+        <span class="filter-panel-hint">Year, points, pola, level, section</span>
       </div>
-      <div class="filter-cell">
-        <label class="filter-label">Source</label>
-        <div class="filter-chip-group" id="f-sources">
-          ${allSources.map(s =>
-            `<button type="button" class="filter-chip filter-chip-source" data-val="${escapeHtml(s)}" aria-pressed="true">${escapeHtml(s)}</button>`
-          ).join('')}
+      <div class="filter-grid">
+        <div class="filter-cell">
+          <label class="filter-label">Year</label>
+          <div class="range-inputs">
+            <input type="number" id="f-year-min" value="${yearMin}" min="${yearMin}" max="${yearMax}">
+            <span>–</span>
+            <input type="number" id="f-year-max" value="${yearMax}" min="${yearMin}" max="${yearMax}">
+          </div>
         </div>
-      </div>
-      <div class="filter-cell">
-        <label class="filter-label">Pola</label>
-        <div class="filter-chip-group" id="f-polas">
-          ${allPolas.map(p =>
-            `<button type="button" class="filter-chip filter-chip-pola" data-val="${escapeHtml(p)}" aria-pressed="true">${escapeHtml(p)}. pola</button>`
-          ).join('')}
+        <div class="filter-cell">
+          <label class="filter-label">Points</label>
+          <div class="range-inputs">
+            <input type="number" id="f-points-min" value="${pointsMin}" min="${pointsMin}" max="${pointsMax}">
+            <span>–</span>
+            <input type="number" id="f-points-max" value="${pointsMax}" min="${pointsMin}" max="${pointsMax}">
+          </div>
         </div>
-      </div>
-      <div class="filter-cell">
-        <label class="filter-label">Level</label>
-        <div class="filter-chip-group" id="f-levels">
-          ${allLevels.map(l =>
-            `<button type="button" class="filter-chip filter-chip-level" data-val="${escapeHtml(l)}" aria-pressed="true">${escapeHtml(l)}</button>`
-          ).join('')}
+        <div class="filter-cell">
+          <label class="filter-label">Pola</label>
+          <div class="filter-chip-group" id="f-polas">
+            ${allPolas.map(p =>
+              `<button type="button" class="filter-chip filter-chip-pola" data-val="${escapeHtml(p)}" aria-pressed="true">${escapeHtml(p)}. pola</button>`
+            ).join('')}
+          </div>
         </div>
-      </div>
-      <div class="filter-cell">
-        <label class="filter-label">Section</label>
-        <div class="filter-chip-group" id="f-sections">
-          ${allSections.map(s =>
-            `<button type="button" class="filter-chip filter-chip-section" data-val="${escapeHtml(s)}" aria-pressed="true">${escapeHtml(s)}</button>`
-          ).join('')}
+        <div class="filter-cell">
+          <label class="filter-label">Level</label>
+          <div class="filter-chip-group" id="f-levels">
+            ${allLevels.map(l =>
+              `<button type="button" class="filter-chip filter-chip-level" data-val="${escapeHtml(l)}" aria-pressed="true">${escapeHtml(l)}</button>`
+            ).join('')}
+          </div>
+        </div>
+        <div class="filter-cell">
+          <label class="filter-label">Section</label>
+          <div class="filter-chip-group" id="f-sections-matura">
+            ${maturaSections.map(s =>
+              `<button type="button" class="filter-chip filter-chip-section" data-val="${escapeHtml(s)}" aria-pressed="true">${escapeHtml(s)}</button>`
+            ).join('')}
+          </div>
         </div>
       </div>
     </div>
+    ${hasTextbookSecs ? `
+    <div class="filter-panel filter-panel-textbook" id="panel-textbook">
+      <div class="filter-panel-header">
+        <span class="filter-panel-badge filter-chip-source filter-chip-source-textbook">Textbook</span>
+        <span class="filter-panel-hint">Section</span>
+      </div>
+      <div class="filter-grid">
+        <div class="filter-cell">
+          <label class="filter-label">Section</label>
+          <div class="filter-chip-group" id="f-sections-textbook">
+            ${textbookSections.map(s =>
+              `<button type="button" class="filter-chip filter-chip-section filter-chip-section-textbook" data-val="${escapeHtml(s)}" aria-pressed="true">${escapeHtml(s)}</button>`
+            ).join('')}
+          </div>
+        </div>
+      </div>
+    </div>` : ''}
     <div class="filter-cell topics-cell">
       <div class="filter-label-row">
         <label class="filter-label">Topics</label>
@@ -2357,7 +2400,22 @@ async function initSearchPage(opts) {
   wireChipGroup('f-sources',  state.sources);
   wireChipGroup('f-polas',    state.polas);
   wireChipGroup('f-levels',   state.levels);
-  wireChipGroup('f-sections', state.sections);
+  wireChipGroup('f-sections-matura',   state.sections);
+  if (document.getElementById('f-sections-textbook')) {
+    wireChipGroup('f-sections-textbook', state.sections);
+  }
+
+  // Source-toggle → show/hide the Matura / Textbook filter panels.
+  // We add a class on #filters that CSS uses to display:none the
+  // corresponding .filter-panel. Hidden cells stop contributing to the
+  // visible filter UI; their chip-state survives, so re-enabling the
+  // source restores whatever the user had picked before.
+  function syncSourcePanels() {
+    root.classList.toggle('no-matura',   !state.sources.has('Matura'));
+    root.classList.toggle('no-textbook', !state.sources.has('Textbook'));
+  }
+  syncSourcePanels();
+  document.getElementById('f-sources').addEventListener('click', syncSourcePanels);
   // Topic filter: hierarchical groups with synced parent/sub toggle.
   // - Parent is "selected" iff every one of its subs is selected (or, for a
   //   parent with no subs, iff the parent itself is in state.topics).

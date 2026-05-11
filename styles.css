@@ -1322,7 +1322,55 @@ canvas.crop-display {
 .filter-chip-pola[aria-pressed="true"]    { background: var(--tag-pola-bg);    color: var(--tag-pola-fg); }
 .filter-chip-level[aria-pressed="true"]   { background: var(--tag-level-bg);   color: var(--tag-level-fg); }
 .filter-chip-section[aria-pressed="true"] { background: var(--tag-section-bg); color: var(--tag-section-fg); }
+/* Textbook section chips use the book-section palette so they read as
+   Textbook-coloured (not Matura-coloured). */
+.filter-chip-section-textbook[aria-pressed="true"] {
+  background: #fdf1c8;
+  color: #a88347;
+}
 .filter-chip:hover { filter: brightness(0.97); }
+
+/* Source-aware filter panels. Each panel groups a set of cells that
+   only apply to one source, with a tinted background + a coloured
+   badge in the header so it's clear at a glance which filters
+   belong to which source. */
+.filter-panel {
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 0.7rem 0.9rem 0.5rem;
+  margin: 0.4rem 0;
+}
+.filter-panel-matura   {
+  background: color-mix(in srgb, var(--tag-source-bg) 25%, transparent);
+  border-color: color-mix(in srgb, var(--tag-source-fg) 22%, var(--card-border));
+}
+.filter-panel-textbook {
+  background: color-mix(in srgb, #fdf1c8 25%, transparent);
+  border-color: color-mix(in srgb, #a88347 22%, var(--card-border));
+}
+.filter-panel-header {
+  display: flex; align-items: center; gap: 0.6rem;
+  margin-bottom: 0.55rem;
+}
+.filter-panel-badge {
+  display: inline-flex; align-items: center;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.74rem; font-weight: 600;
+  letter-spacing: 0.02em; line-height: 1;
+}
+.filter-panel-badge.filter-chip-source-textbook {
+  background: #fdf1c8;
+  color: #a88347;
+}
+.filter-panel-hint {
+  color: var(--muted); font-size: 0.78rem; line-height: 1;
+}
+/* Hide the matura / textbook panel when its source chip is off.
+   We also dim the Source label's hint so the user knows what they're
+   filtering. */
+#filters.no-matura   #panel-matura   { display: none; }
+#filters.no-textbook #panel-textbook { display: none; }
 .topics-cell { margin-top: 0.2rem; }
 .topics-actions { display: flex; gap: 0.6rem; }
 .link-btn {
