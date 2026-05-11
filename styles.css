@@ -1091,6 +1091,26 @@ canvas.crop-display {
   padding: 0 0 0.32rem 0;
   font-size: 1.5rem; line-height: 1;
 }
+/* Trash-can "discard pending changes" button — small, secondary,
+   shown only when there are unpushed edits. Matches the visual weight
+   of the .dropdown-toggle next to it. */
+.gh-sync .gh-discard-btn {
+  appearance: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2.1rem; padding: 0; line-height: 1;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--muted);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+.gh-sync .gh-discard-btn:hover {
+  color: var(--warn);
+  border-color: var(--warn);
+  background: var(--warn-bg);
+}
+.gh-sync .gh-discard-btn[hidden] { display: none !important; }
 .gh-sync .gh-dropdown {
   position: absolute; top: calc(100% + 6px); right: 0;
   min-width: 240px;

@@ -833,6 +833,7 @@ function initSyncBar() {
   const usernameSpan    = bar.querySelector('#gh-username');
   const clearBtn        = bar.querySelector('#gh-clear-token');
   const approvalToggle  = bar.querySelector('#approval-filter-toggle');
+  const discardBtn      = bar.querySelector('#gh-discard');
 
   // ----- Approval-only toggle (signed-out only) ---------------------------
   // aria-pressed === 'true'  → filter ON  (only approved problems)
@@ -894,6 +895,11 @@ function initSyncBar() {
     pushBtn.textContent = n === 0
       ? '⬆ Push'
       : `⬆ Push (${n} edit${n === 1 ? '' : 's'})`;
+    if (discardBtn) {
+      // Only meaningful when signed in AND there are unpushed changes.
+      discardBtn.hidden = !has || n === 0;
+      discardBtn.title  = `Discard ${n} unpushed edit${n === 1 ? '' : 's'}`;
+    }
     // Approvers chip + outdated badge depend on the signed-in state, so
     // re-render them whenever the auth state changes.
     if (typeof window.refreshApprovalChip === 'function') {
@@ -1000,6 +1006,27 @@ function initSyncBar() {
     const ok = await pushChanges();
     if (!ok) refresh();
   });
+  if (discardBtn) {
+    discardBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeDropdowns();
+      const n = Object.keys(pendingChanges()).length;
+      if (n === 0) return;
+      const msg = (n === 1)
+        ? 'Discard 1 unpushed edit? This cannot be undone.'
+        : `Discard ${n} unpushed edits? This cannot be undone.`;
+      if (!confirm(msg)) return;
+      // Drop every prob-* override + the local display-name overrides.
+      // (gh-token / gh-name stay — the sign-in survives.)
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('prob-')) localStorage.removeItem(k);
+      }
+      setDisplayNamesLocal({});
+      // Reload so cards/previews re-render against the cleared state.
+      location.reload();
+    });
+  }
 
   // Click outside the bar closes any dropdown
   document.addEventListener('click', (e) => {
