@@ -707,12 +707,22 @@ textarea#latex-source {
   max-width: 100%; max-height: 360px;
   width: auto; height: auto;
 }
+/* Original-crop images tend to be bigger than the TikZ render at their
+   natural size, so clamp them tighter — the TikZ "Original" toggle on
+   problem pages should swap between two figures of comparable size. */
+.preview-box .tex-tikz img.tikz-orig-img {
+  max-height: 280px;
+}
 /* Once the JS locks .tex-tikz to {width, height}, child img/svg fills it
-   exactly while preserveAspectRatio handles letterboxing. */
+   exactly. For the original-crop case we use object-fit:contain so the
+   image letterboxes inside the locked box instead of distorting. */
 .preview-box .tex-tikz.is-locked img,
 .preview-box .tex-tikz.is-locked svg {
   width: 100%; height: 100%;
   max-width: none; max-height: none;
+}
+.preview-box .tex-tikz.is-locked img.tikz-orig-img {
+  object-fit: contain;
 }
 /* Textbook problems are image-only: a single PNG crop replaces the LaTeX
    preview body. Sizing rules per surface so the same image looks reasonable
@@ -1035,6 +1045,39 @@ canvas.crop-display {
 .collection-remove:hover { background: rgba(0,0,0,0.18); color: #111; }
 
 /* GitHub sync — compact button + dropdown in the top-right */
+/* Signed-out approval-filter toggle. Sits in the top-right slot where
+   the Sign in button used to live (we still emit Sign in, but it's
+   display:none — its dropdown is reached through the menu). The toggle's
+   aria-pressed reflects "Approved only" mode:
+     pressed=true  → filter ON  (default for new visitors)
+     pressed=false → showing everything */
+.approval-filter-btn {
+  appearance: none;
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.36rem 0.7rem;
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  background: var(--card-bg);
+  color: var(--fg);
+  font-size: 0.82rem;
+  cursor: pointer;
+  line-height: 1;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+.approval-filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+.approval-filter-btn[aria-pressed="true"] {
+  background: var(--ok-bg);
+  color: var(--ok);
+  border-color: var(--ok);
+}
+.approval-filter-btn[aria-pressed="true"] .af-icon-off { display: none; }
+.approval-filter-btn[aria-pressed="false"] .af-icon-on  { display: none; }
+.approval-filter-btn .af-icon { flex: none; }
+.approval-filter-btn .approval-filter-label { white-space: nowrap; }
+
+/* Filtered-out card: keep it in the DOM so the count badges can reason
+   about totals, but pull it out of the layout entirely. */
+.unapproved-hidden { display: none !important; }
 .gh-sync { position: relative; display: inline-flex; gap: 0.3rem; }
 .gh-sync .gh-state { position: relative; display: inline-flex; gap: 0.3rem; }
 .gh-sync .gh-state[hidden] { display: none !important; }

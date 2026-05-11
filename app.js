@@ -446,6 +446,84 @@ function effectiveState(id) {
   return { ...r, ...l };
 }
 
+// ---------- Approval-only filter for signed-out viewers --------------------
+// Signed-out viewers see ONLY problems that have at least one approver, so
+// random visitors get a clean "verified" corpus. They can flip a toggle in
+// the top-right (next to where the Sign in button used to live) to opt back
+// into the full set. Signed-in viewers always see everything — they're the
+// curators.
+function isApproved(id) {
+  const s = effectiveState(id);
+  return approverList(s.approved_by).length > 0;
+}
+const SHOW_UNAPPROVED_KEY = 'show-unapproved';
+function showUnapprovedFlag() {
+  return localStorage.getItem(SHOW_UNAPPROVED_KEY) === '1';
+}
+function setShowUnapprovedFlag(v) {
+  if (v) localStorage.setItem(SHOW_UNAPPROVED_KEY, '1');
+  else   localStorage.removeItem(SHOW_UNAPPROVED_KEY);
+}
+// Effective check used everywhere a card is filtered. Signed-in users skip
+// the filter entirely; signed-out users honor the toggle.
+function shouldShowProblem(id) {
+  if (getToken()) return true;
+  if (showUnapprovedFlag()) return true;
+  return isApproved(id);
+}
+
+// Apply the filter to every pre-rendered card on the current page, then
+// recompute the visible-count badges on <details> summaries and the page
+// tabs. Idempotent — safe to call after every relevant state change
+// (sign-in, sign-out, toggle flip, approval-chip click).
+function applyApprovalFilter() {
+  const wraps = document.querySelectorAll('.search-result-wrap[data-id]');
+  wraps.forEach(w => {
+    const id = w.dataset.id;
+    const show = shouldShowProblem(id);
+    w.classList.toggle('unapproved-hidden', !show);
+  });
+  // <details> summary counts: each .collection has a <summary> with
+  // a <span class="count">(N)</span> showing the full size. We replace
+  // the rendered number with the visible count and stash the total in a
+  // data attribute so the original value survives.
+  document.querySelectorAll('details.collection').forEach(d => {
+    const span = d.querySelector(':scope > summary .count');
+    if (!span) return;
+    if (!span.dataset.total) {
+      const m = span.textContent.match(/\d+/);
+      if (m) span.dataset.total = m[0];
+    }
+    // Count unique problem IDs visible inside this collection (a problem
+    // can repeat across season/level subtrees — the index emits one card
+    // per slot, but the "total" shown on a parent only counts unique ids).
+    const seen = new Set();
+    d.querySelectorAll('.search-result-wrap[data-id]').forEach(w => {
+      if (!w.classList.contains('unapproved-hidden')) seen.add(w.dataset.id);
+    });
+    span.textContent = `(${seen.size})`;
+  });
+  // Page-tab counts (the top "Matura (N) / Textbook (N)" buttons).
+  document.querySelectorAll('.page-tab[data-tab]').forEach(btn => {
+    const span = btn.querySelector('.count');
+    if (!span) return;
+    if (!span.dataset.total) {
+      const m = span.textContent.match(/\d+/);
+      if (m) span.dataset.total = m[0];
+    }
+    const tab = btn.dataset.tab;
+    const panel = document.querySelector(`section.page-panel[data-panel="${tab}"]`);
+    if (!panel) return;
+    const seen = new Set();
+    panel.querySelectorAll('.search-result-wrap[data-id]').forEach(w => {
+      if (!w.classList.contains('unapproved-hidden')) seen.add(w.dataset.id);
+    });
+    span.textContent = `(${seen.size})`;
+  });
+  // Search page: notify listeners so they can re-render their result list.
+  window.dispatchEvent(new CustomEvent('approval-filter-changed'));
+}
+
 // Return the effective topics for a problem given build-time defaults.
 // Priority: localStorage.topics > remote.topics > meta.topics (defaults).
 // Unknown topics (e.g. an outdated id from an old build) are filtered out.
@@ -754,6 +832,30 @@ function initSyncBar() {
   const loginRowEl      = bar.querySelector('#gh-login-row');
   const usernameSpan    = bar.querySelector('#gh-username');
   const clearBtn        = bar.querySelector('#gh-clear-token');
+  const approvalToggle  = bar.querySelector('#approval-filter-toggle');
+
+  // ----- Approval-only toggle (signed-out only) ---------------------------
+  // aria-pressed === 'true'  → filter ON  (only approved problems)
+  // aria-pressed === 'false' → showing everything
+  function syncApprovalToggleUI() {
+    if (!approvalToggle) return;
+    const on = !showUnapprovedFlag();
+    approvalToggle.setAttribute('aria-pressed', on ? 'true' : 'false');
+    const label = approvalToggle.querySelector('.approval-filter-label');
+    if (label) label.textContent = on ? 'Approved only' : 'All problems';
+    approvalToggle.title = on
+      ? 'Showing only problems approved by a reviewer. Click to show all.'
+      : 'Showing all problems. Click to hide unapproved ones.';
+  }
+  if (approvalToggle) {
+    approvalToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      setShowUnapprovedFlag(!showUnapprovedFlag());
+      syncApprovalToggleUI();
+      applyApprovalFilter();
+    });
+    syncApprovalToggleUI();
+  }
 
   function showMenu() {
     if (menuView)    menuView.hidden    = false;
@@ -801,6 +903,11 @@ function initSyncBar() {
     if (typeof window.refreshMenuSignin === 'function') {
       window.refreshMenuSignin();
     }
+    // Approval filter visibility depends on auth state — re-apply so
+    // signed-in users always see everything and the visible counts
+    // refresh accordingly. (Safe to call even when no filtered DOM
+    // exists; the function just iterates a 0-length NodeList.)
+    applyApprovalFilter();
   }
 
   // ----- Sign in flow -----
@@ -1453,6 +1560,41 @@ async function primeTikzCacheFromBuildTime(target) {
 function installTikzOrigToggles(target, problemId, refreshFn) {
   if (!target || problemId == null) return;
   const wraps = target.querySelectorAll('.tex-tikz[data-tikz-orig]');
+  // Re-apply any captured TikZ-size lock to .using-orig wrappers so the
+  // original image gets the same on-screen footprint as the compiled
+  // TikZ figure. Without this the original tends to display bigger,
+  // making the toggle jump between two visibly different boxes. If no
+  // lock exists yet (page first loads in "original" mode), snapshot the
+  // original image's rendered size once it's loaded — that becomes the
+  // shared lock for both states.
+  if (!target._tikzLocks) target._tikzLocks = new Map();
+  const locks = target._tikzLocks;
+  wraps.forEach(el => {
+    if (!el.classList.contains('using-orig')) return;
+    if (el.classList.contains('is-locked')) return;
+    const idx = el.getAttribute('data-tikz-idx');
+    if (idx == null) return;
+    const lock = locks.get(idx);
+    if (lock && lock.w > 1 && lock.h > 1) {
+      el.style.width  = lock.w + 'px';
+      el.style.height = lock.h + 'px';
+      el.classList.add('is-locked');
+    } else {
+      const innerImg = el.querySelector(':scope > img.tikz-orig-img');
+      if (!innerImg) return;
+      const capture = () => {
+        const r = innerImg.getBoundingClientRect();
+        if (r.width > 1 && r.height > 1 && !locks.has(idx)) {
+          locks.set(idx, { w: r.width, h: r.height });
+          el.style.width  = r.width  + 'px';
+          el.style.height = r.height + 'px';
+          el.classList.add('is-locked');
+        }
+      };
+      if (innerImg.complete) capture();
+      else innerImg.addEventListener('load', capture, { once: true });
+    }
+  });
   wraps.forEach(el => {
     if (el.querySelector(':scope > .tikz-toggle')) return;  // already wired
     const idx    = parseInt(el.getAttribute('data-tikz-idx') || '0', 10);
@@ -2261,6 +2403,9 @@ async function initSearchPage(opts) {
   // Filter + render. A problem matches if its scalar fields are in range
   // and at least one value of each multi-valued field is selected.
   function matches(p) {
+    // Approval gate: signed-out viewers see only approved problems by
+    // default (toggle in the top-right opts back into the full set).
+    if (!shouldShowProblem(p.n)) return false;
     if (!state.sources.has(p.source)) return false;
     // Textbook problems don't carry the Matura-paper fields (year, season,
     // pola, level, section letter, points), so skip those filters and only
@@ -2469,6 +2614,10 @@ async function initSearchPage(opts) {
       refreshAddAll();
     });
   }
+  // Re-render when the approval filter flips (top-right toggle, or sign-in
+  // state changes). The matches() gate above reads the current state, so
+  // calling render() is enough to re-filter the list.
+  window.addEventListener('approval-filter-changed', () => render());
   // Update Add/Remove button text when state changes anywhere else.
   window.addEventListener(stateEvent, () => {
     resultsEl.querySelectorAll('.result-add').forEach(b => {
@@ -3566,6 +3715,9 @@ async function initIndexPage() {
   await ensureNameFromToken();
   hydrateIndexCards();
   applyIndexStatuses();
+  // Hide unapproved cards for signed-out viewers (default) and refresh
+  // the summary/tab counts to reflect what's actually visible.
+  applyApprovalFilter();
   const exportAllBtn = document.getElementById('export-all');
   if (exportAllBtn) {
     exportAllBtn.addEventListener('click', () => {
