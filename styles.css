@@ -809,14 +809,16 @@ textarea#latex-source {
   touch-action: manipulation;
 }
 
-/* "Download PDF" split button + its dropdown — fresh design. */
+/* Split button — a primary main button welded to a smaller secondary
+   button on its right (Download PDF + ▾ dropdown, Push + 🗑 discard).
+   The two pieces share a 1-px seam and stripped corners on the seam side. */
 .pdf-split-btn {
   position: relative;
   display: inline-flex;
   align-items: stretch;
-  gap: 1px;          /* thin seam between main button and arrow */
+  gap: 1px;          /* thin seam between main button and side */
 }
-.pdf-split-btn > #download-pdf {
+.pdf-split-btn > .pdf-split-main {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
   margin: 0;
@@ -828,7 +830,9 @@ textarea#latex-source {
   font-size: 0.7rem;
   line-height: 1;
   margin: 0;
+  display: inline-flex; align-items: center; justify-content: center;
 }
+.pdf-split-arrow svg { display: block; }
 .pdf-split-menu {
   position: absolute;
   top: calc(100% + 4px);
@@ -1091,26 +1095,14 @@ canvas.crop-display {
   padding: 0 0 0.32rem 0;
   font-size: 1.5rem; line-height: 1;
 }
-/* Trash-can "discard pending changes" button — small, secondary,
-   shown only when there are unpushed edits. Matches the visual weight
-   of the .dropdown-toggle next to it. */
-.gh-sync .gh-discard-btn {
-  appearance: none;
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 2.1rem; padding: 0; line-height: 1;
-  border: 1px solid var(--card-border);
-  background: var(--card-bg);
-  color: var(--muted);
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+/* Push + discard split button. When the trashcan is hidden (nothing to
+   discard) restore the Push button's right-side rounding so it doesn't
+   look like one half of an amputated split control. */
+.gh-push-split #gh-discard[hidden] { display: none !important; }
+.gh-push-split:has(#gh-discard[hidden]) > #gh-push.pdf-split-main {
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
 }
-.gh-sync .gh-discard-btn:hover {
-  color: var(--warn);
-  border-color: var(--warn);
-  background: var(--warn-bg);
-}
-.gh-sync .gh-discard-btn[hidden] { display: none !important; }
 .gh-sync .gh-dropdown {
   position: absolute; top: calc(100% + 6px); right: 0;
   min-width: 240px;

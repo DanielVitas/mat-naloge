@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Naloga 39 — Matura 2025</title>
-<link rel="stylesheet" href="styles.css?v=fc7ec575">
+<link rel="stylesheet" href="styles.css?v=176a86d5">
 <script>
   window.MathJax = {
     tex: {
@@ -90,20 +90,22 @@
   </div>
   <!-- Signed-in state -->
   <div class="gh-state gh-signed-in" id="gh-signed-in" hidden>
-    <button id="gh-push" class="primary" disabled>⬆ Push</button>
-    <button id="gh-discard" class="gh-discard-btn" type="button"
-            aria-label="Discard all unpushed changes"
-            title="Discard all unpushed changes" hidden>
-      <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"
-           fill="none" stroke="currentColor" stroke-width="2"
-           stroke-linecap="round" stroke-linejoin="round">
-        <path d="M3 6h18"/>
-        <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-        <path d="M10 11v6"/>
-        <path d="M14 11v6"/>
-      </svg>
-    </button>
+    <span class="pdf-split-btn gh-push-split" id="gh-push-split">
+      <button type="button" id="gh-push" class="primary pdf-split-main" disabled>⬆ Push</button>
+      <button type="button" id="gh-discard" class="primary pdf-split-arrow"
+              aria-label="Discard all unpushed changes"
+              title="Discard all unpushed changes" hidden>
+        <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"
+             fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 6h18"/>
+          <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+          <path d="M10 11v6"/>
+          <path d="M14 11v6"/>
+        </svg>
+      </button>
+    </span>
     <button id="gh-menu-btn" class="dropdown-toggle" aria-label="Account menu">▾</button>
     <div class="gh-dropdown gh-user-dropdown" id="gh-user-dropdown" hidden>
       <div class="gh-menu-view" id="gh-menu-view">
