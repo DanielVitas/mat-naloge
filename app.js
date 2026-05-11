@@ -1582,6 +1582,21 @@ function renderProblemBody(target, opts) {
   opts = opts || {};
   const bodyImg = opts.bodyImage;
   const latex   = opts.latex || '';
+  const cropMeta = opts.cropMeta;   // {page_image, page_size, bbox}
+  if (!latex && cropMeta && cropMeta.page_image && cropMeta.bbox &&
+      cropMeta.page_size) {
+    // Live-rendered crop from page_image + bbox. This lets the preview
+    // update IMMEDIATELY when the user drags the crop editor — the bbox
+    // is the EFFECTIVE one (local override > remote > build default),
+    // so the displayed image and the editor's selection always match.
+    target.innerHTML = '<canvas class="textbook-body-img dyn-crop"></canvas>';
+    const canvas = target.querySelector('canvas');
+    const img = new Image();
+    img.onload = () => drawCropFromImage(canvas, img, cropMeta.bbox,
+                                          cropMeta.page_size);
+    img.src = cropMeta.page_image;
+    return;
+  }
   if (bodyImg && !latex) {
     target.innerHTML = '<img class="textbook-body-img" src="'
       + bodyImg + '" alt="Exercise ' + (opts.n != null ? opts.n : '') + '">';
@@ -1977,9 +1992,39 @@ async function initProblemPage(meta) {
   //   • LaTeX present (default) → LaTeX → HTML render (with TikZ → SVG).
   // Per-figure original-image toggles live INSIDE each .tex-tikz block and
   // are wired by installTikzOrigToggles() after every preview render.
+  // Compose the live cropMeta (page_image + EFFECTIVE bbox + page_size)
+  // for the preview canvas. The bbox comes from effectiveState so the
+  // preview always reflects the user's current crop selection — even
+  // mid-drag in the editor. Callers refresh by re-invoking updatePreview.
+  function liveCropMeta() {
+    if (!meta.page_image || !meta.page_size) return null;
+    const s = effectiveState(meta.n);
+    let bbox = null;
+    if (s.bboxes && s.bboxes[0]) bbox = s.bboxes[0].slice();
+    else if (Array.isArray(s.bbox)) bbox = s.bbox.slice();
+    else if (Array.isArray(meta.bbox_default)) bbox = meta.bbox_default.slice();
+    if (!bbox) return null;
+    return {
+      page_image: meta.page_image,
+      page_size:  meta.page_size,
+      bbox:       bbox,
+    };
+  }
   function updatePreview(hydrateTikz) {
-    if (!ta.value && meta.body_image) {
-      renderProblemBody(preview, { n: meta.n, bodyImage: meta.body_image });
+    if (!ta.value) {
+      // No LaTeX yet — show the body crop. Prefer the live page-image+
+      // bbox so the preview re-renders as the user drags the crop;
+      // fall back to the pre-baked body_image for problems that don't
+      // carry a page_image (textbook flat crops).
+      const cropMeta = liveCropMeta();
+      if (cropMeta) {
+        renderProblemBody(preview, { n: meta.n, cropMeta: cropMeta });
+      } else if (meta.body_image) {
+        renderProblemBody(preview, { n: meta.n, bodyImage: meta.body_image });
+      } else {
+        renderTeXPreview(ta.value, preview, meta.n, meta.tikz_count, hydrateTikz,
+                         meta.tikz_originals || []);
+      }
     } else {
       renderTeXPreview(ta.value, preview, meta.n, meta.tikz_count, hydrateTikz,
                        meta.tikz_originals || []);
@@ -2116,6 +2161,12 @@ async function initProblemPage(meta) {
       updateBadge(true);
       refresh();
       hide();
+      // For image-only matura previews the body pane is drawn from
+      // page_image+bbox via canvas — re-render so the new crop shows
+      // immediately, not just inside the crop editor.
+      if (idx === 0 && typeof updatePreview === 'function') {
+        updatePreview(false);
+      }
       const bar = document.getElementById('gh-sync');
       if (bar && typeof bar._refresh === 'function') bar._refresh();
     });
@@ -2123,6 +2174,11 @@ async function initProblemPage(meta) {
       currentBbox = (inst.bbox_default || []).slice();
       clearBbox(idx);
       refresh();
+      // Same live-preview refresh as Save — keep the body pane in sync
+      // with the now-restored default crop.
+      if (idx === 0 && typeof updatePreview === 'function') {
+        updatePreview(false);
+      }
       const bar = document.getElementById('gh-sync');
       if (bar && typeof bar._refresh === 'function') bar._refresh();
     });
