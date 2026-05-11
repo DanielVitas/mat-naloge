@@ -333,7 +333,7 @@ function initCollectionBar() {
 // effect — even on pages where the user previously dragged the crop by
 // hand. This lets us re-crop the entire matura corpus and have every
 // visitor see the new crops automatically.
-const BBOX_MIGRATION_VERSION = 5;
+const BBOX_MIGRATION_VERSION = 6;
 const BBOX_MIGRATION_KEY     = 'bbox-migration-version';
 
 function migrateLocalBboxes() {
