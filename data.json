@@ -5,12 +5,6 @@
     "outdated": true
   },
   "2": {
-    "bbox": [
-      179,
-      1230,
-      1479,
-      1410
-    ],
     "outdated": false,
     "approved_by": null
   },
@@ -19,22 +13,10 @@
   },
   "4": {
     "approved_by": "DanielVitas",
-    "bbox": [
-      175,
-      1278,
-      1519,
-      1425
-    ],
     "outdated": false
   },
   "5": {
     "approved_by": null,
-    "bbox": [
-      182,
-      214,
-      1499,
-      719
-    ],
     "outdated": false,
     "topics": [
       "4.6 Geometrija",
@@ -45,26 +27,12 @@
     "latex": "Na skici spodaj je štirikotnik $ABCD$. Izračunajte kota $\\beta$ in $\\gamma$, če je $\\gamma=2\\beta$.\n\n\\begin{center}\n\\begin{tikzpicture}[scale=1.0,>=latex]\n  \\coordinate (A) at (0,0);\n  \\coordinate (B) at (5.4,0);\n  \\coordinate (C) at (4.6,2.6);\n  \\coordinate (D) at (1.6,3.0);\n  \\draw[thick] (A) -- (B) -- (C) -- (D) -- cycle;\n  \\node[below left]  at (A) {$A$};\n  \\node[below right] at (B) {$B$};\n  \\node[above right] at (C) {$C$};\n  \\node[above left]  at (D) {$D$};\n  \\pic [draw, \"$70^\\circ$\", angle radius=8mm, angle eccentricity=1.45]\n       {angle = B--A--D};\n  \\pic [draw, \"$\\beta$\", angle radius=8mm, angle eccentricity=1.6]\n       {angle = C--B--A};\n  \\pic [draw, \"$101^\\circ$\", angle radius=8mm, angle eccentricity=1.6]\n       {angle = D--C--B};\n  \\pic [draw, \"$\\gamma$\", angle radius=8mm, angle eccentricity=1.55]\n       {angle = A--D--C};\n\\end{tikzpicture}\n\\end{center}"
   },
   "7": {
-    "bbox": [
-      185,
-      205,
-      1529,
-      356
-    ],
     "outdated": false
   },
   "8": {
     "approved_by": [
       "DanielVitas"
     ],
-    "bboxes": {
-      "0": [
-        175,
-        1136,
-        1485,
-        1718
-      ]
-    },
     "outdated": true
   },
   "12": {
@@ -75,14 +43,6 @@
     "outdated": true
   },
   "15": {
-    "bboxes": {
-      "0": [
-        189,
-        291,
-        1509,
-        1273
-      ]
-    },
     "outdated": false
   },
   "display_names": {

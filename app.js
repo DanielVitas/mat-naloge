@@ -333,12 +333,13 @@ function initCollectionBar() {
 // effect — even on pages where the user previously dragged the crop by
 // hand. This lets us re-crop the entire matura corpus and have every
 // visitor see the new crops automatically.
-const BBOX_MIGRATION_VERSION = 2;
+const BBOX_MIGRATION_VERSION = 3;
 const BBOX_MIGRATION_KEY     = 'bbox-migration-version';
 
 function migrateLocalBboxes() {
   const stored = parseInt(localStorage.getItem(BBOX_MIGRATION_KEY) || '0', 10);
   if (stored >= BBOX_MIGRATION_VERSION) return;     // already migrated
+  // 1. Drop local prob-N overrides.
   for (let i = 0; i < localStorage.length; i++) {
     const k = localStorage.key(i);
     if (!k || !k.startsWith('prob-')) continue;
@@ -351,6 +352,22 @@ function migrateLocalBboxes() {
     if (dirty) {
       if (Object.keys(s).length === 0) localStorage.removeItem(k);
       else                              localStorage.setItem(k, JSON.stringify(s));
+    }
+  }
+  // 2. Strip stale bbox/bboxes from the in-memory REMOTE_DATA copy too
+  // — without this, a pushed bbox from BEFORE the new refinement
+  // landed continues to win over the freshly computed default. We
+  // mutate REMOTE_DATA in place so effectiveState() falls through to
+  // meta.bbox_default. (data.json on the server is also wiped before
+  // shipping the new build; this is the safety net for clients that
+  // grab a stale data.json from a CDN cache.)
+  if (REMOTE_DATA) {
+    for (const k of Object.keys(REMOTE_DATA)) {
+      const v = REMOTE_DATA[k];
+      if (v && typeof v === 'object') {
+        if ('bbox' in v)   delete v.bbox;
+        if ('bboxes' in v) delete v.bboxes;
+      }
     }
   }
   localStorage.setItem(BBOX_MIGRATION_KEY, String(BBOX_MIGRATION_VERSION));
