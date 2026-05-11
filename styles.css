@@ -1330,45 +1330,62 @@ canvas.crop-display {
 }
 .filter-chip:hover { filter: brightness(0.97); }
 
-/* Source-aware filter panels. Each panel groups a set of cells that
-   only apply to one source, with a tinted background + a coloured
-   badge in the header so it's clear at a glance which filters
-   belong to which source. */
+/* Source-aware filter panels — collapsible chip-style summary that
+   expands to reveal the matura- or textbook-specific filter cells.
+   Closed by default; click the summary to open. */
 .filter-panel {
-  border: 1px solid var(--card-border);
-  border-radius: 10px;
-  padding: 0.7rem 0.9rem 0.5rem;
   margin: 0.4rem 0;
 }
-.filter-panel-matura   {
-  background: color-mix(in srgb, var(--tag-source-bg) 25%, transparent);
-  border-color: color-mix(in srgb, var(--tag-source-fg) 22%, var(--card-border));
-}
-.filter-panel-textbook {
-  background: color-mix(in srgb, #fdf1c8 25%, transparent);
-  border-color: color-mix(in srgb, #a88347 22%, var(--card-border));
-}
+/* Strip the native <details> disclosure triangle so we can paint our
+   own (small rotating arrow) inside the summary. */
+.filter-panel > summary { list-style: none; }
+.filter-panel > summary::-webkit-details-marker { display: none; }
 .filter-panel-header {
-  display: flex; align-items: center; gap: 0.6rem;
-  margin-bottom: 0.55rem;
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.32rem 0.65rem;
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  cursor: pointer;
+  background: var(--card-bg);
+  transition: border-color 120ms ease, background 120ms ease;
 }
+.filter-panel-header:hover { border-color: var(--accent); }
+.filter-panel[open] > .filter-panel-header { border-color: transparent; }
 .filter-panel-badge {
   display: inline-flex; align-items: center;
-  padding: 0.2rem 0.55rem;
+  padding: 0.18rem 0.55rem;
   border-radius: 999px;
-  font-size: 0.74rem; font-weight: 600;
-  letter-spacing: 0.02em; line-height: 1;
+  font-size: 0.78rem; font-weight: 600;
+  letter-spacing: 0.01em; line-height: 1;
+  background: var(--tag-source-bg);
+  color: var(--tag-source-fg);
 }
 .filter-panel-badge.filter-chip-source-textbook {
   background: #fdf1c8;
   color: #a88347;
 }
-.filter-panel-hint {
-  color: var(--muted); font-size: 0.78rem; line-height: 1;
+.filter-panel-arrow {
+  color: var(--muted);
+  font-size: 0.85rem; line-height: 1;
+  transition: transform 140ms ease;
 }
-/* Hide the matura / textbook panel when its source chip is off.
-   We also dim the Source label's hint so the user knows what they're
-   filtering. */
+.filter-panel[open] > .filter-panel-header .filter-panel-arrow {
+  transform: rotate(180deg);
+}
+/* When open, give the expanded grid a subtle tinted backdrop so it
+   visually clusters with its badge. */
+.filter-panel[open] > .filter-grid {
+  background: color-mix(in srgb, var(--tag-source-bg) 25%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tag-source-fg) 22%, var(--card-border));
+  border-radius: 10px;
+  padding: 0.6rem 0.85rem 0.5rem;
+  margin-top: 0.35rem;
+}
+.filter-panel-textbook[open] > .filter-grid {
+  background: color-mix(in srgb, #fdf1c8 25%, transparent);
+  border-color: color-mix(in srgb, #a88347 22%, var(--card-border));
+}
+/* Hide the matura / textbook panel when its source chip is off. */
 #filters.no-matura   #panel-matura   { display: none; }
 #filters.no-textbook #panel-textbook { display: none; }
 .topics-cell { margin-top: 0.2rem; }

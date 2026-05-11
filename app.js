@@ -2344,11 +2344,11 @@ async function initSearchPage(opts) {
         ).join('')}
       </div>
     </div>
-    <div class="filter-panel filter-panel-matura" id="panel-matura">
-      <div class="filter-panel-header">
+    <details class="filter-panel filter-panel-matura" id="panel-matura">
+      <summary class="filter-panel-header">
         <span class="filter-panel-badge filter-chip-source">Matura</span>
-        <span class="filter-panel-hint">Year, points, pola, level, section</span>
-      </div>
+        <span class="filter-panel-arrow" aria-hidden="true">▾</span>
+      </summary>
       <div class="filter-grid">
         <div class="filter-cell">
           <label class="filter-label">Year</label>
@@ -2391,13 +2391,13 @@ async function initSearchPage(opts) {
           </div>
         </div>
       </div>
-    </div>
+    </details>
     ${hasTextbookSecs ? `
-    <div class="filter-panel filter-panel-textbook" id="panel-textbook">
-      <div class="filter-panel-header">
+    <details class="filter-panel filter-panel-textbook" id="panel-textbook">
+      <summary class="filter-panel-header">
         <span class="filter-panel-badge filter-chip-source filter-chip-source-textbook">Textbook</span>
-        <span class="filter-panel-hint">Section</span>
-      </div>
+        <span class="filter-panel-arrow" aria-hidden="true">▾</span>
+      </summary>
       <div class="filter-grid">
         <div class="filter-cell">
           <label class="filter-label">Section</label>
@@ -2408,7 +2408,7 @@ async function initSearchPage(opts) {
           </div>
         </div>
       </div>
-    </div>` : ''}
+    </details>` : ''}
     <div class="filter-cell topics-cell">
       <div class="filter-label-row">
         <label class="filter-label">Topics</label>
