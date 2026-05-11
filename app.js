@@ -244,6 +244,31 @@ function initCollectionBar() {
       dd.appendChild(empty);
       return;
     }
+    // Header row with "N selected" + Clear-all button. Sits above the
+    // individual problem rows; lives inside the dropdown so it auto-hides
+    // when there's nothing to clear.
+    const header = document.createElement('div');
+    header.className = 'collection-header';
+    const summary = document.createElement('span');
+    summary.className = 'collection-summary';
+    summary.textContent = `${sel.length} selected`;
+    header.appendChild(summary);
+    const clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
+    clearBtn.className = 'collection-clear';
+    clearBtn.textContent = 'Clear';
+    clearBtn.title = 'Remove every problem from the collection';
+    clearBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (sel.length > 1
+          && !confirm(`Clear all ${sel.length} problems from the collection?`)) {
+        return;
+      }
+      setSelected(new Set());
+    });
+    header.appendChild(clearBtn);
+    dd.appendChild(header);
     const latexMap = window.PROBLEMS_LATEX || {};
     for (const n of sel) {
       const row = document.createElement('div');

@@ -990,6 +990,35 @@ canvas.crop-display {
   font-style: italic;
   font-size: 0.85rem;
 }
+/* Collection-dropdown header row: count summary on the left, Clear-all
+   button on the right. Sits above the first problem row, separated by a
+   thin divider so it reads as a controls strip. */
+.collection-header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.35rem 0.55rem 0.45rem;
+  margin-bottom: 0.35rem;
+  border-bottom: 1px solid var(--card-border);
+}
+.collection-summary {
+  font-size: 0.82rem; color: var(--muted); line-height: 1;
+}
+.collection-clear {
+  appearance: none;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 0.22rem 0.7rem;
+  font-size: 0.8rem; line-height: 1;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+.collection-clear:hover {
+  background: var(--warn-bg);
+  color: var(--warn);
+  border-color: var(--warn);
+}
 .collection-row {
   display: flex; align-items: flex-start; gap: 0.4rem;
   padding: 0.4rem 0.5rem;
@@ -1341,10 +1370,9 @@ canvas.crop-display {
   border-radius: 10px;
   padding: 0.6rem 0.85rem 0.5rem;
 }
-.filter-panel-textbook > .filter-grid {
-  background: color-mix(in srgb, #fdf1c8 25%, transparent);
-  border-color: color-mix(in srgb, #a88347 22%, var(--card-border));
-}
+/* Textbook panel intentionally re-uses the Matura panel's pink tint —
+   the source-coloured badge on the chip itself is enough to disambiguate
+   the two; the expanded panel doesn't need its own colour. */
 
 /* Source chip + welded dropdown arrow. The chip on the left keeps the
    existing aria-pressed (un)selected styling; the arrow is a separate
