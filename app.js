@@ -1996,17 +1996,22 @@ async function initProblemPage(meta) {
   // for the preview canvas. The bbox comes from effectiveState so the
   // preview always reflects the user's current crop selection — even
   // mid-drag in the editor. Callers refresh by re-invoking updatePreview.
+  // Source-of-truth is meta.instances[0] (NOT top-level meta.page_image,
+  // which isn't populated): every problem-page render builds an
+  // `instances` array via the build's normalisation pass even for
+  // image-only matura entries.
   function liveCropMeta() {
-    if (!meta.page_image || !meta.page_size) return null;
+    const inst = (meta.instances && meta.instances[0]) || null;
+    if (!inst || !inst.page_image || !inst.page_size) return null;
     const s = effectiveState(meta.n);
     let bbox = null;
     if (s.bboxes && s.bboxes[0]) bbox = s.bboxes[0].slice();
     else if (Array.isArray(s.bbox)) bbox = s.bbox.slice();
-    else if (Array.isArray(meta.bbox_default)) bbox = meta.bbox_default.slice();
+    else if (Array.isArray(inst.bbox_default)) bbox = inst.bbox_default.slice();
     if (!bbox) return null;
     return {
-      page_image: meta.page_image,
-      page_size:  meta.page_size,
+      page_image: inst.page_image,
+      page_size:  inst.page_size,
       bbox:       bbox,
     };
   }
