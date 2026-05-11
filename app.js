@@ -2477,15 +2477,26 @@ async function initSearchPage(opts) {
   // panel. The arrow lives INSIDE the Source row as a sibling of the
   // toggling chip, so we stop propagation to avoid double-triggering
   // the chip-group click handler (which would deselect the source).
-  document.querySelectorAll('.filter-source-arrow').forEach(arrow => {
+  // Only one panel is open at a time — opening one closes the other.
+  const allArrows = document.querySelectorAll('.filter-source-arrow');
+  allArrows.forEach(arrow => {
     arrow.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
       const target = document.getElementById(arrow.dataset.target);
       if (!target) return;
-      const open = !target.hidden;
-      target.hidden = open;            // toggle
-      arrow.setAttribute('aria-expanded', String(!open));
+      const willOpen = !!target.hidden;   // current is closed → open it
+      // Close every panel + reset every arrow first.
+      allArrows.forEach(a => {
+        const t = document.getElementById(a.dataset.target);
+        if (t) t.hidden = true;
+        a.setAttribute('aria-expanded', 'false');
+      });
+      // Then open the requested one (if we were opening, not toggling-off).
+      if (willOpen) {
+        target.hidden = false;
+        arrow.setAttribute('aria-expanded', 'true');
+      }
     });
   });
   // Topic filter: hierarchical groups with synced parent/sub toggle.
