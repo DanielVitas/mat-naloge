@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Problems</title>
-<link rel="stylesheet" href="styles.css?v=997e1cfd">
+<link rel="stylesheet" href="styles.css?v=b4f32309">
 
 <script>
   window.MathJax = {
@@ -131,21 +131,20 @@
     <button class="page-tab browse-mode-tab" type="button" data-mode="by-topic">Topic <span class="count">(15)</span></button>
     <button class="page-tab browse-mode-tab" type="button" data-mode="by-source">All <span class="count">(46)</span></button>
     <span class="page-tabs-spacer"></span>
+    <!-- Source filter sits inline in the tab row, to the left of
+         Export all. Shown ONLY in the By-topic / By-year views (the
+         By-source view splits Matura/Textbook itself). When opened
+         the chip+panel UI pops out as a downward dropdown via
+         absolute positioning so it doesn't push the Export button. -->
+    <details class="index-source-filter-wrap" id="index-source-filter-wrap" hidden>
+      <summary class="index-source-filter-summary">
+        <span class="index-source-filter-label">Source</span>
+        <span class="index-source-filter-arrow" aria-hidden="true">▾</span>
+      </summary>
+      <div class="index-source-filter filters-panel" id="index-source-filter"></div>
+    </details>
     <button id="export-all" class="page-tabs-action">⬇ Export all (JSON)</button>
   </nav>
-
-  <!-- Source filter shown ONLY in the By-topic / By-year views. A small
-       "Source ▾" pill on the right opens the full chip/panel UI below.
-       The pill + body are rendered by JS in initIndexSourceFilter() so
-       they reuse the exact same chip/panel code path as the Search page
-       filter. -->
-  <details class="index-source-filter-wrap" id="index-source-filter-wrap" hidden>
-    <summary class="index-source-filter-summary">
-      <span class="index-source-filter-label">Source</span>
-      <span class="index-source-filter-arrow" aria-hidden="true">▾</span>
-    </summary>
-    <div class="index-source-filter filters-panel" id="index-source-filter"></div>
-  </details>
 
   <section class="browse-mode-panel" data-mode="by-source" hidden>
     <nav class="page-tabs page-tabs-sub" id="page-tabs">
