@@ -4304,7 +4304,7 @@ async function initIndexPage() {
   initMenuBar();
   initSyncBar();
   initCollectionBar();
-  bindBrowseModeTabs('by-source');
+  bindBrowseModeTabs('by-year');
   bindPageTabs('matura');
   handleSectionHash();
   window.addEventListener('hashchange', handleSectionHash);
