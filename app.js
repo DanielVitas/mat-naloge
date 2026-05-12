@@ -1229,28 +1229,88 @@ function latexToHtml(src, problemId, tikzCount, hydrateTikz, tikzOriginals) {
     return `<div class="${cls}" data-tikz-idx="${tikzIdx}" data-tikz-src="${enc}"${origAttr}>${initial}</div>`;
   });
 
-  src = src.replace(/\\begin\{tabular\}\{([^}]+)\}([\s\S]*?)\\end\{tabular\}/g,
-    (_, _spec, body) => {
-      body = body.replace(/\\hline/g, '');
-      const rows = body.split(/\\\\/).map(r => r.trim()).filter(Boolean);
-      const out = ['<table class="tex-tabular">'];
-      for (const r of rows) {
-        const cells = r.split('&').map(c => c.trim());
-        out.push('<tr>' + cells.map(c => `<td>${c}</td>`).join('') + '</tr>');
-      }
-      out.push('</table>');
-      return out.join('');
-    });
+  // Track the most-recent \arraystretch value so a fill-in table (e.g.
+  // \renewcommand{\arraystretch}{1.6}\begin{tabular}...) gets tall rows
+  // with writing space; reset to 1 after each tabular block consumes it.
+  // The combined alternation lets us strip the renewcommand AND apply its
+  // value to the next tabular block in a single pass.
+  {
+    let pendingStretch = 1.0;
+    src = src.replace(
+      /\\renewcommand\{\\arraystretch\}\{(\d+\.?\d*)\}|\\begin\{tabular\}\{([^}]+)\}([\s\S]*?)\\end\{tabular\}/g,
+      (_, stretchVal, _spec, body) => {
+        if (stretchVal !== undefined) {
+          pendingStretch = parseFloat(stretchVal) || 1.0;
+          return '';
+        }
+        const stretch = pendingStretch;
+        pendingStretch = 1.0;
+        body = body.replace(/\\hline/g, '');
+        const rows = body.split(/\\\\/).map(r => r.trim()).filter(Boolean);
+        const fillin = stretch >= 1.5;
+        const cls = 'tex-tabular' + (fillin ? ' tex-tabular-fillin' : '');
+        const style = (stretch !== 1.0)
+          ? ` style="--stretch:${stretch}"`
+          : '';
+        const out = [`<table class="${cls}"${style}>`];
+        for (const r of rows) {
+          const cells = r.split('&').map(c => c.trim());
+          out.push('<tr>' + cells.map(c => `<td>${c}</td>`).join('') + '</tr>');
+        }
+        out.push('</table>');
+        return out.join('');
+      });
+  }
 
   src = src.replace(/\\begin\{itemize\}(\[[^\]]*\])?([\s\S]*?)\\end\{itemize\}/g,
     (_, _opt, body) => {
-      const items = body.split(/\\item\s+/).map(s => s.trim()).filter(Boolean);
+      // Split on \item, accepting (a) plain \item followed by whitespace,
+      // (b) \item[label]... with no whitespace, and (c) \item[label] with
+      // whitespace after. The bracketed label, if present, becomes the
+      // visible item prefix (rendered bold so a)/b)/c) markers stand out).
+      // Tolerate one level of balanced {} inside the label (e.g.
+      // \textbf{a)} ).
+      const itemRe = /\\item(?:\[((?:[^\[\]{}]|\{[^{}]*\})*)\])?\s*/g;
+      const matches = [];
+      let mm;
+      while ((mm = itemRe.exec(body)) !== null) {
+        matches.push({ start: mm.index, end: mm.index + mm[0].length, label: mm[1] || '' });
+      }
+      const items = [];
+      for (let i = 0; i < matches.length; i++) {
+        const a = matches[i];
+        const b = (i + 1 < matches.length) ? matches[i + 1].start : body.length;
+        const content = body.slice(a.end, b).trim();
+        if (!content && !a.label) continue;
+        const prefix = a.label
+          ? `<span class="tex-item-label">${a.label}</span> `
+          : '';
+        items.push(prefix + content);
+      }
       return '<ul class="tex-list">' + items.map(i => `<li>${i}</li>`).join('') + '</ul>';
     });
 
   src = src.replace(/\\begin\{center\}([\s\S]*?)\\end\{center\}/g,
     (_, inner) => `<div class="tex-center">${inner.trim()}</div>`);
 
+  // \namigsplit{<left>}{<right>}  -> two-column dashed "Namig:" callout
+  // (the textbook scans put a stacked proportion on the left and the
+  // resolved formula on the right). Allows two levels of brace nesting.
+  {
+    const BAL = '(?:[^{}]|\\{(?:[^{}]|\\{[^{}]*\\})*\\})*';
+    src = src.replace(new RegExp('\\\\namigsplit\\{(' + BAL + ')\\}\\s*\\{(' + BAL + ')\\}', 'g'),
+      (_, l, r) =>
+        `<div class="tex-namig tex-namig-split">` +
+          `<span class="tex-namig-label">Namig:</span>` +
+          `<div class="tex-namig-left">${l}</div>` +
+          `<div class="tex-namig-right">${r}</div>` +
+        `</div>`);
+    src = src.replace(new RegExp('\\\\namig\\{(' + BAL + ')\\}', 'g'),
+      (_, c) =>
+        `<div class="tex-namig">` +
+          `<span class="tex-namig-label">Namig:</span> ${c}` +
+        `</div>`);
+  }
   src = src.replace(/\\textbf\{([^{}]*)\}/g, '<strong>$1</strong>');
   src = src.replace(/\\textit\{([^{}]*)\}/g, '<em>$1</em>');
   src = src.replace(/\\emph\{([^{}]*)\}/g, '<em>$1</em>');

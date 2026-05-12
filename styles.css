@@ -684,8 +684,89 @@ textarea#latex-source {
   border: 1px solid #999; padding: 0.55rem 0.9rem; text-align: left; vertical-align: middle;
   line-height: 1.45;
 }
+/* Fill-in tables (any tabular preceded by \arraystretch >= 1.5): give
+   each row enough vertical room for handwritten answers, and keep
+   cells from wrapping where the content fits. */
+.preview-box .tex-tabular-fillin td,
+.preview-box .tex-tabular-fillin th,
+.finishing-block-body .tex-tabular-fillin td,
+.finishing-block-body .tex-tabular-fillin th {
+  height: calc(2.2rem * var(--stretch, 1.5));
+  padding: 0.4rem 1rem;
+  vertical-align: top;
+  white-space: nowrap;
+}
+/* Drop nowrap when the cell holds long prose (heuristic: more than one
+   word + at least 24 chars). Implemented via a wrapping class set by
+   the renderer when a cell looks prose-y. */
+.preview-box .tex-tabular-fillin td.long-cell,
+.finishing-block-body .tex-tabular-fillin td.long-cell {
+  white-space: normal;
+}
+/* "Namig" (Hint) box — peach background, dashed border, mirrors the
+   sidebar callout that sits next to the fill-in tables in the original
+   textbook scans. */
+.preview-box .tex-namig,
+.finishing-block-body .tex-namig {
+  display: inline-block;
+  background: #ffe9d8;
+  border: 1.5px dashed #d98059;
+  border-radius: 6px;
+  padding: 0.6rem 1rem;
+  margin: 0.6rem 0;
+  color: #6b3a17;
+  font-size: 0.95em;
+}
+.preview-box .tex-namig .tex-namig-label,
+.finishing-block-body .tex-namig .tex-namig-label {
+  font-style: italic;
+  font-weight: 600;
+  margin-right: 0.4rem;
+}
+/* Two-column hint: left = stacked proportion, right = resolved formula. */
+.preview-box .tex-namig-split,
+.finishing-block-body .tex-namig-split {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  grid-template-rows: auto auto;
+  column-gap: 1.2rem;
+  align-items: center;
+}
+.preview-box .tex-namig-split .tex-namig-label,
+.finishing-block-body .tex-namig-split .tex-namig-label {
+  grid-row: 1 / span 2;
+  grid-column: 1;
+  align-self: center;
+}
+.preview-box .tex-namig-split .tex-namig-left,
+.finishing-block-body .tex-namig-split .tex-namig-left {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.preview-box .tex-namig-split .tex-namig-right,
+.finishing-block-body .tex-namig-split .tex-namig-right {
+  grid-row: 1 / span 2;
+  grid-column: 3;
+  align-self: center;
+}
 .preview-box .tex-list,
 .finishing-block-body .tex-list { margin: 0.4rem 0 0.4rem 1.4rem; padding-left: 0; }
+/* When an item carries an explicit a)/b)/c) label, hide the default
+   bullet (the label IS the marker). */
+.preview-box .tex-list li:has(.tex-item-label),
+.finishing-block-body .tex-list li:has(.tex-item-label) {
+  list-style: none;
+  margin-left: -1.4rem;
+}
+.tex-item-label {
+  display: inline-block;
+  font-weight: 600;
+  min-width: 1.5rem;
+  margin-right: 0.25rem;
+}
 .preview-box .tex-tikz,
 .finishing-block-body .tex-tikz { text-align: center; margin: 0.5rem 0; }
 .preview-box .tex-tikz {
