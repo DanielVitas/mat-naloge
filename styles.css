@@ -681,7 +681,8 @@ textarea#latex-source {
 .finishing-block-body .tex-tabular { margin: 0.5rem auto; border-collapse: collapse; }
 .preview-box .tex-tabular td, .preview-box .tex-tabular th,
 .finishing-block-body .tex-tabular td, .finishing-block-body .tex-tabular th {
-  border: 1px solid #999; padding: 0.3rem 0.6rem; text-align: left; vertical-align: middle;
+  border: 1px solid #999; padding: 0.55rem 0.9rem; text-align: left; vertical-align: middle;
+  line-height: 1.45;
 }
 .preview-box .tex-list,
 .finishing-block-body .tex-list { margin: 0.4rem 0 0.4rem 1.4rem; padding-left: 0; }
