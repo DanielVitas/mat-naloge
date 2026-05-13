@@ -885,9 +885,24 @@ function switchBrowseMode(name) {
   return true;
 }
 
+// Remember the user's last-selected browse-mode (Year / Topic / All)
+// so the Problems page reopens in the same tab on revisits. URL hash
+// still wins for deep links — saved state is only consulted when no
+// explicit hash is present.
+const BROWSE_MODE_KEY = 'problems-browse-mode-v1';
+function readSavedBrowseMode() {
+  try { return localStorage.getItem(BROWSE_MODE_KEY) || ''; }
+  catch { return ''; }
+}
+function writeSavedBrowseMode(mode) {
+  try { localStorage.setItem(BROWSE_MODE_KEY, mode); }
+  catch {}
+}
+
 function bindBrowseModeTabs(defaultMode) {
   const tabs = document.querySelectorAll('.browse-mode-tab');
   if (!tabs.length) return;
+  const valid = new Set(['by-source', 'by-topic', 'by-year']);
   tabs.forEach(t => {
     t.addEventListener('click', (e) => {
       e.preventDefault();
@@ -896,13 +911,18 @@ function bindBrowseModeTabs(defaultMode) {
         // Use hash to deep-link the mode. We don't include source-side
         // sub-tab state here — that's still owned by bindPageTabs.
         history.replaceState(null, '', '#' + name);
+        // Persist for the next visit when no hash is supplied.
+        if (valid.has(name)) writeSavedBrowseMode(name);
       }
     });
   });
-  // If the hash names a known mode, honour it. Otherwise default.
-  const valid = new Set(['by-source', 'by-topic', 'by-year']);
+  // Priority: URL hash > localStorage > argument default.
   const initial = (location.hash || '').replace('#', '').split('/')[0];
-  switchBrowseMode(valid.has(initial) ? initial : defaultMode);
+  const saved   = readSavedBrowseMode();
+  const pick = valid.has(initial) ? initial
+             : valid.has(saved)   ? saved
+             :                      defaultMode;
+  switchBrowseMode(pick);
 }
 
 // Wire up tab click → switch + update hash. `defaultName` is used when
