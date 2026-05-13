@@ -1052,6 +1052,23 @@ canvas.crop-display {
   display: flex; flex-direction: column;
 }
 
+/* The <select> that lets the user switch between Matura instances
+   (year/season/level/pola). Sits inside the pane-header next to the
+   Edit/Reset buttons, so we match their compact button styling. */
+.instance-picker {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: inherit;
+  cursor: pointer;
+  max-width: 18rem;
+}
+.instance-picker:hover { border-color: var(--accent, #5a90ff); }
+.instance-picker:focus { outline: 2px solid var(--accent, #5a90ff); outline-offset: 1px; }
+
 /* Crop editor */
 .crop-editor {
   margin-top: 1rem; border: 1px solid var(--card-border);

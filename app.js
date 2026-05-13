@@ -2187,6 +2187,35 @@ async function initProblemPage(meta) {
   const instances = meta.instances || [];
   instances.forEach((inst, idx) => initInstance(inst, idx));
 
+  // Wire the instance picker (only present when there are 2+ instances).
+  // Changing the picker hides every `.instance-block` and shows the one
+  // whose data-instance matches the selected value. The picker itself
+  // lives inside the FIRST .instance-block, so we move it into whichever
+  // block becomes visible so the user can switch again.
+  const picker = document.getElementById('instance-picker');
+  if (picker) {
+    picker.addEventListener('change', (e) => {
+      const sel = String(e.target.value);
+      const blocks = document.querySelectorAll('.problem-crops .instance-block');
+      let targetBlock = null;
+      blocks.forEach(b => {
+        const match = b.dataset.instance === sel;
+        b.hidden = !match;
+        if (match) targetBlock = b;
+      });
+      // Move the picker into the target block's pane-header so it
+      // stays visible after the swap. Insert it right before the
+      // Edit button to preserve the header layout.
+      if (targetBlock) {
+        const header = targetBlock.querySelector('.crop-view .pane-header');
+        const editBtn = targetBlock.querySelector('.edit-crop-btn');
+        if (header && editBtn && picker.parentElement !== header) {
+          header.insertBefore(picker, editBtn);
+        }
+      }
+    });
+  }
+
   function initInstance(inst, idx) {
     const cropView   = document.getElementById(`crop-view-${idx}`);
     const cropCanvas = document.getElementById(`crop-canvas-${idx}`);
