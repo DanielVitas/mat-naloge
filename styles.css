@@ -742,15 +742,16 @@ textarea#latex-source {
 .finishing-block-body .tex-namig-split .tex-namig-left {
   grid-row: 1 / span 2;
   grid-column: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
+  line-height: 1.55;
+  white-space: nowrap;
 }
 .preview-box .tex-namig-split .tex-namig-right,
 .finishing-block-body .tex-namig-split .tex-namig-right {
   grid-row: 1 / span 2;
   grid-column: 3;
   align-self: center;
+  line-height: 1.55;
+  white-space: nowrap;
 }
 .preview-box .tex-list,
 .finishing-block-body .tex-list { margin: 0.4rem 0 0.4rem 1.4rem; padding-left: 0; }
@@ -2177,6 +2178,46 @@ body.page-exam.latex-open .finishing-right { display: flex; }
 }
 @media print {
   body.print-finishing .finishing-block-remove { display: none !important; }
+}
+/* × inside a .tex-namig block on the Finishing tab — sits in the top
+   corner of the peach hint box and lets the user hide that hint from
+   the rendered exam. Hidden in print. */
+.finishing-block-body .tex-namig {
+  position: relative;
+}
+.tex-namig-remove {
+  position: absolute;
+  top: 0.2rem;
+  right: 0.25rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  padding: 0;
+  font-size: 0.9rem;
+  line-height: 1;
+}
+@media print {
+  body.print-finishing .tex-namig-remove { display: none !important; }
+}
+/* "+ Hint" affordance shown beneath a problem whose hint is hidden.
+   Styled to match the dashed peach hint box but at half-opacity so it
+   doesn't compete with real content. */
+.finishing-add-hint {
+  display: inline-block;
+  margin-top: 0.4rem;
+  padding: 0.3rem 0.8rem;
+  background: transparent;
+  border: 1.5px dashed #d98059;
+  color: #6b3a17;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+.finishing-add-hint:hover {
+  background: #ffe9d8;
+}
+@media print {
+  body.print-finishing .finishing-add-hint { display: none !important; }
 }
 
 /* "+ Add N random" — styled to match the .add-all-btn neighbour with

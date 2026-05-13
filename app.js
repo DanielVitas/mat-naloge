@@ -3290,6 +3290,50 @@ function initFinishing(byN) {
     return lines.join('\n\\bigskip\n') + '\n\n\\bigskip\n\n';
   }
 
+  // ---- Hint visibility (Finishing tab) -------------------------------------
+  // Per-problem flag persisted in localStorage so a hidden hint stays
+  // hidden across reloads. The KEY is a single object {n: true, ...}
+  // (only entries set to true are stored — undefined means "shown").
+  const HINT_HIDE_KEY = 'exam-hint-hidden-v1';
+  function loadHiddenHintsMap() {
+    try {
+      const raw = localStorage.getItem(HINT_HIDE_KEY);
+      if (!raw) return {};
+      const v = JSON.parse(raw);
+      return (v && typeof v === 'object') ? v : {};
+    } catch { return {}; }
+  }
+  function saveHiddenHintsMap(map) {
+    try { localStorage.setItem(HINT_HIDE_KEY, JSON.stringify(map)); }
+    catch {}
+  }
+  function isHintHidden(n) {
+    if (n == null) return false;
+    return !!loadHiddenHintsMap()[String(n)];
+  }
+  function setHintHidden(n, hide) {
+    if (n == null) return;
+    const m = loadHiddenHintsMap();
+    if (hide) m[String(n)] = true;
+    else      delete m[String(n)];
+    saveHiddenHintsMap(m);
+  }
+  // Match \namig{...} or \namigsplit{...}{...} with up to 2 levels of
+  // balanced braces inside each argument. Same nesting tolerance as the
+  // renderer in latexToHtml so anything that renders gets stripped.
+  const NAMIG_BAL =
+    '(?:[^{}]|\\{(?:[^{}]|\\{[^{}]*\\})*\\})*';
+  const NAMIG_RE = new RegExp(
+    '\\\\namigsplit\\{' + NAMIG_BAL + '\\}\\s*\\{' + NAMIG_BAL + '\\}' +
+    '|\\\\namig\\{' + NAMIG_BAL + '\\}',
+    'g');
+  function hasNamig(src) {
+    return NAMIG_RE.test(src || '');
+  }
+  function stripNamig(src) {
+    return (src || '').replace(NAMIG_RE, '').replace(/\n{3,}/g, '\n\n').trim();
+  }
+
   function regenerateTex() {
     const itemsTex = items.map((item, i) => {
       let pre = '';
@@ -3301,7 +3345,9 @@ function initFinishing(byN) {
         }
       }
       const nMarker = item.n ? `% problem ${item.n}\n` : '';
-      return `${pre}${nMarker}\\item ${(item.content || '').trim()}`;
+      let raw = (item.content || '').trim();
+      if (isHintHidden(item.n)) raw = stripNamig(raw);
+      return `${pre}${nMarker}\\item ${raw}`;
     }).join('\n\n');
     const doc = `\\documentclass[12pt,a4paper]{article}
 \\usepackage[utf8]{inputenc}
@@ -3557,8 +3603,12 @@ ${itemsTex}
       const tikz = meta ? (meta.tikz_count || 0) : 0;
       const bodyImg = meta ? meta.body_image : undefined;
       const figOrig = meta ? (meta.tikz_originals || []) : [];
+      const hideHint = isHintHidden(item.n);
+      const rawContent = item.content || '';
+      const hasHint    = hasNamig(rawContent);
+      const renderTex  = hideHint ? stripNamig(rawContent) : rawContent;
       renderProblemBody(body, {
-        n: item.n, latex: item.content || '', tikzCount: tikz,
+        n: item.n, latex: renderTex, tikzCount: tikz,
         bodyImage: bodyImg,
         tikzOriginals: figOrig,
       });
@@ -3567,6 +3617,43 @@ ${itemsTex}
       const firstP = body.querySelector('p');
       if (firstP) firstP.insertAdjacentHTML('afterbegin', numHtml);
       else        body.insertAdjacentHTML('afterbegin', numHtml);
+      // If the hint is currently shown, attach a small × inside it so the
+      // user can hide it just like the heading "Title" field. If it's
+      // hidden but the original content has a hint, render a "+ Hint"
+      // affordance below the body.
+      if (!hideHint && hasHint) {
+        const namigEls = body.querySelectorAll('.tex-namig');
+        namigEls.forEach(el => {
+          if (el.querySelector(':scope > .tex-namig-remove')) return;
+          const x = document.createElement('button');
+          x.type = 'button';
+          x.className = 'tex-namig-remove exam-field-remove';
+          x.title = 'Remove hint';
+          x.textContent = '×';
+          x.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setHintHidden(item.n, true);
+            renderPreview();
+            regenerateTex();
+          });
+          el.appendChild(x);
+        });
+      } else if (hideHint && hasHint) {
+        const addBtn = document.createElement('button');
+        addBtn.type = 'button';
+        addBtn.className = 'finishing-add-hint';
+        addBtn.textContent = '+ Hint';
+        addBtn.title = 'Show the hint for this problem';
+        addBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setHintHidden(item.n, false);
+          renderPreview();
+          regenerateTex();
+        });
+        body.appendChild(addBtn);
+      }
       block.appendChild(body);
       // × button to remove this problem from the exam.
       const rm = document.createElement('button');
@@ -4357,6 +4444,37 @@ function initIndexSourceFilter() {
   applyFilter();
 }
 
+// Persistent open/close state for .collection <details> on the Problems
+// page. localStorage keeps a {target -> bool} map; only explicitly OPEN
+// entries are stored, so unseen sections stay closed by default.
+const COLLAPSE_STATE_KEY = 'collection-open-v1';
+function readCollapseState() {
+  try {
+    const raw = localStorage.getItem(COLLAPSE_STATE_KEY);
+    if (!raw) return {};
+    const v = JSON.parse(raw);
+    return (v && typeof v === 'object') ? v : {};
+  } catch { return {}; }
+}
+function writeCollapseState(map) {
+  try {
+    localStorage.setItem(COLLAPSE_STATE_KEY, JSON.stringify(map));
+  } catch {}
+}
+function initCollectionPersistence() {
+  const state = readCollapseState();
+  document.querySelectorAll('details.collection[data-target]').forEach(d => {
+    const t = d.dataset.target;
+    if (!t) return;
+    if (state[t]) d.open = true;
+    d.addEventListener('toggle', () => {
+      const cur = readCollapseState();
+      if (d.open) cur[t] = true; else delete cur[t];
+      writeCollapseState(cur);
+    });
+  });
+}
+
 async function initIndexPage() {
   await fetchRemoteData();
   migrateLocalTopics();
@@ -4366,6 +4484,9 @@ async function initIndexPage() {
   initCollectionBar();
   bindBrowseModeTabs('by-year');
   bindPageTabs('matura');
+  // Restore previously-opened <details> BEFORE the hash handler (which
+  // also opens sections by deep-link) so saved state doesn't fight it.
+  initCollectionPersistence();
   handleSectionHash();
   window.addEventListener('hashchange', handleSectionHash);
   // Make sure we have the latest reviewer name from /user before colouring.
