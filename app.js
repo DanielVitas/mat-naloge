@@ -2196,7 +2196,6 @@ async function initProblemPage(meta) {
   const fullCanvas  = document.getElementById('full-page-canvas-0');
   const selectionBox = document.getElementById('selection-box-0');
   const editBtn     = document.querySelector('.edit-crop-btn[data-instance="0"]');
-  const resetBtn    = document.querySelector('.reset-crop-btn[data-instance="0"]');
   const saveBtn     = document.querySelector('.save-crop-btn[data-instance="0"]');
   const cancelBtn   = document.querySelector('.cancel-crop-btn[data-instance="0"]');
   const labelEl     = document.getElementById('instance-label');
@@ -2214,7 +2213,11 @@ async function initProblemPage(meta) {
     function _instLabel(inst) {
       const pid = inst.paper_id || '';
       const yr  = /^\d{4}/.test(pid) ? pid.slice(0, 4) : '';
-      return [yr, inst.season, inst.pola, inst.level].filter(Boolean).join(' · ');
+      // Drop the redundant "Izpitna " prefix — see the Python
+      // _inst_label helper for the same shortening.
+      let pola = (inst.pola || '').trim();
+      if (/^izpitna\s+/i.test(pola)) pola = pola.replace(/^izpitna\s+/i, '');
+      return [yr, inst.season, pola, inst.level].filter(Boolean).join(' · ');
     }
 
     // Re-bind everything that depends on the active instance: the page
@@ -2283,17 +2286,6 @@ async function initProblemPage(meta) {
       const bar = document.getElementById('gh-sync');
       if (bar && typeof bar._refresh === 'function') bar._refresh();
     });
-    if (resetBtn) resetBtn.addEventListener('click', () => {
-      currentBbox = (activeInst.bbox_default || []).slice();
-      clearBbox(activeIdx);
-      refresh();
-      if (activeIdx === 0 && typeof updatePreview === 'function') {
-        updatePreview(false);
-      }
-      const bar = document.getElementById('gh-sync');
-      if (bar && typeof bar._refresh === 'function') bar._refresh();
-    });
-
     function setupEditor() {
       const [imgW, imgH] = activeInst.page_size;
       const maxW = Math.min(900, document.documentElement.clientWidth - 60);
