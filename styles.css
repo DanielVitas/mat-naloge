@@ -895,12 +895,18 @@ textarea#latex-source {
   border-radius: 4px;
 }
 .search-result .result-body .textbook-body-img {
-  /* Fits inside the 13em fixed-height card; the bottom-fade gradient still
-     hides any overflow until the card expands on hover. */
-  max-height: 11em; width: auto;
+  /* Width-first sizing: the image fills the card's body column, then
+     keeps its natural aspect ratio. The card's own `overflow: hidden`
+     + 13em fixed height clip anything that doesn't fit vertically,
+     and the bottom-fade gradient covers the cut-off. On hover the
+     card grows to its auto height and the full image becomes visible.
+     (Earlier this used `max-height: 11em; width: auto;`, which made
+     wide-aspect matura crops render at a tiny fraction of the card's
+     width.) */
+  width: 100%; height: auto; max-width: 100%;
 }
 .search-result-wrap.is-hovered .search-result .result-body .textbook-body-img {
-  max-height: none;
+  /* width:100% stays; nothing more needed — the card itself expanded. */
 }
 .collection-preview .textbook-body-img {
   max-height: 4.5em; width: auto;
