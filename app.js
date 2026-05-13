@@ -2184,71 +2184,70 @@ async function initProblemPage(meta) {
     saveState(id, s);
   }
 
+  // Single crop section — only one .instance-block lives in the DOM
+  // and the dropdown swaps which Matura instance it is reading from in
+  // place (no duplicate DOM, no hidden siblings). All the per-button
+  // handlers below close over MUTABLE `activeInst` / `activeIdx`
+  // variables so they always act on the currently-selected instance.
   const instances = meta.instances || [];
-  instances.forEach((inst, idx) => initInstance(inst, idx));
+  const cropView    = document.getElementById('crop-view-0');
+  const cropCanvas  = document.getElementById('crop-canvas-0');
+  const editor      = document.getElementById('crop-editor-0');
+  const fullCanvas  = document.getElementById('full-page-canvas-0');
+  const selectionBox = document.getElementById('selection-box-0');
+  const editBtn     = document.querySelector('.edit-crop-btn[data-instance="0"]');
+  const resetBtn    = document.querySelector('.reset-crop-btn[data-instance="0"]');
+  const saveBtn     = document.querySelector('.save-crop-btn[data-instance="0"]');
+  const cancelBtn   = document.querySelector('.cancel-crop-btn[data-instance="0"]');
+  const labelEl     = document.getElementById('instance-label');
 
-  // Wire the instance picker (only present when there are 2+ instances).
-  // Changing the picker hides every `.instance-block` and shows the one
-  // whose data-instance matches the selected value. The picker itself
-  // lives inside the FIRST .instance-block, so we move it into whichever
-  // block becomes visible so the user can switch again.
-  const picker = document.getElementById('instance-picker');
-  if (picker) {
-    picker.addEventListener('change', (e) => {
-      const sel = String(e.target.value);
-      const blocks = document.querySelectorAll('.problem-crops .instance-block');
-      let targetBlock = null;
-      blocks.forEach(b => {
-        const match = b.dataset.instance === sel;
-        b.hidden = !match;
-        if (match) targetBlock = b;
-      });
-      // Move the picker into the target block's pane-header so it
-      // stays visible after the swap. Insert it right before the
-      // Edit button to preserve the header layout.
-      if (targetBlock) {
-        const header = targetBlock.querySelector('.crop-view .pane-header');
-        const editBtn = targetBlock.querySelector('.edit-crop-btn');
-        if (header && editBtn && picker.parentElement !== header) {
-          header.insertBefore(picker, editBtn);
-        }
-      }
-    });
-  }
-
-  function initInstance(inst, idx) {
-    const cropView   = document.getElementById(`crop-view-${idx}`);
-    const cropCanvas = document.getElementById(`crop-canvas-${idx}`);
-    const editor     = document.getElementById(`crop-editor-${idx}`);
-    const fullCanvas = document.getElementById(`full-page-canvas-${idx}`);
-    const selectionBox = document.getElementById(`selection-box-${idx}`);
-    if (!cropView || !cropCanvas) return;
-    const editBtn   = document.querySelector(`.edit-crop-btn[data-instance="${idx}"]`);
-    const resetBtn  = document.querySelector(`.reset-crop-btn[data-instance="${idx}"]`);
-    const saveBtn   = document.querySelector(`.save-crop-btn[data-instance="${idx}"]`);
-    const cancelBtn = document.querySelector(`.cancel-crop-btn[data-instance="${idx}"]`);
-
-    let currentBbox = getBbox(idx, inst.bbox_default || [0, 0, 100, 100]);
+  if (cropView && cropCanvas && instances.length > 0) {
+    let activeIdx  = 0;
+    let activeInst = instances[activeIdx];
+    let currentBbox = getBbox(activeIdx, activeInst.bbox_default || [0, 0, 100, 100]);
     let pendingBbox = null;
     let pageLoaded = false;
     let editorScale = 1;
     let dragStart = null;
+    let pageImg = new Image();
 
-    const pageImg = new Image();
-    pageImg.addEventListener('load', () => {
-      pageLoaded = true;
-      drawCropFromImage(cropCanvas, pageImg, currentBbox, inst.page_size);
-    });
-    pageImg.addEventListener('error', () => {
-      cropCanvas.replaceWith(Object.assign(document.createElement('div'), {
-        className: 'tex-figure-placeholder',
-        textContent: '(source page image not available)',
-      }));
-    });
-    if (inst.page_image) pageImg.src = inst.page_image;
+    function _instLabel(inst) {
+      const pid = inst.paper_id || '';
+      const yr  = /^\d{4}/.test(pid) ? pid.slice(0, 4) : '';
+      return [yr, inst.season, inst.pola, inst.level].filter(Boolean).join(' · ');
+    }
+
+    // Re-bind everything that depends on the active instance: the page
+    // image, the bbox, the label. Called once on initial load and again
+    // every time the picker changes.
+    function loadActiveInstance(newIdx) {
+      activeIdx  = newIdx;
+      activeInst = instances[activeIdx];
+      currentBbox = getBbox(activeIdx, activeInst.bbox_default || [0, 0, 100, 100]);
+      pendingBbox = null;
+      pageLoaded = false;
+      if (labelEl) labelEl.textContent = _instLabel(activeInst) || 'Original';
+      // Hide editor if it was open on the previous instance.
+      if (editor) editor.hidden = true;
+      cropView.hidden = false;
+      pageImg = new Image();
+      pageImg.addEventListener('load', () => {
+        pageLoaded = true;
+        drawCropFromImage(cropCanvas, pageImg, currentBbox, activeInst.page_size);
+      });
+      pageImg.addEventListener('error', () => {
+        const ctx = cropCanvas.getContext('2d');
+        cropCanvas.width = 400; cropCanvas.height = 80;
+        ctx.fillStyle = '#fee'; ctx.fillRect(0, 0, 400, 80);
+        ctx.fillStyle = '#900';
+        ctx.font = '14px sans-serif';
+        ctx.fillText('(source page image not available)', 10, 45);
+      });
+      if (activeInst.page_image) pageImg.src = activeInst.page_image;
+    }
 
     function refresh() {
-      if (pageLoaded) drawCropFromImage(cropCanvas, pageImg, currentBbox, inst.page_size);
+      if (pageLoaded) drawCropFromImage(cropCanvas, pageImg, currentBbox, activeInst.page_size);
     }
     function show() { cropView.hidden = true; editor.hidden = false; }
     function hide() { editor.hidden = true; cropView.hidden = false; }
@@ -2267,8 +2266,7 @@ async function initProblemPage(meta) {
     if (saveBtn) saveBtn.addEventListener('click', () => {
       if (!pendingBbox) return;
       currentBbox = pendingBbox.slice();
-      setBbox(idx, currentBbox);
-      // Mark the problem as outdated since the crop changed.
+      setBbox(activeIdx, currentBbox);
       const s = loadState(id);
       s.outdated = true;
       saveState(id, s);
@@ -2277,20 +2275,19 @@ async function initProblemPage(meta) {
       hide();
       // For image-only matura previews the body pane is drawn from
       // page_image+bbox via canvas — re-render so the new crop shows
-      // immediately, not just inside the crop editor.
-      if (idx === 0 && typeof updatePreview === 'function') {
+      // immediately. Only relevant when the active instance is the
+      // first one (which is what the preview is keyed to).
+      if (activeIdx === 0 && typeof updatePreview === 'function') {
         updatePreview(false);
       }
       const bar = document.getElementById('gh-sync');
       if (bar && typeof bar._refresh === 'function') bar._refresh();
     });
     if (resetBtn) resetBtn.addEventListener('click', () => {
-      currentBbox = (inst.bbox_default || []).slice();
-      clearBbox(idx);
+      currentBbox = (activeInst.bbox_default || []).slice();
+      clearBbox(activeIdx);
       refresh();
-      // Same live-preview refresh as Save — keep the body pane in sync
-      // with the now-restored default crop.
-      if (idx === 0 && typeof updatePreview === 'function') {
+      if (activeIdx === 0 && typeof updatePreview === 'function') {
         updatePreview(false);
       }
       const bar = document.getElementById('gh-sync');
@@ -2298,7 +2295,7 @@ async function initProblemPage(meta) {
     });
 
     function setupEditor() {
-      const [imgW, imgH] = inst.page_size;
+      const [imgW, imgH] = activeInst.page_size;
       const maxW = Math.min(900, document.documentElement.clientWidth - 60);
       const scale = Math.min(maxW / imgW, 700 / imgH);
       editorScale = scale;
@@ -2324,8 +2321,8 @@ async function initProblemPage(meta) {
       const px = e.clientX - rect.left;
       const py = e.clientY - rect.top;
       return [
-        clamp(Math.round(px / editorScale), 0, inst.page_size[0]),
-        clamp(Math.round(py / editorScale), 0, inst.page_size[1]),
+        clamp(Math.round(px / editorScale), 0, activeInst.page_size[0]),
+        clamp(Math.round(py / editorScale), 0, activeInst.page_size[1]),
       ];
     }
     fullCanvas.addEventListener('mousedown', (e) => {
@@ -2362,6 +2359,21 @@ async function initProblemPage(meta) {
       drawSelection(pendingBbox);
     }, { passive: true });
     window.addEventListener('touchend', () => { dragStart = null; });
+
+    // Initial load.
+    loadActiveInstance(0);
+
+    // Picker swaps the source. When the dropdown changes we reload the
+    // active instance (image + bbox + label) in place — no DOM swap.
+    const picker = document.getElementById('instance-picker');
+    if (picker) {
+      picker.addEventListener('change', (e) => {
+        const newIdx = parseInt(e.target.value, 10);
+        if (Number.isInteger(newIdx) && newIdx >= 0 && newIdx < instances.length) {
+          loadActiveInstance(newIdx);
+        }
+      });
+    }
   }
 
   // -------- Approve --------
