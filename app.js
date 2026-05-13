@@ -4257,6 +4257,32 @@ function initIndexSourceFilter() {
         }).join('')}
       </div>
     </div>
+    <!-- "Reorder topics" pill — only meaningful for the Year browse
+         mode; the JS toggles its visibility when the user switches
+         tabs. Click the arrow to expand the reorder grid below. -->
+    <div class="filter-cell filter-source-cell is-hidden" id="topic-reorder-cell">
+      <label class="filter-label">&nbsp;</label>
+      <div class="filter-chip-group">
+        <span class="filter-source-chip-combo">
+          <button type="button" class="filter-chip filter-chip-source filter-chip-source-combo"
+                  id="topic-reorder-chip" aria-pressed="false"
+                  title="Click the arrow to drag-reorder topics across years">
+            Reorder topics
+          </button>
+          <button type="button" class="filter-source-arrow"
+                  data-target="topic-reorder-panel" aria-expanded="false"
+                  aria-label="Toggle topic reorder panel">▾</button>
+        </span>
+      </div>
+    </div>
+    <div class="filter-panel" id="topic-reorder-panel" hidden>
+      <div class="reorder-grid" id="reorder-grid"></div>
+      <div class="reorder-footer">
+        <button type="button" class="reorder-reset-btn" id="topic-reorder-reset" hidden>
+          Reset to default order
+        </button>
+      </div>
+    </div>
     <div class="filter-panel filter-panel-matura" id="ix-panel-matura" hidden>
       <div class="filter-grid">
         <div class="filter-cell">
@@ -4555,111 +4581,196 @@ function refreshYearCounts() {
     span.textContent = `(${seen.size})`;
   });
 }
-function initYearTabReorder() {
-  const panel = document.querySelector('.browse-mode-panel[data-mode="by-year"]');
-  if (!panel) return;
-  const resetBtn = panel.querySelector('#year-order-reset');
-  const refreshResetVisibility = () => {
-    if (!resetBtn) return;
-    const stored = readYearOrder();
-    resetBtn.hidden = Object.keys(stored).length === 0;
-  };
-  // Apply any persisted order BEFORE wiring drag handlers so the DOM
-  // already reflects the saved arrangement.
+// Build/refresh the topic-reorder grid inside the "Reorder topics"
+// pill expansion. Each year is a column of draggable pills; dropping
+// a pill onto another pill reorders within / across years and dropping
+// on an empty column reassigns the topic to that year. All changes
+// persist via writeYearOrder() and re-apply to the Year-tab DOM
+// through applyYearOrder() so the Year tab stays in sync.
+function initTopicReorderPanel() {
+  const yearPanel = document.querySelector('.browse-mode-panel[data-mode="by-year"]');
+  const grid      = document.getElementById('reorder-grid');
+  const resetBtn  = document.getElementById('topic-reorder-reset');
+  if (!yearPanel || !grid) return;
+
+  // First, restore any saved order to the year tab BEFORE we read the
+  // current arrangement (otherwise we'd snapshot the build-time order
+  // and overwrite the user's saved one on first paint).
   const stored = readYearOrder();
   if (stored && Object.keys(stored).length > 0) {
     applyYearOrder(stored);
     refreshYearCounts();
   }
-  refreshResetVisibility();
 
-  let dragging = null;     // currently-dragged .year-topic node
-  const clearDropHints = () => {
-    panel.querySelectorAll('.year-topic.drop-before, .year-topic.drop-after')
-         .forEach(t => t.classList.remove('drop-before', 'drop-after'));
-    panel.querySelectorAll('.year-bucket.drop-into')
-         .forEach(b => b.classList.remove('drop-into'));
-  };
-  // Topic-level handlers (drag source + same-list reordering target).
-  panel.querySelectorAll('.year-topic').forEach(topic => {
-    topic.addEventListener('dragstart', (ev) => {
-      dragging = topic;
-      topic.classList.add('dragging');
-      try {
-        ev.dataTransfer.setData('text/plain', topic.dataset.topicId || '');
-        ev.dataTransfer.effectAllowed = 'move';
-      } catch {}
+  // Helper: rebuild the reorder grid from the live Year-tab DOM. This
+  // mirrors whatever order the year tab currently has, so the panel
+  // is always in sync after a drag (and after a manual reset).
+  function rebuildGrid() {
+    grid.innerHTML = '';
+    yearPanel.querySelectorAll('.year-bucket').forEach(bucket => {
+      const yi      = bucket.dataset.yearIdx;
+      const label   = bucket.dataset.yearLabel || '';
+      const col     = document.createElement('div');
+      col.className = 'reorder-year-col';
+      col.dataset.yearIdx = yi;
+      col.innerHTML = `<div class="reorder-year-label">${label}</div>`;
+      bucket.querySelectorAll(':scope > .year-topic-list > .year-topic').forEach(topic => {
+        const id    = topic.dataset.topicId || '';
+        // Strip a leading "4.x.y " prefix from the display name so the
+        // pill matches the year-tab summary label.
+        const sum   = topic.querySelector(':scope > summary');
+        const txt   = sum ? sum.textContent.trim() : id;
+        // Try to extract the count "(N)" suffix that sits at the end
+        // of the summary; render it separately on the pill.
+        const m     = txt.match(/^(.*?)\s*\(\s*(\d+)\s*\)\s*$/);
+        const name  = m ? m[1].trim() : txt;
+        const count = m ? parseInt(m[2], 10) : 0;
+        const pill  = document.createElement('div');
+        pill.className = 'reorder-topic-pill' + (count === 0 ? ' is-empty' : '');
+        pill.draggable = true;
+        pill.dataset.topicId = id;
+        pill.innerHTML =
+          `<span class="reorder-pill-name">${escapeHtml(name)}</span>` +
+          `<span class="reorder-pill-count">(${count})</span>`;
+        col.appendChild(pill);
+      });
+      grid.appendChild(col);
     });
-    topic.addEventListener('dragend', () => {
-      if (dragging) dragging.classList.remove('dragging');
-      dragging = null;
-      clearDropHints();
+    wireDrag();
+    refreshResetVisibility();
+  }
+
+  function refreshResetVisibility() {
+    if (!resetBtn) return;
+    const stored = readYearOrder();
+    resetBtn.hidden = Object.keys(stored).length === 0;
+  }
+
+  // Mirror the year-tab DOM to whatever order the reorder grid
+  // currently shows. Called after every successful drop in the
+  // reorder panel.
+  function syncYearTabFromGrid() {
+    grid.querySelectorAll('.reorder-year-col').forEach(col => {
+      const yi     = col.dataset.yearIdx;
+      const bucket = yearPanel.querySelector(`.year-bucket[data-year-idx="${yi}"]`);
+      if (!bucket) return;
+      const list   = bucket.querySelector(':scope > .year-topic-list');
+      if (!list) return;
+      col.querySelectorAll('.reorder-topic-pill').forEach(pill => {
+        const tid = pill.dataset.topicId;
+        const topic = yearPanel.querySelector(
+          `.year-topic[data-topic-id="${CSS.escape(tid)}"]`);
+        if (topic) list.appendChild(topic);
+      });
     });
-    topic.addEventListener('dragover', (ev) => {
-      if (!dragging || dragging === topic) return;
-      ev.preventDefault();
-      ev.dataTransfer.dropEffect = 'move';
-      const r = topic.getBoundingClientRect();
-      const before = (ev.clientY < r.top + r.height / 2);
-      clearDropHints();
-      topic.classList.add(before ? 'drop-before' : 'drop-after');
+    refreshYearCounts();
+  }
+
+  function snapshotOrderToStorage() {
+    const out = {};
+    grid.querySelectorAll('.reorder-year-col').forEach(col => {
+      const yi = col.dataset.yearIdx;
+      out[yi] = Array.from(col.querySelectorAll('.reorder-topic-pill'))
+                     .map(p => p.dataset.topicId).filter(Boolean);
     });
-    topic.addEventListener('drop', (ev) => {
-      if (!dragging || dragging === topic) return;
-      ev.preventDefault();
-      ev.stopPropagation();
-      const r = topic.getBoundingClientRect();
-      const before = (ev.clientY < r.top + r.height / 2);
-      topic.parentNode.insertBefore(dragging, before ? topic : topic.nextSibling);
-      clearDropHints();
-      const cur = captureCurrentYearOrder();
-      writeYearOrder(cur);
-      refreshYearCounts();
-      refreshResetVisibility();
+    writeYearOrder(out);
+  }
+
+  function wireDrag() {
+    let dragging = null;
+    const clearHints = () => {
+      grid.querySelectorAll('.reorder-topic-pill.drop-before, .reorder-topic-pill.drop-after')
+          .forEach(p => p.classList.remove('drop-before', 'drop-after'));
+      grid.querySelectorAll('.reorder-year-col.drop-into')
+          .forEach(c => c.classList.remove('drop-into'));
+    };
+    grid.querySelectorAll('.reorder-topic-pill').forEach(pill => {
+      pill.addEventListener('dragstart', (ev) => {
+        dragging = pill;
+        pill.classList.add('dragging');
+        try {
+          ev.dataTransfer.setData('text/plain', pill.dataset.topicId || '');
+          ev.dataTransfer.effectAllowed = 'move';
+        } catch {}
+      });
+      pill.addEventListener('dragend', () => {
+        if (dragging) dragging.classList.remove('dragging');
+        dragging = null;
+        clearHints();
+      });
+      pill.addEventListener('dragover', (ev) => {
+        if (!dragging || dragging === pill) return;
+        ev.preventDefault();
+        ev.dataTransfer.dropEffect = 'move';
+        const r = pill.getBoundingClientRect();
+        const before = (ev.clientY < r.top + r.height / 2);
+        clearHints();
+        pill.classList.add(before ? 'drop-before' : 'drop-after');
+      });
+      pill.addEventListener('drop', (ev) => {
+        if (!dragging || dragging === pill) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        const r = pill.getBoundingClientRect();
+        const before = (ev.clientY < r.top + r.height / 2);
+        pill.parentNode.insertBefore(dragging, before ? pill : pill.nextSibling);
+        clearHints();
+        snapshotOrderToStorage();
+        syncYearTabFromGrid();
+        refreshResetVisibility();
+      });
     });
-  });
-  // Bucket-level handlers — drops on empty bucket bodies (or summary
-  // rows) reassign the topic to that year.
-  panel.querySelectorAll('.year-bucket').forEach(bucket => {
-    bucket.addEventListener('dragover', (ev) => {
-      if (!dragging) return;
-      // Only highlight if we're not directly over a .year-topic
-      // (those have their own dropover handlers and take priority).
-      const overTopic = ev.target.closest('.year-topic');
-      if (overTopic) return;
-      ev.preventDefault();
-      ev.dataTransfer.dropEffect = 'move';
-      bucket.classList.add('drop-into');
+    grid.querySelectorAll('.reorder-year-col').forEach(col => {
+      col.addEventListener('dragover', (ev) => {
+        if (!dragging) return;
+        if (ev.target.closest('.reorder-topic-pill')) return;
+        ev.preventDefault();
+        ev.dataTransfer.dropEffect = 'move';
+        col.classList.add('drop-into');
+      });
+      col.addEventListener('dragleave', (ev) => {
+        if (!col.contains(ev.relatedTarget)) col.classList.remove('drop-into');
+      });
+      col.addEventListener('drop', (ev) => {
+        if (!dragging) return;
+        if (ev.target.closest('.reorder-topic-pill')) return;
+        ev.preventDefault();
+        col.appendChild(dragging);
+        clearHints();
+        snapshotOrderToStorage();
+        syncYearTabFromGrid();
+        refreshResetVisibility();
+      });
     });
-    bucket.addEventListener('dragleave', (ev) => {
-      // Only clear if the pointer truly left the bucket (not just
-      // moved over a child).
-      if (!bucket.contains(ev.relatedTarget)) {
-        bucket.classList.remove('drop-into');
-      }
-    });
-    bucket.addEventListener('drop', (ev) => {
-      if (!dragging) return;
-      const overTopic = ev.target.closest('.year-topic');
-      if (overTopic) return; // handled by the topic-level drop
-      ev.preventDefault();
-      const list = bucket.querySelector(':scope > .year-topic-list');
-      if (list) list.appendChild(dragging);
-      clearDropHints();
-      const cur = captureCurrentYearOrder();
-      writeYearOrder(cur);
-      refreshYearCounts();
-      refreshResetVisibility();
-      // Open the bucket so the user can see where their topic landed.
-      bucket.open = true;
-    });
-  });
+  }
+
+  rebuildGrid();
   if (resetBtn) {
     resetBtn.addEventListener('click', () => {
       writeYearOrder({});
-      // Reload so the build-time order takes effect cleanly.
+      // Easiest way to restore the build-time order across both views
+      // is a reload — the year tab paints from server-side default and
+      // the panel rebuilds from that.
       location.reload();
     });
+  }
+}
+
+// Show/hide the "Reorder topics" pill based on which browse-mode tab
+// is active. Called once on init and again whenever the tabs switch.
+function toggleTopicReorderPillVisibility() {
+  const cell = document.getElementById('topic-reorder-cell');
+  if (!cell) return;
+  const activeTab = document.querySelector('.browse-mode-tab.active');
+  const isYearMode = activeTab && activeTab.dataset.mode === 'by-year';
+  cell.classList.toggle('is-hidden', !isYearMode);
+  // Collapsing the panel when the pill becomes irrelevant keeps the
+  // expansion from "stranded" under a different tab.
+  if (!isYearMode) {
+    const arrow = document.querySelector('.filter-source-arrow[data-target="topic-reorder-panel"]');
+    const panel = document.getElementById('topic-reorder-panel');
+    if (arrow) arrow.setAttribute('aria-expanded', 'false');
+    if (panel) panel.hidden = true;
   }
 }
 
@@ -4687,10 +4798,19 @@ async function initIndexPage() {
   // Source / year / pola / level / section filter for the By-topic
   // and By-year views (mirrors the Search page's filter UI).
   initIndexSourceFilter();
-  // Drag-to-reorder topics within (and across) years on the Year tab.
-  // Must run after initCollectionPersistence so the saved arrangement
-  // doesn't fight the open/close state restoration.
-  initYearTabReorder();
+  // "Reorder topics" pill: only meaningful on the Year browse-mode.
+  // initTopicReorderPanel builds the drag-grid inside the pill's
+  // expansion AND restores any saved order to the Year tab itself.
+  // Must run after initIndexSourceFilter (which injects the pill).
+  initTopicReorderPanel();
+  toggleTopicReorderPillVisibility();
+  document.querySelectorAll('.browse-mode-tab').forEach(t => {
+    t.addEventListener('click', () => {
+      // The handler in bindBrowseModeTabs flips .active synchronously,
+      // so by the next microtask this query reflects the new state.
+      setTimeout(toggleTopicReorderPillVisibility, 0);
+    });
+  });
   const exportAllBtn = document.getElementById('export-all');
   if (exportAllBtn) {
     exportAllBtn.addEventListener('click', () => {
