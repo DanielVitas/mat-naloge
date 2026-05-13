@@ -5,18 +5,68 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Naloga 11 — Matura 2025</title>
 <link rel="stylesheet" href="styles.css?v=32506dbc">
+
 <script>
-  window.MathJax = {
-    tex: {
+  window.MathJax = {{
+    tex: {{
       inlineMath: [['$', '$']],
       displayMath: [['$$', '$$']],
       processEscapes: true,
       processEnvironments: false
-    },
-    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
-  };
+    }},
+    options: {{ skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }}
+  }};
+  // Prevent orphaned commas/periods/semicolons/colons at the start of a
+  // line. Inline math (`<mjx-container>`) is rendered as an inline-block
+  // atom, so the browser can wrap between the container and a trailing
+  // punctuation character. We wrap each `<mjx-container>` + the
+  // immediately-following punctuation in a `white-space: nowrap` span so
+  // the pair acts as a single line-breaking unit.
+  window.glueOrphanPunctuation = function (root) {{
+    if (!root || !root.querySelectorAll) return;
+    var containers = root.querySelectorAll('mjx-container');
+    containers.forEach(function (mjx) {{
+      if (mjx.dataset && mjx.dataset.gluedPunc) return;
+      var next = mjx.nextSibling;
+      if (!next || next.nodeType !== Node.TEXT_NODE) return;
+      var t = next.nodeValue || '';
+      var m = t.match(/^[.,;:!?)\]]+/);
+      if (!m) return;
+      var punc = m[0];
+      var rest = t.slice(punc.length);
+      var wrap = document.createElement('span');
+      wrap.style.whiteSpace = 'nowrap';
+      mjx.parentNode.insertBefore(wrap, mjx);
+      wrap.appendChild(mjx);
+      wrap.appendChild(document.createTextNode(punc));
+      next.nodeValue = rest;
+      if (mjx.dataset) mjx.dataset.gluedPunc = '1';
+    }});
+  }};
+  // Watch the page for newly-rendered math (MathJax typesets async, so
+  // we react after the insertions). One observer covers every typeset
+  // call site — no need to wrap each typesetPromise().
+  document.addEventListener('DOMContentLoaded', function () {{
+    var obs = new MutationObserver(function (mutations) {{
+      mutations.forEach(function (m) {{
+        m.addedNodes.forEach(function (n) {{
+          if (n.nodeType !== Node.ELEMENT_NODE) return;
+          if (n.tagName === 'MJX-CONTAINER') {{
+            window.glueOrphanPunctuation(n.parentNode);
+          }} else if (n.querySelector && n.querySelector('mjx-container')) {{
+            window.glueOrphanPunctuation(n);
+          }}
+        }});
+      }});
+    }});
+    obs.observe(document.body, {{ childList: true, subtree: true }});
+    // Initial pass for math that's already on the page when the
+    // observer attaches.
+    window.glueOrphanPunctuation(document.body);
+  }});
 </script>
 <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
 </head>
 <body>
 <div class="container">
