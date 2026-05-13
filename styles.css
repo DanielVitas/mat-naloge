@@ -306,6 +306,47 @@ a:hover { text-decoration: underline; }
 .collection .collection-l3 > summary { font-size: 0.92rem; padding-left: 4rem;   font-weight: 500; color: var(--muted); }
 .collection .collection-l3 > .problem-list,
 .collection .collection-l3 > .search-results { padding: 0.3rem 1rem 0.8rem 4rem; }
+/* ---- Year-tab drag-to-reorder ---- */
+/* Subtle drag handle to the left of the topic title; only the topic
+   itself is draggable, not the year wrapper. The dotted glyph hints
+   "movable" without being visually noisy. */
+.year-topic > summary { cursor: move; user-select: none; }
+.year-topic-handle {
+  color: var(--muted);
+  font-weight: 700;
+  opacity: 0.55;
+  padding-right: 0.15rem;
+  cursor: grab;
+}
+.year-topic-handle:hover { opacity: 1; }
+.year-topic.dragging > summary {
+  opacity: 0.5;
+  background: rgba(0,0,0,0.04);
+}
+/* The drop indicator: a thick accent bar drawn either above (before)
+   or below (after) the hover target. */
+.year-topic.drop-before { box-shadow: 0 -3px 0 var(--accent) inset; }
+.year-topic.drop-after  { box-shadow: 0  3px 0 var(--accent) inset; }
+.year-bucket.drop-into > summary {
+  background: rgba(120, 150, 255, 0.15);
+}
+.year-bucket .year-topic-list { min-height: 0.5rem; }
+.year-bucket.drop-into .year-topic-list { min-height: 2rem; }
+.year-order-reset {
+  display: inline-block;
+  margin: 0 0 0.7rem 1rem;
+  padding: 0.3rem 0.8rem;
+  background: transparent;
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: var(--muted);
+  cursor: pointer;
+}
+.year-order-reset:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
 
 .problem-list {
   display: grid;

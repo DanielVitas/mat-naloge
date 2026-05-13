@@ -2814,15 +2814,20 @@ async function initSearchPage(opts) {
       return true;
     }
     const yr = parseInt(p.year, 10);
-    if (yr < state.yearMin || yr > state.yearMax) return false;
+    if (!isNaN(yr) && (yr < state.yearMin || yr > state.yearMax)) return false;
+    // Empty multi-value arrays mean "no parsed metadata" — fall
+    // through rather than exclude (matura_extra image-only problems
+    // carry empty section_letters / polas_n / points_ns).
     const pointsNs = p.points_ns || [];
-    const ptsOk = pointsNs.length === 0
-      ? state.pointsMin <= 0 && 0 <= state.pointsMax
-      : pointsNs.some(n => n >= state.pointsMin && n <= state.pointsMax);
-    if (!ptsOk) return false;
-    if (!(p.polas_n || []).some(v => state.polas.has(v))) return false;
-    if (!(p.levels  || []).some(v => state.levels.has(v))) return false;
-    if (!(p.section_letters || []).some(v => state.sections.has(v))) return false;
+    if (pointsNs.length > 0 &&
+        !pointsNs.some(n => n >= state.pointsMin && n <= state.pointsMax))
+      return false;
+    const polasN = p.polas_n || [];
+    if (polasN.length > 0 && !polasN.some(v => state.polas.has(v))) return false;
+    const levels = p.levels || [];
+    if (levels.length > 0 && !levels.some(v => state.levels.has(v))) return false;
+    const secs = p.section_letters || [];
+    if (secs.length > 0 && !secs.some(v => state.sections.has(v))) return false;
     const topics = effectiveTopics(p.n, p.topics);
     if (topics.length === 0) {
       // No topics → only matches if every topic is selected (i.e., no filter)
@@ -4318,15 +4323,21 @@ function initIndexSourceFilter() {
     if (!state.sources.has(p.source)) return false;
     if (p.source === 'Textbook') return true;
     const yr = parseInt(p.year, 10);
-    if (yr < state.yearMin || yr > state.yearMax) return false;
+    if (!isNaN(yr) && (yr < state.yearMin || yr > state.yearMax)) return false;
+    // Multi-value chip predicates: empty arrays mean "no constraint
+    // tagged on this problem" — fall through rather than excluding it
+    // (matura_extra image-only problems carry empty section_letters /
+    // polas_n / points_ns because they have no parsed metadata).
     const pointsNs = p.points_ns || [];
-    const ptsOk = pointsNs.length === 0
-      ? state.pointsMin <= 0 && 0 <= state.pointsMax
-      : pointsNs.some(n => n >= state.pointsMin && n <= state.pointsMax);
-    if (!ptsOk) return false;
-    if (!(p.polas_n || []).some(v => state.polas.has(v))) return false;
-    if (!(p.levels  || []).some(v => state.levels.has(v))) return false;
-    if (!(p.section_letters || []).some(v => state.sections.has(v))) return false;
+    if (pointsNs.length > 0 &&
+        !pointsNs.some(n => n >= state.pointsMin && n <= state.pointsMax))
+      return false;
+    const polasN = p.polas_n || [];
+    if (polasN.length > 0 && !polasN.some(v => state.polas.has(v))) return false;
+    const levels = p.levels || [];
+    if (levels.length > 0 && !levels.some(v => state.levels.has(v))) return false;
+    const secs = p.section_letters || [];
+    if (secs.length > 0 && !secs.some(v => state.sections.has(v))) return false;
     return true;
   }
 
@@ -4475,6 +4486,183 @@ function initCollectionPersistence() {
   });
 }
 
+// ---- Year-tab drag-to-reorder topics ---------------------------------------
+// Stored shape: { yearIdx: [topicId, topicId, ...], ... } — only the
+// year buckets the user has touched appear in the map; untouched ones
+// fall back to the build-time order. Saved to localStorage so the
+// arrangement persists across reloads.
+const YEAR_ORDER_KEY = 'year-topic-order-v1';
+function readYearOrder() {
+  try {
+    const raw = localStorage.getItem(YEAR_ORDER_KEY);
+    if (!raw) return {};
+    const v = JSON.parse(raw);
+    return (v && typeof v === 'object') ? v : {};
+  } catch { return {}; }
+}
+function writeYearOrder(map) {
+  try {
+    localStorage.setItem(YEAR_ORDER_KEY, JSON.stringify(map));
+  } catch {}
+}
+function captureCurrentYearOrder() {
+  // Walk the DOM, return {yearIdx: [topicId,...]}.
+  const out = {};
+  document.querySelectorAll('.year-bucket[data-year-idx]').forEach(b => {
+    const yi = b.dataset.yearIdx;
+    const ids = Array.from(b.querySelectorAll(':scope > .year-topic-list > .year-topic'))
+                     .map(t => t.dataset.topicId)
+                     .filter(Boolean);
+    out[yi] = ids;
+  });
+  return out;
+}
+function applyYearOrder(state) {
+  Object.keys(state || {}).forEach(yi => {
+    const bucket = document.querySelector(`.year-bucket[data-year-idx="${yi}"]`);
+    if (!bucket) return;
+    const list = bucket.querySelector(':scope > .year-topic-list');
+    if (!list) return;
+    const wanted = state[yi];
+    if (!Array.isArray(wanted)) return;
+    // First, find each topic in the *whole* year panel (it may have
+    // been moved between buckets earlier) and move it into this list
+    // in the wanted order. Topics not in `wanted` stay where they are.
+    wanted.forEach(tid => {
+      const all = document.querySelectorAll(
+        `.year-topic[data-topic-id="${CSS.escape(tid)}"]`);
+      const node = all[0];
+      if (!node) return;
+      list.appendChild(node);
+    });
+  });
+}
+function refreshYearCounts() {
+  // After a reorder/move, each year-bucket's summary count and the
+  // top-level "Year (N)" tab count must reflect the new groupings.
+  // We count UNIQUE problem ids inside each bucket (ignoring filter-
+  // hidden cards), mirroring applyApprovalFilter().
+  document.querySelectorAll('.year-bucket').forEach(b => {
+    const span = b.querySelector(':scope > summary .count');
+    if (!span) return;
+    const seen = new Set();
+    b.querySelectorAll('.search-result-wrap[data-id]').forEach(w => {
+      if (!w.classList.contains('unapproved-hidden') &&
+          !w.classList.contains('filter-hidden')) {
+        seen.add(w.dataset.id);
+      }
+    });
+    span.textContent = `(${seen.size})`;
+  });
+}
+function initYearTabReorder() {
+  const panel = document.querySelector('.browse-mode-panel[data-mode="by-year"]');
+  if (!panel) return;
+  const resetBtn = panel.querySelector('#year-order-reset');
+  const refreshResetVisibility = () => {
+    if (!resetBtn) return;
+    const stored = readYearOrder();
+    resetBtn.hidden = Object.keys(stored).length === 0;
+  };
+  // Apply any persisted order BEFORE wiring drag handlers so the DOM
+  // already reflects the saved arrangement.
+  const stored = readYearOrder();
+  if (stored && Object.keys(stored).length > 0) {
+    applyYearOrder(stored);
+    refreshYearCounts();
+  }
+  refreshResetVisibility();
+
+  let dragging = null;     // currently-dragged .year-topic node
+  const clearDropHints = () => {
+    panel.querySelectorAll('.year-topic.drop-before, .year-topic.drop-after')
+         .forEach(t => t.classList.remove('drop-before', 'drop-after'));
+    panel.querySelectorAll('.year-bucket.drop-into')
+         .forEach(b => b.classList.remove('drop-into'));
+  };
+  // Topic-level handlers (drag source + same-list reordering target).
+  panel.querySelectorAll('.year-topic').forEach(topic => {
+    topic.addEventListener('dragstart', (ev) => {
+      dragging = topic;
+      topic.classList.add('dragging');
+      try {
+        ev.dataTransfer.setData('text/plain', topic.dataset.topicId || '');
+        ev.dataTransfer.effectAllowed = 'move';
+      } catch {}
+    });
+    topic.addEventListener('dragend', () => {
+      if (dragging) dragging.classList.remove('dragging');
+      dragging = null;
+      clearDropHints();
+    });
+    topic.addEventListener('dragover', (ev) => {
+      if (!dragging || dragging === topic) return;
+      ev.preventDefault();
+      ev.dataTransfer.dropEffect = 'move';
+      const r = topic.getBoundingClientRect();
+      const before = (ev.clientY < r.top + r.height / 2);
+      clearDropHints();
+      topic.classList.add(before ? 'drop-before' : 'drop-after');
+    });
+    topic.addEventListener('drop', (ev) => {
+      if (!dragging || dragging === topic) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      const r = topic.getBoundingClientRect();
+      const before = (ev.clientY < r.top + r.height / 2);
+      topic.parentNode.insertBefore(dragging, before ? topic : topic.nextSibling);
+      clearDropHints();
+      const cur = captureCurrentYearOrder();
+      writeYearOrder(cur);
+      refreshYearCounts();
+      refreshResetVisibility();
+    });
+  });
+  // Bucket-level handlers — drops on empty bucket bodies (or summary
+  // rows) reassign the topic to that year.
+  panel.querySelectorAll('.year-bucket').forEach(bucket => {
+    bucket.addEventListener('dragover', (ev) => {
+      if (!dragging) return;
+      // Only highlight if we're not directly over a .year-topic
+      // (those have their own dropover handlers and take priority).
+      const overTopic = ev.target.closest('.year-topic');
+      if (overTopic) return;
+      ev.preventDefault();
+      ev.dataTransfer.dropEffect = 'move';
+      bucket.classList.add('drop-into');
+    });
+    bucket.addEventListener('dragleave', (ev) => {
+      // Only clear if the pointer truly left the bucket (not just
+      // moved over a child).
+      if (!bucket.contains(ev.relatedTarget)) {
+        bucket.classList.remove('drop-into');
+      }
+    });
+    bucket.addEventListener('drop', (ev) => {
+      if (!dragging) return;
+      const overTopic = ev.target.closest('.year-topic');
+      if (overTopic) return; // handled by the topic-level drop
+      ev.preventDefault();
+      const list = bucket.querySelector(':scope > .year-topic-list');
+      if (list) list.appendChild(dragging);
+      clearDropHints();
+      const cur = captureCurrentYearOrder();
+      writeYearOrder(cur);
+      refreshYearCounts();
+      refreshResetVisibility();
+      // Open the bucket so the user can see where their topic landed.
+      bucket.open = true;
+    });
+  });
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      writeYearOrder({});
+      // Reload so the build-time order takes effect cleanly.
+      location.reload();
+    });
+  }
+}
+
 async function initIndexPage() {
   await fetchRemoteData();
   migrateLocalTopics();
@@ -4499,6 +4687,10 @@ async function initIndexPage() {
   // Source / year / pola / level / section filter for the By-topic
   // and By-year views (mirrors the Search page's filter UI).
   initIndexSourceFilter();
+  // Drag-to-reorder topics within (and across) years on the Year tab.
+  // Must run after initCollectionPersistence so the saved arrangement
+  // doesn't fight the open/close state restoration.
+  initYearTabReorder();
   const exportAllBtn = document.getElementById('export-all');
   if (exportAllBtn) {
     exportAllBtn.addEventListener('click', () => {
