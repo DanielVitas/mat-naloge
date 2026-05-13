@@ -614,6 +614,15 @@ button:disabled { opacity: 0.5; cursor: default; }
   display: flex; align-items: center; gap: 0.5rem;
   margin-bottom: 0.7rem; flex-wrap: wrap;
 }
+/* Make h3 inside ANY pane-header (including .crop-view, not just .pane)
+   sit at the same size and weight as the .title-picker that may
+   replace it. Without this, .crop-view h3 falls back to the browser's
+   ~1.5em default and looks much bigger than the dropdown variant. */
+.pane-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
 
 /* Title row: H1 and tags side-by-side */
 /* Hide the entire "Preview" / "LaTeX" pane header on the problem page —
@@ -1070,18 +1079,37 @@ canvas.crop-display {
 .instance-picker:focus { outline: 2px solid var(--accent, #5a90ff); outline-offset: 1px; }
 
 /* When the picker IS the title (no separate h3), size and weight it
-   to match the .pane-header h3 it replaces. */
+   to match the .pane-header h3 it replaces. Keep the native chevron
+   so it's obviously a dropdown — drawn via a CSS background image so
+   it works even when the <select>'s native styling is suppressed. */
 .instance-picker.title-picker {
   font-size: 1rem;
   font-weight: 600;
-  padding: 0.15rem 1.6rem 0.15rem 0;
-  border: none;
+  padding: 0.15rem 1.5rem 0.15rem 0.4rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
   background: transparent;
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    calc(100% - 0.85rem) calc(50% - 2px),
+    calc(100% - 0.55rem) calc(50% - 2px);
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
   max-width: none;
-  /* keep the native chevron so it's clearly a dropdown */
 }
-.instance-picker.title-picker:hover { color: var(--accent, #5a90ff); }
-.instance-picker.title-picker:focus { outline: none; }
+.instance-picker.title-picker:hover {
+  border-color: var(--card-border);
+  background-color: rgba(0, 0, 0, 0.04);
+}
+.instance-picker.title-picker:focus {
+  outline: 2px solid var(--accent, #5a90ff);
+  outline-offset: 1px;
+}
 
 /* Crop editor */
 .crop-editor {

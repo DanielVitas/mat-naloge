@@ -2237,12 +2237,24 @@ async function initProblemPage(meta) {
       // Hide editor if it was open on the previous instance.
       if (editor) editor.hidden = true;
       cropView.hidden = false;
-      pageImg = new Image();
-      pageImg.addEventListener('load', () => {
+      // Capture a LOCAL reference to this load so a stale load event
+      // from a previous image (e.g. user clicks the picker twice in
+      // quick succession) can't overwrite the now-current crop. We
+      // also snapshot the bbox + page_size, since `currentBbox` and
+      // `activeInst` may be reassigned before this image finishes
+      // loading.
+      const myImg  = new Image();
+      const myBbox = currentBbox;
+      const myPageSize = activeInst.page_size;
+      const myIdx  = activeIdx;
+      pageImg = myImg;
+      myImg.addEventListener('load', () => {
+        if (pageImg !== myImg) return;          // a newer load supersedes this
         pageLoaded = true;
-        drawCropFromImage(cropCanvas, pageImg, currentBbox, activeInst.page_size);
+        drawCropFromImage(cropCanvas, myImg, myBbox, myPageSize);
       });
-      pageImg.addEventListener('error', () => {
+      myImg.addEventListener('error', () => {
+        if (pageImg !== myImg) return;
         const ctx = cropCanvas.getContext('2d');
         cropCanvas.width = 400; cropCanvas.height = 80;
         ctx.fillStyle = '#fee'; ctx.fillRect(0, 0, 400, 80);
@@ -2250,7 +2262,7 @@ async function initProblemPage(meta) {
         ctx.font = '14px sans-serif';
         ctx.fillText('(source page image not available)', 10, 45);
       });
-      if (activeInst.page_image) pageImg.src = activeInst.page_image;
+      if (activeInst.page_image) myImg.src = activeInst.page_image;
     }
 
     function refresh() {
