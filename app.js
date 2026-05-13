@@ -2217,6 +2217,10 @@ async function initProblemPage(meta) {
       // _inst_label helper for the same shortening.
       let pola = (inst.pola || '').trim();
       if (/^izpitna\s+/i.test(pola)) pola = pola.replace(/^izpitna\s+/i, '');
+      // Capitalize "pola N" → "Pola N".
+      if (pola && pola[0] >= 'a' && pola[0] <= 'z') {
+        pola = pola[0].toUpperCase() + pola.slice(1);
+      }
       return [yr, inst.season, pola, inst.level].filter(Boolean).join(' · ');
     }
 

@@ -1069,6 +1069,20 @@ canvas.crop-display {
 .instance-picker:hover { border-color: var(--accent, #5a90ff); }
 .instance-picker:focus { outline: 2px solid var(--accent, #5a90ff); outline-offset: 1px; }
 
+/* When the picker IS the title (no separate h3), size and weight it
+   to match the .pane-header h3 it replaces. */
+.instance-picker.title-picker {
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.15rem 1.6rem 0.15rem 0;
+  border: none;
+  background: transparent;
+  max-width: none;
+  /* keep the native chevron so it's clearly a dropdown */
+}
+.instance-picker.title-picker:hover { color: var(--accent, #5a90ff); }
+.instance-picker.title-picker:focus { outline: none; }
+
 /* Crop editor */
 .crop-editor {
   margin-top: 1rem; border: 1px solid var(--card-border);
