@@ -1202,6 +1202,17 @@ function latexToHtml(src, problemId, tikzCount, hydrateTikz, tikzOriginals) {
   const stash = [];
   const stashIt = (s) => { stash.push(s); return `MJXSTASH${stash.length - 1}MJXSTASH`; };
 
+  // Defensive sanitize: strip the optional vertical-spacing argument
+  // to a LaTeX line break (`\\[2pt]`, `\\[6pt]`, …). MathJax chokes on
+  // this inside `cases`/`align*` — the `[2pt]` gets read as a nested
+  // display-math start and leaves the whole math block rendered as raw
+  // source. The Python build strips this before emit, but stale state
+  // from localStorage or remote data.json (saved before the build-side
+  // fix) can still ship the broken form to the renderer, so we re-apply
+  // the scrub here. The optional spacing is purely cosmetic — a bare
+  // `\\` produces identical math.
+  src = src.replace(/\\\\\[\s*\d+(?:\.\d+)?\s*(?:pt|em|ex|cm|mm)\s*\]/g, '\\\\');
+
   // Never let a line break put a comma/dot/semicolon/colon at the start
   // of the next line. Replace the space (or other whitespace) that
   // precedes one with a non-breaking space.
