@@ -1286,7 +1286,16 @@ function latexToHtml(src, problemId, tikzCount, hydrateTikz, tikzOriginals) {
         const out = [`<table class="${cls}"${style}>`];
         for (const r of rows) {
           const cells = r.split('&').map(c => c.trim());
-          out.push('<tr>' + cells.map(c => `<td>${c}</td>`).join('') + '</tr>');
+          // Recognise `\multicolumn{N}{spec}{content}` cells and emit
+          // them as <td colspan="N">content</td>. Without this the cell
+          // renders verbatim as raw LaTeX in the rendered HTML.
+          out.push('<tr>' + cells.map(c => {
+            const mc = c.match(/^\\multicolumn\{(\d+)\}\{[^{}]*\}\{(.*)\}$/);
+            if (mc) {
+              return `<td colspan="${mc[1]}">${mc[2]}</td>`;
+            }
+            return `<td>${c}</td>`;
+          }).join('') + '</tr>');
         }
         out.push('</table>');
         return out.join('');
