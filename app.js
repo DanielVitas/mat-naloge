@@ -1293,22 +1293,64 @@ function latexToHtml(src, problemId, tikzCount, hydrateTikz, tikzOriginals) {
         const style = (stretch !== 1.0)
           ? ` style="--stretch:${stretch}"`
           : '';
+        // Parse the column spec to extract per-column metadata:
+        //   `p{8cm}` → fixed-width paragraph column (wraps text)
+        //   `m{5cm}`, `b{3cm}` → vertically-aligned paragraph columns
+        //   plain `c`, `l`, `r` → unconstrained widths
+        // We strip pipes (border-tracking is already handled above).
+        const colSpec = (_spec || '').replace(/\|/g, '');
+        const colMeta = [];
+        {
+          const re = /([pmb])\{([^}]+)\}|([clr])/g;
+          let mm;
+          while ((mm = re.exec(colSpec)) !== null) {
+            if (mm[1]) {
+              colMeta.push({ kind: mm[1], width: mm[2] });
+            } else {
+              colMeta.push({ kind: mm[3], width: null });
+            }
+          }
+        }
         const out = [`<table class="${cls}"${style}>`];
         for (const r of rows) {
           const cells = r.split('&').map(c => c.trim());
           // Recognise `\multicolumn{N}{spec}{content}` cells and emit
           // them as <td colspan="N">content</td>. Without this the cell
           // renders verbatim as raw LaTeX in the rendered HTML.
-          out.push('<tr>' + cells.map(c => {
+          out.push('<tr>' + cells.map((c, idx) => {
             const mc = c.match(/^\\multicolumn\{(\d+)\}\{[^{}]*\}\{(.*)\}$/);
             if (mc) {
               return `<td colspan="${mc[1]}">${mc[2]}</td>`;
             }
-            return `<td>${c}</td>`;
+            // `\centering` is a column-level alignment directive in real
+            // LaTeX (used like `>{\centering\arraybackslash}p{w}`). When
+            // a transcript writes it directly inside a cell we strip the
+            // token and apply text-align:center to that cell instead.
+            let centered = false;
+            const cleaned = c.replace(/\\centering\s*\\arraybackslash\s*/g, '')
+                             .replace(/\\centering\s*/g, () => { centered = true; return ''; })
+                             .trim();
+            const meta = colMeta[idx];
+            const styles = [];
+            if (meta && meta.kind === 'p' && meta.width) {
+              // Fixed-width paragraph column. CSS `width` makes the
+              // column honour the size; `white-space: normal` lets text
+              // wrap (otherwise `inline-block` cells can avoid wrapping).
+              styles.push(`width:${meta.width}`);
+              styles.push('white-space:normal');
+            }
+            if (centered || (meta && (meta.kind === 'c' || meta.kind === 'p'))) {
+              if (centered) styles.push('text-align:center');
+            }
+            const styleAttr = styles.length ? ` style="${styles.join(';')}"` : '';
+            return `<td${styleAttr}>${cleaned}</td>`;
           }).join('') + '</tr>');
         }
         out.push('</table>');
-        return out.join('');
+        // Wrap in a horizontal-scroll container so tables wider than
+        // the problem panel get a scroll bar instead of overflowing the
+        // surrounding chrome.
+        return `<div class="tex-tabular-scroll">${out.join('')}</div>`;
       });
   }
 

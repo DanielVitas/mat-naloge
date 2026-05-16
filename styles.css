@@ -758,12 +758,17 @@ textarea#latex-source {
 }
 .preview-box .tex-center,
 .finishing-block-body .tex-center { text-align: center; margin: 0.4rem 0; }
-/* Tables that would otherwise overflow the card scale down to fit
-   (mirrors how TikZ images respect max-width: 100%). */
+/* Tables that would otherwise overflow the card get wrapped in
+   `.tex-tabular-scroll` (rendered by the tabular handler) so a
+   horizontal scroll bar appears instead of the table stretching the
+   surrounding chrome past the problem-card width. */
+.tex-tabular-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 0.5rem auto;
+}
 .tex-tabular {
   max-width: 100%;
-  display: block;             /* allow overflow-x to scroll if too wide */
-  overflow-x: auto;
 }
 .preview-box .tex-tabular,
 .finishing-block-body .tex-tabular { margin: 0.5rem auto; border-collapse: collapse; }
