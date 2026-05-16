@@ -45,7 +45,7 @@
 <path style="fill:none;stroke-width:0.3985;stroke-linecap:butt;stroke-linejoin:miter;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;" d="M -1.276637 38.269075 L 1.276235 38.269075 " transform="matrix(0.997651,0,0,-0.997651,55.078325,86.878405)"/>
 <path style="fill:none;stroke-width:0.3985;stroke-linecap:butt;stroke-linejoin:miter;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;" d="M -1.276637 51.0256 L 1.276235 51.0256 " transform="matrix(0.997651,0,0,-0.997651,55.078325,86.878405)"/>
 <g style="fill:rgb(0%,0%,0%);fill-opacity:1;">
-  <use xlink:href="#glyph1-1" x="59.168695" y="98.480091"/>
+  <use xlink:href="#glyph1-1" x="45.147706" y="98.480091"/>
 </g>
 <g style="fill:rgb(0%,0%,0%);fill-opacity:1;">
   <use xlink:href="#glyph1-2" x="64.884239" y="98.480091"/>
@@ -54,5 +54,5 @@
   <use xlink:href="#glyph1-2" x="45.147706" y="77.907526"/>
 </g>
 </g>
-<!-- tikz-hash:77fd523f9498 -->
+<!-- tikz-hash:4299d4aa959c -->
 </svg>
