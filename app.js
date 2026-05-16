@@ -1279,7 +1279,12 @@ function latexToHtml(src, problemId, tikzCount, hydrateTikz, tikzOriginals) {
         body = body.replace(/\\hline/g, '');
         const rows = body.split(/\\\\/).map(r => r.trim()).filter(Boolean);
         const fillin = stretch >= 1.5;
-        const cls = 'tex-tabular' + (fillin ? ' tex-tabular-fillin' : '');
+        // Respect the LaTeX column-spec: only show cell borders when the
+        // spec contains `|` (e.g. `|c|c|`). Specs without bars (e.g.
+        // `ccc`) render borderless, matching the source.
+        const hasBorders = _spec && _spec.indexOf('|') !== -1;
+        let cls = 'tex-tabular' + (fillin ? ' tex-tabular-fillin' : '');
+        if (!hasBorders) cls += ' tex-tabular-borderless';
         const style = (stretch !== 1.0)
           ? ` style="--stretch:${stretch}"`
           : '';

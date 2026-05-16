@@ -772,6 +772,13 @@ textarea#latex-source {
   border: 1px solid #999; padding: 0.55rem 0.9rem; text-align: left; vertical-align: middle;
   line-height: 1.45;
 }
+/* Mirror the LaTeX column-spec: when the source doesn't contain `|`
+   the rendered table should have no cell borders. The renderer adds
+   .tex-tabular-borderless to those tables. */
+.preview-box .tex-tabular-borderless td, .preview-box .tex-tabular-borderless th,
+.finishing-block-body .tex-tabular-borderless td, .finishing-block-body .tex-tabular-borderless th {
+  border: none;
+}
 /* Fill-in tables (any tabular preceded by \arraystretch >= 1.5): give
    each row enough vertical room for handwritten answers, and keep
    cells from wrapping where the content fits. */
