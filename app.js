@@ -1372,7 +1372,15 @@ function latexToHtml(src, problemId, tikzCount, hydrateTikz, tikzOriginals) {
   const paras = src.split(/\n{2,}/).map(p => p.trim()).filter(Boolean);
   src = paras.map(p => /^<(div|table|ul|ol|p)\b/i.test(p) ? p : `<p>${p}</p>`).join('\n');
 
-  src = src.replace(/MJXSTASH(\d+)MJXSTASH/g, (_, i) => stash[Number(i)]);
+  // Unstash math. HTML-escape `<` and `>` inside the math content
+  // because the result is set via innerHTML — without escaping, a
+  // fragment like `$\dfrac{3\pi}{2}<x<2\pi$` would have its `<x<`
+  // parsed as an HTML start-tag and corrupt the surrounding DOM,
+  // leaving the math block rendered as raw LaTeX source. MathJax
+  // decodes `&lt;`/`&gt;` from text nodes back to `<`/`>` before
+  // parsing, so this is safe for the rendered math.
+  src = src.replace(/MJXSTASH(\d+)MJXSTASH/g, (_, i) =>
+    stash[Number(i)].replace(/</g, '&lt;').replace(/>/g, '&gt;'));
   return src;
 }
 
