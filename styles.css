@@ -1430,6 +1430,22 @@ canvas.crop-display {
   z-index: 100;
 }
 .gh-sync .gh-dropdown[hidden] { display: none; }
+/* On narrow viewports the .gh-sync button can sit near the left side
+   of the top bar, and a right-anchored 240px-wide dropdown then
+   extends past the viewport's left edge. Promote to position:fixed
+   on phones, anchored to the viewport's top-right with a small
+   gutter, with max-width clamped so it never overflows horizontally. */
+@media (max-width: 640px) {
+  .gh-sync .gh-dropdown {
+    position: fixed;
+    top: 60px;
+    right: 8px;
+    left: auto;
+    min-width: 0;
+    width: auto;
+    max-width: calc(100vw - 16px);
+  }
+}
 .gh-sync .gh-row {
   font-size: 0.85rem; padding: 0.25rem 0.4rem;
 }
