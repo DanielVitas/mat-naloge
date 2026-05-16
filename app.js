@@ -1268,7 +1268,12 @@ function latexToHtml(src, problemId, tikzCount, hydrateTikz, tikzOriginals) {
   {
     let pendingStretch = 1.0;
     src = src.replace(
-      /\\renewcommand\{\\arraystretch\}\{(\d+\.?\d*)\}|\\begin\{tabular\}\{([^}]+)\}([\s\S]*?)\\end\{tabular\}/g,
+      // The tabular spec can contain nested braces (`p{8cm}`, `m{5cm}`,
+      // `b{3cm}`), so use a balanced-brace pattern instead of `[^}]+`.
+      // Without this, the spec capture stops at the first `}` and the
+      // remainder of the spec (e.g. `|c|c|}`) leaks into the rendered
+      // body as literal text.
+      /\\renewcommand\{\\arraystretch\}\{(\d+\.?\d*)\}|\\begin\{tabular\}\{((?:[^{}]|\{[^{}]*\})*)\}([\s\S]*?)\\end\{tabular\}/g,
       (_, stretchVal, _spec, body) => {
         if (stretchVal !== undefined) {
           pendingStretch = parseFloat(stretchVal) || 1.0;
