@@ -2671,8 +2671,38 @@ async function initSearchPage(opts) {
   });
   const allTopicsArr = [...new Set([...ALL_TOPICS, ...Array.from(usedTopics)])];
 
-  // Filter state — defaults to "everything selected"
-  const state = {
+  // Filter state — persisted to localStorage so the page remembers chip
+  // choices across refresh. Values stored as plain arrays/numbers and
+  // reconstructed into Sets on load. Stale keys (e.g. a renamed topic)
+  // are silently dropped.
+  const SEARCH_FILTER_KEY = (opts.filterStateKey || 'searchFilterState_v1');
+  let savedState = null;
+  try {
+    const raw = window.localStorage && window.localStorage.getItem(SEARCH_FILTER_KEY);
+    if (raw) savedState = JSON.parse(raw);
+  } catch (_e) { savedState = null; }
+  function pickSet(savedArr, allArr) {
+    if (!Array.isArray(savedArr)) return new Set(allArr);
+    const allowed = new Set(allArr);
+    const out = new Set();
+    savedArr.forEach(v => { if (allowed.has(v)) out.add(v); });
+    return out;
+  }
+  function pickNum(saved, fallback) {
+    const n = parseInt(saved, 10);
+    return isNaN(n) ? fallback : n;
+  }
+  const state = savedState ? {
+    yearMin:   pickNum(savedState.yearMin,   yearMin),
+    yearMax:   pickNum(savedState.yearMax,   yearMax),
+    pointsMin: pickNum(savedState.pointsMin, pointsMin),
+    pointsMax: pickNum(savedState.pointsMax, pointsMax),
+    sources:   pickSet(savedState.sources,   allSources),
+    polas:     pickSet(savedState.polas,     allPolas),
+    levels:    pickSet(savedState.levels,    allLevels),
+    sections:  pickSet(savedState.sections,  allSections),
+    topics:    pickSet(savedState.topics,    allTopicsArr),
+  } : {
     yearMin, yearMax, pointsMin, pointsMax,
     sources:  new Set(allSources),
     polas:    new Set(allPolas),
@@ -2680,6 +2710,20 @@ async function initSearchPage(opts) {
     sections: new Set(allSections),
     topics:   new Set(allTopicsArr),
   };
+  function persistFilterState() {
+    try {
+      if (!window.localStorage) return;
+      window.localStorage.setItem(SEARCH_FILTER_KEY, JSON.stringify({
+        yearMin: state.yearMin, yearMax: state.yearMax,
+        pointsMin: state.pointsMin, pointsMax: state.pointsMax,
+        sources:  [...state.sources],
+        polas:    [...state.polas],
+        levels:   [...state.levels],
+        sections: [...state.sections],
+        topics:   [...state.topics],
+      }));
+    } catch (_e) { /* private mode etc — skip */ }
+  }
 
   // Build filter UI
   const root = document.getElementById('filters');
@@ -2791,9 +2835,43 @@ async function initSearchPage(opts) {
       const next = btn.getAttribute('aria-pressed') !== 'true';
       btn.setAttribute('aria-pressed', String(next));
       if (next) set.add(val); else set.delete(val);
+      // Mirror to same-kind chips in other panels (e.g. Section appears
+      // in both Matura and Textbook panels backed by state.sections).
+      document.querySelectorAll('#filters .filter-chip[data-val="' + CSS.escape(val) + '"]').forEach(b => {
+        if (b === btn) return;
+        const sameKind = btn.className.split(' ').some(c =>
+          c.startsWith('filter-chip-') && b.classList.contains(c));
+        if (sameKind) b.setAttribute('aria-pressed', String(next));
+      });
+      persistFilterState();
       render();
     });
   }
+
+  // Reconcile every chip's aria-pressed with the (possibly-restored) state
+  // so a refreshed page shows the user's last chip picks rather than
+  // "everything on".
+  function reconcileChipsToState() {
+    function flip(containerId, set) {
+      const root = document.getElementById(containerId);
+      if (!root) return;
+      root.querySelectorAll('.filter-chip').forEach(btn => {
+        btn.setAttribute('aria-pressed', set.has(btn.dataset.val) ? 'true' : 'false');
+      });
+    }
+    flip('f-sources',  state.sources);
+    flip('f-polas',    state.polas);
+    flip('f-levels',   state.levels);
+    flip('f-sections-matura',   state.sections);
+    flip('f-sections-textbook', state.sections);
+  }
+  reconcileChipsToState();
+  // Restore numeric range inputs from saved state too.
+  ['f-year-min','f-year-max','f-points-min','f-points-max'].forEach((id, i) => {
+    const v = [state.yearMin, state.yearMax, state.pointsMin, state.pointsMax][i];
+    const el = document.getElementById(id);
+    if (el && !isNaN(v)) el.value = v;
+  });
 
   ['f-year-min','f-year-max','f-points-min','f-points-max'].forEach(id => {
     document.getElementById(id).addEventListener('input', () => {
@@ -2801,6 +2879,7 @@ async function initSearchPage(opts) {
       state.yearMax   = parseInt(document.getElementById('f-year-max').value, 10);
       state.pointsMin = parseInt(document.getElementById('f-points-min').value, 10);
       state.pointsMax = parseInt(document.getElementById('f-points-max').value, 10);
+      persistFilterState();
       render();
     });
   });
@@ -2908,6 +2987,7 @@ async function initSearchPage(opts) {
       mainBtn.addEventListener('click', (e) => {
         e.preventDefault(); e.stopPropagation();
         setParent(g.main, !parentSelected(g.main));
+        persistFilterState();
         renderTopicFilters();
         render();
       });
@@ -2927,6 +3007,7 @@ async function initSearchPage(opts) {
             if (state.topics.has(s)) state.topics.delete(s);
             else                     state.topics.add(s);
             syncParentForSub(s);
+            persistFilterState();
             renderTopicFilters();
             render();
           });
@@ -2941,11 +3022,13 @@ async function initSearchPage(opts) {
 
   document.getElementById('topics-all').addEventListener('click', () => {
     state.topics = new Set(allTopicsArr);
+    persistFilterState();
     renderTopicFilters();
     render();
   });
   document.getElementById('topics-none').addEventListener('click', () => {
     state.topics.clear();
+    persistFilterState();
     renderTopicFilters();
     render();
   });
