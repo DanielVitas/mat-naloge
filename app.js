@@ -2,6 +2,238 @@
 // Stored fields: latex (string), bbox ([x1,y1,x2,y2]), outdated (bool),
 //                topics (array of strings), approved_by (string|null).
 
+// ---------------------------------------------------------------------------
+// SPA Phase 1: data bootstrap loader.
+// ---------------------------------------------------------------------------
+// Each page sets window.DATA_URL = "data.<hash>.json". The first init
+// function awaits bootstrapData(), which fetches the JSON, sets
+// window.PROBLEMS + window.PROBLEMS_LATEX, and resolves a singleton
+// promise so subsequent callers reuse the result. Pages that still
+// inline PROBLEMS (old behaviour) work too — if PROBLEMS is already
+// set and no DATA_URL is given, bootstrapData is a no-op.
+// SPA Phase 5: register the service worker for offline + aggressive
+// caching. Registered at module-load time on every page so subsequent
+// visits become near-instant (all versioned assets + the data bundle
+// are served from cache; HTML pages use stale-while-revalidate so
+// updates still propagate but the first paint is from cache).
+if ('serviceWorker' in navigator) {
+  // Defer until after the page settles so the SW registration doesn't
+  // compete with the page's own resource loads on first paint.
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch((err) => {
+      console.warn('service worker registration failed:', err);
+    });
+  });
+}
+
+// ---------------------------------------------------------------------------
+// SPA Phase 3: client-side router (soft SPA).
+// ---------------------------------------------------------------------------
+// Each existing HTML file stays addressable as a direct entry point —
+// /search.html, /problem-337.html, etc. still work via GitHub Pages
+// and the service worker caches them. What changes: when the user
+// clicks a same-origin link, we intercept, fetch the target HTML,
+// parse it, swap the .container element in place, and re-run any
+// inline page-init scripts. No full reload → no MathJax re-bootstrap,
+// no app.js re-execute, no service-worker re-register, no flash of
+// blank page. The data bundle stays in memory across navigations.
+//
+// Each inline script we re-run is wrapped in an IIFE so const/let
+// identifiers (e.g. `const PROBLEM = …` on problem pages) don't
+// collide with the previous page's. Scripts we DON'T re-run: the
+// MathJax config (already loaded), the DATA_URL setter (already set),
+// the PROBLEMS_LATEX pre-seed (would clobber the full bundle merged
+// in by bootstrapData), and any external <script src> (app.js itself).
+let _spaInFlight = null;
+async function spaNavigate(url, push = true) {
+  let target;
+  try { target = new URL(url, window.location.href); } catch (_e) { return false; }
+  if (target.origin !== window.location.origin) return false;
+  if (target.pathname === window.location.pathname &&
+      target.search === window.location.search) {
+    if (target.hash) {
+      window.location.hash = target.hash;
+    }
+    return true;
+  }
+  _spaInFlight = target.href;
+  try {
+    const resp = await fetch(target.href);
+    if (!resp.ok) { window.location.href = target.href; return true; }
+    if (_spaInFlight !== target.href) return true;
+    const html = await resp.text();
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const newContainer = doc.querySelector('.container');
+    const curContainer = document.querySelector('.container');
+    if (!newContainer || !curContainer) {
+      // Couldn't find the swap target — fall back to a real navigation.
+      window.location.href = target.href;
+      return true;
+    }
+    curContainer.replaceWith(newContainer);
+    if (doc.title) document.title = doc.title;
+    // Re-run page-specific inline scripts. Skip anything that's
+    // already-running infrastructure on the parent shell.
+    const SKIP_PATTERNS = [
+      /window\s*\.\s*MathJax\s*=/,           // MathJax config (already loaded)
+      /window\s*\.\s*DATA_URL\s*=/,          // already set
+      /window\s*\.\s*PROBLEMS_LATEX\s*=/,    // would clobber merged map
+      /window\s*\.\s*glueOrphanPunctuation/, // defined globally already
+    ];
+    const newScripts = doc.querySelectorAll('script:not([src])');
+    for (const s of newScripts) {
+      const txt = (s.textContent || '').trim();
+      if (!txt) continue;
+      if (SKIP_PATTERNS.some(re => re.test(txt))) continue;
+      // IIFE-wrap so `const`/`let` identifiers stay scoped.
+      const exec = document.createElement('script');
+      exec.textContent = '(function(){\n' + txt + '\n})();';
+      document.body.appendChild(exec);
+      document.body.removeChild(exec);
+    }
+    if (push) {
+      window.history.pushState({ spaUrl: target.href }, '', target.href);
+    }
+    // Scroll to top on a real navigation, or to the anchor if any.
+    if (target.hash) {
+      const el = document.querySelector(target.hash);
+      if (el) el.scrollIntoView();
+    } else {
+      window.scrollTo(0, 0);
+    }
+    return true;
+  } catch (err) {
+    console.warn('SPA navigation failed, falling back to reload:', err);
+    window.location.href = target.href;
+    return true;
+  }
+}
+
+// Intercept clicks on internal links. Skip modifier-clicks (which open
+// in new tabs), target="_blank", non-http URLs, and the user's special
+// data-no-spa opt-out.
+document.addEventListener('click', (e) => {
+  if (e.defaultPrevented) return;
+  if (e.button !== 0) return;
+  if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  const a = e.target.closest('a[href]');
+  if (!a) return;
+  if (a.hasAttribute('data-no-spa')) return;
+  if (a.target && a.target !== '' && a.target !== '_self') return;
+  const href = a.getAttribute('href');
+  if (!href) return;
+  if (href.startsWith('mailto:') || href.startsWith('tel:') ||
+      href.startsWith('javascript:')) return;
+  let target;
+  try { target = new URL(href, window.location.href); } catch (_e) { return; }
+  if (target.origin !== window.location.origin) return;
+  // Hash-only clicks: let the browser handle the scroll, no fetch.
+  if (target.pathname === window.location.pathname &&
+      target.search === window.location.search && target.hash) {
+    return;
+  }
+  e.preventDefault();
+  spaNavigate(target.href);
+});
+
+window.addEventListener('popstate', () => {
+  spaNavigate(window.location.href, /*push*/ false);
+});
+
+window.spaNavigate = spaNavigate;
+
+
+// SPA Phase 2: split data into meta + lazy bodies. Pages emit
+//   window.META_URL   = "meta.<hash>.json"    — slim problem index
+//   window.BODIES_URL = "bodies.<hash>.json"  — LaTeX/figure data
+// bootstrapData() resolves once META is loaded so the shell + filter
+// UI can render immediately on the small metadata payload (~17% of the
+// old combined fetch). bootstrapBodies() runs in parallel and is what
+// lazy-hydrated cards await before actually rendering their content.
+//
+// Legacy fallback: if a page emits only window.DATA_URL (combined
+// bundle), bootstrapData fetches that and fills both globals from it.
+window.__metaPromise   = null;
+window.__bodiesPromise = null;
+
+function bootstrapData() {
+  if (window.__metaPromise) return window.__metaPromise;
+  // Kick off bodies fetch in parallel — we don't await it here, but
+  // it's ready by the time the user starts scrolling past the fold.
+  bootstrapBodies();
+  if (window.META_URL) {
+    window.__metaPromise = fetch(window.META_URL, { cache: 'force-cache' })
+      .then(r => {
+        if (!r.ok) throw new Error('meta fetch failed: ' + r.status);
+        return r.json();
+      })
+      .then(d => {
+        window.PROBLEMS = (d && d.problems) || (Array.isArray(d) ? d : []);
+        if (!window.PROBLEMS_LATEX) window.PROBLEMS_LATEX = {};
+      })
+      .catch(err => {
+        console.error('meta fetch failed:', err);
+        if (!Array.isArray(window.PROBLEMS)) window.PROBLEMS = [];
+        if (!window.PROBLEMS_LATEX) window.PROBLEMS_LATEX = {};
+      });
+  } else if (window.DATA_URL) {
+    // Legacy: combined fetch. Sets PROBLEMS + PROBLEMS_LATEX from one
+    // file. The bodies promise is treated as already-resolved.
+    window.__metaPromise = fetch(window.DATA_URL, { cache: 'force-cache' })
+      .then(r => {
+        if (!r.ok) throw new Error('data fetch failed: ' + r.status);
+        return r.json();
+      })
+      .then(d => {
+        window.PROBLEMS = d.problems || [];
+        const existing = window.PROBLEMS_LATEX || {};
+        window.PROBLEMS_LATEX = Object.assign({}, d.bodies || {}, existing);
+      })
+      .catch(err => {
+        console.error('data fetch failed:', err);
+        if (!Array.isArray(window.PROBLEMS)) window.PROBLEMS = [];
+        if (!window.PROBLEMS_LATEX) window.PROBLEMS_LATEX = {};
+      });
+    // No separate bodies URL → bodies arrive with the combined fetch.
+    window.__bodiesPromise = window.__metaPromise;
+  } else {
+    if (!Array.isArray(window.PROBLEMS)) window.PROBLEMS = [];
+    if (!window.PROBLEMS_LATEX) window.PROBLEMS_LATEX = {};
+    window.__metaPromise = Promise.resolve();
+  }
+  return window.__metaPromise;
+}
+
+function bootstrapBodies() {
+  if (window.__bodiesPromise) return window.__bodiesPromise;
+  if (!window.BODIES_URL) {
+    // Legacy or no bodies URL → bootstrapData() either fills bodies
+    // via the combined fetch or leaves PROBLEMS_LATEX as whatever was
+    // pre-seeded.
+    window.__bodiesPromise = Promise.resolve();
+    return window.__bodiesPromise;
+  }
+  window.__bodiesPromise = fetch(window.BODIES_URL, { cache: 'force-cache' })
+    .then(r => {
+      if (!r.ok) throw new Error('bodies fetch failed: ' + r.status);
+      return r.json();
+    })
+    .then(d => {
+      // Keep any pre-seeded entry (problem pages inline the current
+      // problem's body for fast first paint); fetched bodies fill the
+      // rest.
+      const existing = window.PROBLEMS_LATEX || {};
+      window.PROBLEMS_LATEX = Object.assign({}, d || {}, existing);
+      // Notify lazy hydrators that bodies are ready.
+      window.dispatchEvent(new CustomEvent('bodies-loaded'));
+    })
+    .catch(err => {
+      console.error('bodies fetch failed:', err);
+      if (!window.PROBLEMS_LATEX) window.PROBLEMS_LATEX = {};
+    });
+  return window.__bodiesPromise;
+}
+
 // Master topic vocabulary — sections from the M-MAT-2026 syllabus.
 // Main sections (4.x.) and subsections (4.x.y.). Each subsection's parent
 // main section is stored in TOPIC_PARENT and is enforced whenever a sub
@@ -2113,6 +2345,7 @@ function drawCropFromImage(canvas, img, bbox, [imgW, imgH]) {
 }
 
 async function initProblemPage(meta) {
+  await bootstrapData();
   await fetchRemoteData();
   migrateLocalTopics();
   migrateLocalBboxes();
@@ -2584,6 +2817,7 @@ async function initProblemPage(meta) {
 // Live filter UI over window.PROBLEMS (embedded in search.html). Every filter
 // input triggers re-render — there's no submit button.
 async function initSearchPage(opts) {
+  await bootstrapData();
   // Same function powers (a) the standalone search.html page and (b) the
   // "Add a problem" modal opened from the Finishing tab. The opts object
   // lets the caller swap out the Add-button semantics:
@@ -3082,23 +3316,96 @@ async function initSearchPage(opts) {
 
   // Save the most recent filtered set so "Add all" knows what to add.
   let lastMatches = [];
+
+  // ----- SPA Phase 4: lazy hydration ---------------------------------------
+  // Render cycle: build ALL card shells (cheap — just <div>s with the
+  // number and Add button), but DEFER the heavy work (LaTeX/figure
+  // injection + MathJax typeset) until a card actually scrolls into the
+  // viewport. An IntersectionObserver hands us a card the moment its
+  // wrap-element gets within `rootMargin` of the viewport, we hydrate
+  // it once, then unobserve. This is what keeps the search page snappy
+  // when the filtered set is hundreds (or eventually thousands) of
+  // problems — the DOM is light, MathJax never touches off-screen
+  // cards, and the user only pays for what they actually see.
+  let _hydrateObserver = null;
+  function _ensureHydrateObserver() {
+    if (_hydrateObserver) return _hydrateObserver;
+    _hydrateObserver = new IntersectionObserver((entries) => {
+      const toRender = [];
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        const wrap = entry.target;
+        if (wrap.dataset.hydrated === '1') continue;
+        wrap.dataset.hydrated = '1';
+        _hydrateObserver.unobserve(wrap);
+        toRender.push(wrap);
+      }
+      if (toRender.length === 0) return;
+      // Wait until the bodies bundle is loaded before rendering. With
+      // Phase 4's `rootMargin: 600px`, this is almost always already
+      // resolved by the time the user can scroll a card into view —
+      // bootstrapBodies() kicks off at page-load — but await guarantees
+      // we never render an empty body.
+      bootstrapBodies().then(() => {
+        const bodies = window.PROBLEMS_LATEX || {};
+        const newBodies = [];
+        for (const wrap of toRender) {
+          const n = Number(wrap.dataset.n);
+          const p = window.__problemsByN ? window.__problemsByN[n] : null;
+          if (!p) continue;
+          const body = wrap.querySelector('.result-body');
+          if (!body) continue;
+          // Phase 2: body fields (latex, tikz_count, body_image,
+          // tikz_originals) live in PROBLEMS_LATEX. Fall back to the
+          // problem record itself for older builds where meta still
+          // carried them.
+          const bd = bodies[String(p.n)] || {};
+          const ed = effectiveState(p.n);
+          const latex = (ed.latex !== undefined)
+            ? ed.latex
+            : (bd.latex !== undefined ? bd.latex : p.latex);
+          renderProblemBody(body, {
+            n: p.n,
+            latex: latex,
+            tikzCount: (bd.tikz_count != null ? bd.tikz_count : (p.tikz_count || 0)),
+            bodyImage: bd.body_image || p.body_image,
+            tikzOriginals: bd.tikz_originals || p.tikz_originals || [],
+          });
+          newBodies.push(body);
+        }
+        if (newBodies.length && window.MathJax && window.MathJax.typesetPromise) {
+          window.MathJax.typesetPromise(newBodies).catch(() => {});
+        }
+      });
+    }, {
+      // Pre-load cards up to one viewport-height ahead of the user so
+      // scrolling never reveals an un-rendered card.
+      root: null,
+      rootMargin: '600px 0px 600px 0px',
+      threshold: 0,
+    });
+    return _hydrateObserver;
+  }
+
   function render() {
     const out = PROBLEMS.filter(matches);
     lastMatches = out;
     countEl.textContent = `${out.length} of ${PROBLEMS.length} problems`;
+    // Index for the observer callback so it can look up problem data
+    // by `n` without scanning the array.
+    window.__problemsByN = {};
+    for (const p of PROBLEMS) window.__problemsByN[p.n] = p;
+    // Tear down the previous observer — its targets are about to be
+    // detached from the DOM.
+    if (_hydrateObserver) { _hydrateObserver.disconnect(); _hydrateObserver = null; }
     resultsEl.innerHTML = out.map(p => {
       const sel = isMarked(p.n);
       const cls = sel ? ('is-selected ' + markedClass).trim() : '';
       const dis = sel && markedDisabled ? 'disabled' : '';
-      // showEditLink (true on the search page, false in modals) doubles
-      // as the "card itself is clickable → opens the problem page" flag.
-      // The data-href lives on the HOT-ZONE so clicks on the body (which
-      // pass through the pointer-events:none card) reach the navigable
-      // target underneath.
       const href = showEditLink
         ? `problem-${String(p.n).padStart(3,'0')}.html` : '';
       const dataHref = href ? `data-href="${href}"` : '';
-      return `<div class="search-result-wrap">
+      return `<div class="search-result-wrap" data-n="${p.n}">
         <div class="search-result-hot-zone" ${dataHref}></div>
         <div class="search-result ${sel && markedClass ? markedClass : ''}">
           <span class="result-num">${p.n}.</span>
@@ -3109,25 +3416,12 @@ async function initSearchPage(opts) {
         </div>
       </div>`;
     }).join('');
-    // Render the LaTeX previews (or the textbook crop image, if any).
-    out.forEach(p => {
-      const body = resultsEl.querySelector(`.result-body[data-id="${p.n}"]`);
-      if (!body) return;
-      const ed = effectiveState(p.n);
-      const latex = (ed.latex !== undefined) ? ed.latex : p.latex;
-      renderProblemBody(body, {
-        n: p.n, latex: latex, tikzCount: p.tikz_count || 0,
-        bodyImage: p.body_image,
-        tikzOriginals: p.tikz_originals || [],
-      });
-    });
-    if (window.MathJax && window.MathJax.typesetPromise) {
-      window.MathJax.typesetPromise([resultsEl]).catch(() => {});
-    }
-    // Hover state for each card wrap. Manage via JS so the elevation
-    // and expansion happen synchronously — :has()-based CSS hover has a
-    // 1-frame paint delay in some browsers.
+    // Observe every wrap; hydration happens lazily as they scroll in.
+    const obs = _ensureHydrateObserver();
     resultsEl.querySelectorAll('.search-result-wrap').forEach(wrap => {
+      obs.observe(wrap);
+      // Hover state — same JS as before, attaches eagerly so the card
+      // expands the moment the cursor enters even before hydration.
       const hot    = wrap.querySelector('.search-result-hot-zone');
       const addBtn = wrap.querySelector('.result-add');
       const targets = [hot, addBtn].filter(Boolean);
@@ -3136,8 +3430,6 @@ async function initSearchPage(opts) {
         adjustHoverOverflowGuard(wrap, true);
       };
       const leave = () => {
-        // Defer one task so transitions between hot-zone and Add button
-        // (cursor crossing the boundary) don't flicker the class off.
         setTimeout(() => {
           const stillIn = targets.some(t => t.matches(':hover'));
           if (!stillIn) {
@@ -3280,6 +3572,7 @@ const LEVEL_ORDER_JS = { OR: 0, VR: 1 };
 
 // ---------- Exam page -----------------------------------------------------
 async function initExamPage() {
+  await bootstrapData();
   await fetchRemoteData();
   initMenuBar();
   initSyncBar();
@@ -5014,6 +5307,7 @@ function toggleTopicReorderPillVisibility() {
 }
 
 async function initIndexPage() {
+  await bootstrapData();
   await fetchRemoteData();
   migrateLocalTopics();
   migrateLocalBboxes();
