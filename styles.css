@@ -1886,14 +1886,23 @@ canvas.crop-display {
 .search-result .result-add { pointer-events: auto; }
 /* Expand the card when its wrap is marked hovered (by JS).
    The card grows for tall content but never shrinks below the original
-   13em footprint. */
+   13em footprint. Horizontal overflow stays clipped to the card's width
+   (so long math lines cannot escape to the right); the `.result-body`
+   below gets `overflow-x: auto` so the user can scroll horizontally
+   inside the card if a math expression is too wide. */
 .search-result-wrap.is-hovered .search-result {
   height: auto;
   min-height: 13em;
   max-height: 100em;
-  overflow: visible;
+  overflow: hidden;
   z-index: 5;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+.search-result-wrap.is-hovered .search-result .result-body {
+  /* Long math lines (e.g. multi-term sums) scroll horizontally inside
+     the body instead of bleeding past the right edge of the card. */
+  overflow-x: auto;
+  overflow-y: visible;
 }
 .search-result-wrap.is-hovered .search-result::after { opacity: 0; }
 .search-result::after {
