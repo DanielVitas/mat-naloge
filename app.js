@@ -1354,8 +1354,11 @@ function latexToHtml(src, problemId, tikzCount, hydrateTikz, tikzOriginals) {
       });
   }
 
-  src = src.replace(/\\begin\{itemize\}(\[[^\]]*\])?([\s\S]*?)\\end\{itemize\}/g,
-    (_, _opt, body) => {
+  // Shared handler for itemize / enumerate (the only difference is the
+  // wrapping element, <ul> vs <ol>). Without an enumerate branch the
+  // `\begin{enumerate} ... \end{enumerate}` blocks leak through as raw
+  // LaTeX (broke e.g. problem 347).
+  const _listHandler = (tag) => (_, _opt, body) => {
       // Split on \item, accepting (a) plain \item followed by whitespace,
       // (b) \item[label]... with no whitespace, and (c) \item[label] with
       // whitespace after. The bracketed label, if present, becomes the
@@ -1379,8 +1382,12 @@ function latexToHtml(src, problemId, tikzCount, hydrateTikz, tikzOriginals) {
           : '';
         items.push(prefix + content);
       }
-      return '<ul class="tex-list">' + items.map(i => `<li>${i}</li>`).join('') + '</ul>';
-    });
+      const cls = (tag === 'ol') ? 'tex-list tex-list-ordered' : 'tex-list';
+      return `<${tag} class="${cls}">` + items.map(i => `<li>${i}</li>`).join('') + `</${tag}>`;
+    };
+
+  src = src.replace(/\\begin\{itemize\}(\[[^\]]*\])?([\s\S]*?)\\end\{itemize\}/g, _listHandler('ul'));
+  src = src.replace(/\\begin\{enumerate\}(\[[^\]]*\])?([\s\S]*?)\\end\{enumerate\}/g, _listHandler('ol'));
 
   src = src.replace(/\\begin\{center\}([\s\S]*?)\\end\{center\}/g,
     (_, inner) => `<div class="tex-center">${inner.trim()}</div>`);
