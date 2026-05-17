@@ -22,7 +22,7 @@
 // entire cache atomically on the next visit. Old caches are deleted
 // during the activate phase.
 
-const CACHE_VERSION = 'tp2-553cba-de98e0';
+const CACHE_VERSION = 'tp25-74299d';
 const STATIC_CACHE   = `mat-static-${CACHE_VERSION}`;
 const HTML_CACHE     = `mat-html-${CACHE_VERSION}`;
 const EXTERNAL_CACHE = `mat-ext-${CACHE_VERSION}`;
