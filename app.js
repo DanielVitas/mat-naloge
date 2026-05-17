@@ -1931,25 +1931,61 @@ function adjustHoverOverflowGuard(wrap, isHovered) {
 // Index-page card hydration: render LaTeX previews from window.PROBLEMS_LATEX,
 // wire hover-to-expand on each .search-result-wrap, and route hot-zone
 // clicks to the corresponding problem page.
-function hydrateIndexCards() {
+//
+// Phase 4 applied to the index page: card bodies are LAZY-hydrated as
+// they scroll into view via IntersectionObserver. The old version
+// type-set every body on every browse-mode tab on load, which made
+// the Problems page block the main thread for several seconds. Now
+// only the visible window pays the MathJax cost.
+let _indexHydrateObserver = null;
+function _hydrateOneIndexCard(body) {
   const data = window.PROBLEMS_LATEX || {};
-  document.querySelectorAll('.search-result-wrap[data-id] .result-body').forEach(body => {
-    const n = body.dataset.id;
-    const entry = data[n];
-    if (!entry) return;
-    const ed = effectiveState(n);
-    const latex = (ed.latex !== undefined) ? ed.latex : entry.latex;
-    renderProblemBody(body, {
-      n: n, latex: latex, tikzCount: entry.tikz_count || 0,
-      bodyImage: entry.body_image,
-      tikzOriginals: entry.tikz_originals || [],
-    });
+  const n = body.dataset.id;
+  const entry = data[n];
+  if (!entry) return null;
+  const ed = effectiveState(n);
+  const latex = (ed.latex !== undefined) ? ed.latex : entry.latex;
+  renderProblemBody(body, {
+    n: n, latex: latex, tikzCount: entry.tikz_count || 0,
+    bodyImage: entry.body_image,
+    tikzOriginals: entry.tikz_originals || [],
   });
-  if (window.MathJax && window.MathJax.typesetPromise) {
-    window.MathJax.typesetPromise(
-      Array.from(document.querySelectorAll('.search-result-wrap[data-id] .result-body'))
-    ).catch(() => {});
-  }
+  return body;
+}
+function hydrateIndexCards() {
+  // Tear down a previous observer if a re-hydrate is requested
+  // (initIndexPage can be called twice via the SPA router).
+  if (_indexHydrateObserver) { _indexHydrateObserver.disconnect(); _indexHydrateObserver = null; }
+  _indexHydrateObserver = new IntersectionObserver((entries) => {
+    if (!entries.some(e => e.isIntersecting)) return;
+    const toRender = [];
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      const body = entry.target;
+      if (body.dataset.hydrated === '1') continue;
+      body.dataset.hydrated = '1';
+      _indexHydrateObserver.unobserve(body);
+      toRender.push(body);
+    }
+    if (toRender.length === 0) return;
+    bootstrapBodies().then(() => {
+      const newBodies = [];
+      for (const body of toRender) {
+        const ok = _hydrateOneIndexCard(body);
+        if (ok) newBodies.push(ok);
+      }
+      if (newBodies.length && window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise(newBodies).catch(() => {});
+      }
+    });
+  }, {
+    root: null,
+    rootMargin: '600px 0px 600px 0px',
+    threshold: 0,
+  });
+  document.querySelectorAll('.search-result-wrap[data-id] .result-body').forEach(body => {
+    _indexHydrateObserver.observe(body);
+  });
   document.querySelectorAll('.search-result-wrap[data-id]').forEach(wrap => {
     const hot = wrap.querySelector('.search-result-hot-zone');
     if (!hot) return;
