@@ -2387,8 +2387,37 @@ async function hydrateTikzInPreview(target) {
 // ---------------- Crop display + editor ------------------------------------
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 
-function drawCropFromImage(canvas, img, bbox, [imgW, imgH]) {
-  let [x1, y1, x2, y2] = bbox.map(Math.round);
+function drawCropFromImage(canvas, img, bbox, pageSize) {
+  // pageSize may be null (image-only matura entries 2011-2016 carry
+  // matura_crops/.../prob_NN.png as page_image with no page_size and no
+  // bbox_default — they're already pre-cropped to the problem region).
+  // In that case use the image's natural dimensions and show the whole
+  // image (bbox is irrelevant).
+  let imgW, imgH;
+  if (Array.isArray(pageSize) && pageSize.length === 2 &&
+      pageSize[0] && pageSize[1]) {
+    [imgW, imgH] = pageSize;
+  } else {
+    imgW = img.naturalWidth || img.width || 1;
+    imgH = img.naturalHeight || img.height || 1;
+  }
+  // If bbox is also missing/garbage (e.g. [0,0,100,100] default with no
+  // real page_size), draw the full image. We detect "no useful bbox" as
+  // a bbox whose extent is wildly smaller than the image — but to keep
+  // this simple, just check that bbox values are within the image and
+  // non-degenerate. If they aren't, fall back to full-image bounds.
+  let x1, y1, x2, y2;
+  if (Array.isArray(bbox) && bbox.length === 4) {
+    [x1, y1, x2, y2] = bbox.map(Math.round);
+    // If bbox is the [0,0,100,100] placeholder we use for missing
+    // bbox_default, snap to full image bounds.
+    if (x1 === 0 && y1 === 0 && x2 === 100 && y2 === 100 &&
+        (imgW > 200 || imgH > 200)) {
+      x1 = 0; y1 = 0; x2 = imgW; y2 = imgH;
+    }
+  } else {
+    x1 = 0; y1 = 0; x2 = imgW; y2 = imgH;
+  }
   x1 = clamp(x1, 0, imgW); x2 = clamp(x2, 0, imgW);
   y1 = clamp(y1, 0, imgH); y2 = clamp(y2, 0, imgH);
   const w = Math.max(1, x2 - x1), h = Math.max(1, y2 - y1);
