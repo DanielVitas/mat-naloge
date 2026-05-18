@@ -119,7 +119,7 @@ async function spaNavigate(url, push = true) {
 // ~12 KB shell + cached data bundle, so the perceived delay is
 // negligible and the page lands deterministically every time.
 function _isProblemPagePath(pathname) {
-  return /\/problem-\d+\.html?$/.test(pathname);
+  return /\/problems\/\d+\.html?$/.test(pathname);
 }
 
 // Intercept clicks on internal links. Skip modifier-clicks (which open
@@ -525,7 +525,7 @@ function initCollectionBar() {
       const row = document.createElement('div');
       row.className = 'collection-row';
       const link = document.createElement('a');
-      link.href = `problem-${String(n).padStart(3,'0')}.html`;
+      link.href = `problems/${String(n).padStart(3,'0')}.html`;
       link.className = 'collection-link';
       const numEl = document.createElement('span');
       numEl.className = 'collection-num';
@@ -3458,7 +3458,7 @@ async function initSearchPage(opts) {
       const cls = sel ? ('is-selected ' + markedClass).trim() : '';
       const dis = sel && markedDisabled ? 'disabled' : '';
       const href = showEditLink
-        ? `problem-${String(p.n).padStart(3,'0')}.html` : '';
+        ? `problems/${String(p.n).padStart(3,'0')}.html` : '';
       const dataHref = href ? `data-href="${href}"` : '';
       return `<div class="search-result-wrap" data-n="${p.n}">
         <div class="search-result-hot-zone" ${dataHref}></div>

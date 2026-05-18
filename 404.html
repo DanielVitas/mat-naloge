@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="sl">
+<head>
+<meta charset="utf-8">
+<title>Redirecting...</title>
+<script>
+// GitHub Pages serves this file on any 404. We intercept the legacy
+// `/problem-NNN.html` URL pattern and rewrite it to the new
+// `/problems/NNN.html` location, then redirect there.
+(function () {
+  var path = location.pathname;
+  var m = path.match(/^(.*)\/problem-(\d+)\.html$/);
+  if (m) {
+    var base = m[1] || '';
+    var n    = m[2];
+    location.replace(base + '/problems/' + n + '.html' +
+                     location.search + location.hash);
+    return;
+  }
+})();
+</script>
+</head>
+<body>
+<p>Page not found. <a href="/">Return to the home page.</a></p>
+</body>
+</html>
