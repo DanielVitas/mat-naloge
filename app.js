@@ -109,6 +109,19 @@ async function spaNavigate(url, push = true) {
   }
 }
 
+// Paths that should ALWAYS do a full reload, never SPA-swap. The
+// problem-NNN.html pages each have their own inline `const PROBLEM =
+// {...}; initProblemPage(PROBLEM);` bootstrap, and that state machine
+// is fragile when re-run inside an IIFE on a swapped-in container —
+// the new container's textarea/preview/crop-canvas references end up
+// pointing to elements that exist but never get populated, leaving
+// the page visually empty until a manual reload. Full reload is
+// ~12 KB shell + cached data bundle, so the perceived delay is
+// negligible and the page lands deterministically every time.
+function _isProblemPagePath(pathname) {
+  return /\/problem-\d+\.html?$/.test(pathname);
+}
+
 // Intercept clicks on internal links. Skip modifier-clicks (which open
 // in new tabs), target="_blank", non-http URLs, and the user's special
 // data-no-spa opt-out.
@@ -131,6 +144,12 @@ document.addEventListener('click', (e) => {
   if (target.pathname === window.location.pathname &&
       target.search === window.location.search && target.hash) {
     return;
+  }
+  // **Problem pages**: always full-reload (never SPA-swap). See
+  // _isProblemPagePath for the rationale.
+  if (_isProblemPagePath(target.pathname) ||
+      _isProblemPagePath(window.location.pathname)) {
+    return;  // let the browser navigate normally
   }
   e.preventDefault();
   spaNavigate(target.href);
