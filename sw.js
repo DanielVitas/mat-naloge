@@ -22,7 +22,7 @@
 // entire cache atomically on the next visit. Old caches are deleted
 // during the activate phase.
 
-const CACHE_VERSION = 'mat-pre2017-v2-5469cd';
+const CACHE_VERSION = 'mat-strip-noindent-f5d039';
 const STATIC_CACHE   = `mat-static-${CACHE_VERSION}`;
 const HTML_CACHE     = `mat-html-${CACHE_VERSION}`;
 const EXTERNAL_CACHE = `mat-ext-${CACHE_VERSION}`;
