@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Problems</title>
-<link rel="stylesheet" href="styles.css?v=ccdf26">
+<link rel="stylesheet" href="styles.css?v=95e829">
 
 <script>
   // Prevent orphaned commas/periods/semicolons/colons at the start of a
@@ -208,6 +208,23 @@
       </summary>
       <div class="index-source-filter filters-panel" id="index-source-filter"></div>
     </details>
+    <!-- Reorder topics button — sibling of Source ▾, not inside it.
+         Only visible in the Year browse mode (JS toggles .is-hidden).
+         Clicking expands #topic-reorder-panel (also a sibling, below). -->
+    <button type="button" class="reorder-topics-btn is-hidden"
+            id="topic-reorder-chip"
+            data-target="topic-reorder-panel" aria-expanded="false"
+            title="Drag-reorder topics across years">
+      Reorder topics <span class="reorder-topics-caret">▾</span>
+    </button>
+    <div class="filter-panel" id="topic-reorder-panel" hidden>
+      <div class="reorder-grid" id="reorder-grid"></div>
+      <div class="reorder-footer">
+        <button type="button" class="reorder-reset-btn" id="topic-reorder-reset" hidden>
+          Reset to default order
+        </button>
+      </div>
+    </div>
     <button id="export-all" class="page-tabs-action">⬇ Export all (JSON)</button>
   </nav>
 
@@ -4285,7 +4302,7 @@
 
 <script>window.META_URL = "data/meta.640f7419f3.json"; window.BODIES_URL = "data/bodies.0f3749552c.json";</script>
 
-<script src="app.js?v=ccdf26"></script>
+<script src="app.js?v=95e829"></script>
 <script>initIndexPage();</script>
 </body>
 </html>

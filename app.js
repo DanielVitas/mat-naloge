@@ -4918,29 +4918,9 @@ function initIndexSourceFilter() {
         }).join('')}
       </div>
     </div>
-    <!-- "Reorder topics" — standalone button to the right of Source.
-         Only meaningful in the Year browse mode; JS toggles its
-         visibility when the user switches tabs. Clicking the button
-         expands the reorder grid below. The empty label placeholder
-         keeps the button vertically aligned with the Source pill
-         (Source has a "Source" label above it). -->
-    <div class="filter-cell filter-reorder-cell is-hidden" id="topic-reorder-cell">
-      <label class="filter-label" aria-hidden="true">&nbsp;</label>
-      <button type="button" class="reorder-topics-btn"
-              id="topic-reorder-chip"
-              data-target="topic-reorder-panel" aria-expanded="false"
-              title="Drag-reorder topics across years">
-        Reorder topics <span class="reorder-topics-caret">▾</span>
-      </button>
-    </div>
-    <div class="filter-panel" id="topic-reorder-panel" hidden>
-      <div class="reorder-grid" id="reorder-grid"></div>
-      <div class="reorder-footer">
-        <button type="button" class="reorder-reset-btn" id="topic-reorder-reset" hidden>
-          Reset to default order
-        </button>
-      </div>
-    </div>
+    <!-- Reorder topics button + panel have been moved to the top-level
+         nav (index.html) so they're siblings of Source ▾ rather than
+         children. Nothing renders here. -->
     <div class="filter-panel filter-panel-matura" id="ix-panel-matura" hidden>
       <div class="filter-grid">
         <div class="filter-cell">
@@ -5248,34 +5228,47 @@ function groupSubtopicsUnderMains() {
           });
         }
       });
-      if (presentSubs.size === 0) return;  // no subs to filter by
-      // Build chip row inside mainDetail's content area.
-      // The content area is the detail's only sibling div (after summary).
+      if (presentSubs.size === 0) {
+        // No subs to filter, but still pull sub-topic-detail cards in below.
+      }
+      // Build chip row INLINE in the summary, so chips render on the same
+      // height as the main topic name (matching search-page UX).
       let contentArea = mainDetail.querySelector(':scope > div');
       if (!contentArea) return;
-      // Prepend chip row.
-      const chipRow = document.createElement('div');
-      chipRow.className = 'subtopic-chip-row';
-      // Sort subs by curriculum code order.
-      const subsArr = Array.from(presentSubs).sort();
-      subsArr.forEach(sub => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'filter-chip-sub subtopic-chip';
-        btn.dataset.topic = sub;
-        btn.setAttribute('aria-pressed', 'false');
-        btn.textContent = (typeof displayTopicName === 'function')
-          ? displayTopicName(sub)
-          : sub.split(' ').slice(1).join(' ');
-        btn.addEventListener('click', (e) => {
-          e.preventDefault(); e.stopPropagation();
-          const pressed = btn.getAttribute('aria-pressed') === 'true';
-          btn.setAttribute('aria-pressed', pressed ? 'false' : 'true');
-          applySubtopicFilter(mainDetail, probTopics);
+      const summary = mainDetail.querySelector(':scope > summary');
+      if (summary && presentSubs.size > 0) {
+        // Remove any prior chip row (re-running this function shouldn't dupe).
+        const old = summary.querySelector('.subtopic-chip-row');
+        if (old) old.remove();
+        const chipRow = document.createElement('span');
+        chipRow.className = 'subtopic-chip-row';
+        const subsArr = Array.from(presentSubs).sort();
+        subsArr.forEach(sub => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'filter-chip-sub subtopic-chip';
+          btn.dataset.topic = sub;
+          // Default: all chips PRESSED (all subtopics included), matching
+          // search-page convention. Toggling OFF excludes that subtopic.
+          btn.setAttribute('aria-pressed', 'true');
+          btn.textContent = (typeof displayTopicName === 'function')
+            ? displayTopicName(sub)
+            : sub.split(' ').slice(1).join(' ');
+          btn.addEventListener('click', (e) => {
+            // Prevent the click from also toggling the <details> open/close
+            // (the summary captures clicks for native details toggling).
+            e.preventDefault(); e.stopPropagation();
+            const pressed = btn.getAttribute('aria-pressed') === 'true';
+            btn.setAttribute('aria-pressed', pressed ? 'false' : 'true');
+            applySubtopicFilter(mainDetail, probTopics);
+          });
+          // Some browsers fire mousedown→summary-toggle before click on
+          // buttons inside summary; guard both.
+          btn.addEventListener('mousedown', (e) => e.stopPropagation());
+          chipRow.appendChild(btn);
         });
-        chipRow.appendChild(btn);
-      });
-      contentArea.insertBefore(chipRow, contentArea.firstChild);
+        summary.appendChild(chipRow);
+      }
       // Tag the cards inside this main with their subtopic data attributes
       // so applySubtopicFilter can show/hide quickly. Note that cards
       // currently rendered inside the main-detail might be a subset of all
@@ -5310,28 +5303,43 @@ function groupSubtopicsUnderMains() {
     // Update the main detail's count to reflect actual card count.
     container.querySelectorAll(':scope > details[data-topic-id]').forEach(d => {
       const count = d.querySelectorAll('.search-result-wrap[data-id]').length;
-      const span = d.querySelector(':scope > summary .count');
+      // Match the build-time .count span (direct child of summary), not the
+      // chip labels inside our injected .subtopic-chip-row.
+      const span = d.querySelector(':scope > summary > .count');
       if (span) span.textContent = '(' + count + ')';
     });
   });
 }
 
 function applySubtopicFilter(mainDetail, probTopics) {
+  // Chips default to pressed = subtopic included. Toggle off = exclude.
+  // Filter semantics (matching search page):
+  //   - Build the set of ALL subtopics covered by this main's chips.
+  //   - For each card: if it has at least one sub in pressedSet OR it has
+  //     no sub in the chip-set at all (i.e. main-only), show it.
+  //   - Hidden only if it has subs in chip-set AND none of those subs are
+  //     currently pressed.
   const chips = Array.from(mainDetail.querySelectorAll('.subtopic-chip'));
-  const active = chips.filter(c => c.getAttribute('aria-pressed') === 'true')
-                      .map(c => c.dataset.topic);
+  const allSubs = new Set(chips.map(c => c.dataset.topic));
+  const pressed = new Set(chips.filter(c => c.getAttribute('aria-pressed') === 'true')
+                                .map(c => c.dataset.topic));
   const cards = mainDetail.querySelectorAll('.search-result-wrap[data-id]');
   cards.forEach(card => {
     const ts = probTopics[card.dataset.id] || [];
-    let show = true;
-    if (active.length > 0) {
-      show = active.some(s => ts.includes(s));
+    const subsOnCard = ts.filter(t => allSubs.has(t));
+    let show;
+    if (subsOnCard.length === 0) {
+      // Card has no subtopic from this main — always show.
+      show = true;
+    } else {
+      // Card has at least one sub-chip-eligible topic; show if any are pressed.
+      show = subsOnCard.some(s => pressed.has(s));
     }
     card.classList.toggle('subtopic-filter-hidden', !show);
   });
   // Update count.
   const visible = mainDetail.querySelectorAll('.search-result-wrap[data-id]:not(.subtopic-filter-hidden)').length;
-  const span = mainDetail.querySelector(':scope > summary .count');
+  const span = mainDetail.querySelector(':scope > summary > .count');
   if (span) span.textContent = '(' + visible + ')';
 }
 
@@ -5577,17 +5585,16 @@ function initTopicReorderPanel() {
 // Show/hide the "Reorder topics" pill based on which browse-mode tab
 // is active. Called once on init and again whenever the tabs switch.
 function toggleTopicReorderPillVisibility() {
-  const cell = document.getElementById('topic-reorder-cell');
-  if (!cell) return;
+  const btn = document.getElementById('topic-reorder-chip');
+  if (!btn) return;
   const activeTab = document.querySelector('.browse-mode-tab.active');
   const isYearMode = activeTab && activeTab.dataset.mode === 'by-year';
-  cell.classList.toggle('is-hidden', !isYearMode);
+  btn.classList.toggle('is-hidden', !isYearMode);
   // Collapsing the panel when the pill becomes irrelevant keeps the
   // expansion from "stranded" under a different tab.
   if (!isYearMode) {
-    const arrow = document.getElementById('topic-reorder-chip');
     const panel = document.getElementById('topic-reorder-panel');
-    if (arrow) arrow.setAttribute('aria-expanded', 'false');
+    btn.setAttribute('aria-expanded', 'false');
     if (panel) panel.hidden = true;
   }
 }

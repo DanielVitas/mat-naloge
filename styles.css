@@ -312,30 +312,32 @@ a:hover { text-decoration: underline; }
    browse mode is the active one. */
 .filter-source-cell.is-hidden { display: none; }
 .filter-reorder-cell.is-hidden { display: none; }
-/* Subtopic chip row inside each main-topic <details> on the Year/Topic
-   tabs. Same chip-style as the search-page subtopic filter. */
+/* Subtopic chip row INLINE inside each main-topic <summary>, so chips
+   sit on the same height as the topic name and count. Matches the
+   search-page subtopic filter chip style. */
 .subtopic-chip-row {
-  display: flex; flex-wrap: wrap;
-  gap: 0.35rem;
-  padding: 0.5rem 1rem;
-  border-bottom: 1px solid var(--card-border);
-  background: rgba(0,0,0,0.015);
-  margin-bottom: 0.5rem;
+  display: inline-flex; flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-left: 0.6rem;
+  align-items: center;
+  vertical-align: middle;
 }
 .subtopic-chip {
-  padding: 0.2rem 0.6rem;
+  padding: 0.12rem 0.55rem;
   font: inherit; font-size: 0.78rem;
   border: 1px solid var(--card-border);
   border-radius: 999px;
   background: var(--card-bg);
   color: var(--muted);
   cursor: pointer;
+  line-height: 1.3;
 }
 .subtopic-chip[aria-pressed="true"] {
   background: var(--tag-source-bg);
   color: var(--tag-source-fg);
   border-color: var(--tag-source-fg);
 }
+.subtopic-chip:hover { border-color: var(--accent); }
 .search-result-wrap.subtopic-filter-hidden { display: none !important; }
 /* Standalone "Reorder topics" button — visually distinct from the
    Source filter pill. Sits to the right of Source in the year-tab
@@ -349,9 +351,9 @@ a:hover { text-decoration: underline; }
   color: var(--muted);
   cursor: pointer;
   display: inline-flex; align-items: center; gap: 0.4rem;
-  align-self: start;  /* hug left within the cell, matching Source pill */
   transition: border-color 120ms ease, color 120ms ease;
 }
+.reorder-topics-btn.is-hidden { display: none; }
 .reorder-topics-btn:hover,
 .reorder-topics-btn[aria-expanded="true"] {
   border-color: var(--accent);
