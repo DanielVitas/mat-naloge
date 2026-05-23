@@ -2046,6 +2046,25 @@ canvas.crop-display {
   border: 1px solid #999; padding: 0.3rem 0.6rem;
   text-align: left; vertical-align: middle;
 }
+/* Borderless tables: when the LaTeX source omitted `|` in the column
+   spec the renderer adds .tex-tabular-borderless and we drop the cell
+   borders. Mirror the rule that applies in .preview-box. */
+.search-result .result-body .tex-tabular-borderless td,
+.search-result .result-body .tex-tabular-borderless th,
+.exam-row .result-body .tex-tabular-borderless td,
+.exam-row .result-body .tex-tabular-borderless th {
+  border: none;
+}
+/* Enumerate / itemize lists inside search-result cards: when an item
+   carries an explicit a)/b)/c) label, hide the default <ol> counter
+   (the label IS the marker). Mirror the rule that applies in .preview-box. */
+.search-result .result-body .tex-list,
+.exam-row .result-body .tex-list { margin: 0.4rem 0 0.4rem 1.4rem; padding-left: 0; }
+.search-result .result-body .tex-list li:has(.tex-item-label),
+.exam-row .result-body .tex-list li:has(.tex-item-label) {
+  list-style: none;
+  margin-left: -1.4rem;
+}
 /* Centred TikZ figures + tex-center inside cards. */
 .search-result .result-body .tex-tikz,
 .search-result .result-body .tex-center { text-align: center; margin: 0.5rem 0; }
