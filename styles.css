@@ -752,10 +752,59 @@ textarea#latex-source {
 }
 
 .preview-box {
-  margin-top: 0.8rem; padding: 0.8rem; background: #f5f5f5;
-  border-radius: 6px; border: 1px dashed #ccc;
+  margin-top: 0.8rem; padding: 0.8rem; background: #ffffff;
+  border-radius: 6px; border: 1px solid var(--card-border);
   font-size: 0.95rem; min-height: 4rem;
 }
+
+/* ─── Per-problem layout: signed-out & default signed-in view ────────
+   By default we render `<preview> | <crop>` side-by-side (LaTeX is hidden).
+   Signed-in users get an "Edit LaTeX" button that toggles `body.show-latex`,
+   which restores the full preview+latex grid and stacks the crop below. */
+body:not(.show-latex) .problem-body { grid-template-columns: 1fr; }
+body:not(.show-latex) .problem-body .pane.latex-pane { display: none; }
+/* Pull the crop strip up beside the preview when LaTeX is hidden */
+body:not(.show-latex) .compact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+body:not(.show-latex) .compact-grid > .problem-body { margin-top: 0; }
+body:not(.show-latex) .compact-grid > .problem-crops { margin-top: 0; }
+@media (max-width: 800px) {
+  body:not(.show-latex) .compact-grid { grid-template-columns: 1fr; }
+}
+
+/* "Edit LaTeX" toggle button (only shown signed-in) */
+.edit-latex-btn {
+  display: none;
+  margin-left: 0.4rem;
+  padding: 0.18rem 0.55rem;
+  background: var(--card-bg); border: 1px solid var(--card-border);
+  border-radius: 6px; cursor: pointer; font-size: 0.85rem;
+}
+body.signed-in .edit-latex-btn { display: inline-block; }
+.edit-latex-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+/* "Full page" button — shown when signed-out (instead of Edit), shows the
+   page image without selection UI */
+.full-page-btn {
+  display: inline-block;
+  padding: 0.18rem 0.55rem;
+  background: var(--card-bg); border: 1px solid var(--card-border);
+  border-radius: 6px; cursor: pointer; font-size: 0.85rem;
+}
+body.signed-in .full-page-btn { display: none; }
+body:not(.signed-in) .edit-crop-btn { display: none; }
+
+/* "Full page" mode of the crop editor — hide selection box + Save button,
+   show only Cancel ("Close") plus the read-only page view. */
+.crop-editor.readonly .selection-box { display: none !important; }
+.crop-editor.readonly .save-crop-btn { display: none !important; }
+.crop-editor.readonly canvas { cursor: default; }
+.crop-editor.readonly .cancel-crop-btn::before { content: ""; }
+.crop-editor.readonly .pane-header h3::after { content: " — pregled"; font-weight: normal; opacity: 0.7; }
 .preview-box .tex-center,
 .finishing-block-body .tex-center { text-align: center; margin: 0.4rem 0; }
 /* Tables that would otherwise overflow the card get wrapped in

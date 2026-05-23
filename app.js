@@ -1269,6 +1269,11 @@ function initSyncBar() {
     const has = !!getToken();
     signedOut.hidden = has;
     signedIn.hidden  = !has;
+    // Toggle body-level class so the problem page can switch between the
+    // signed-out (no LaTeX pane, Full page button) and signed-in
+    // (Edit crop + Edit LaTeX toggle) layouts.
+    document.body.classList.toggle('signed-in', has);
+    if (!has) document.body.classList.remove('show-latex');
     if (has) {
       const login = getName();
       const dn = login ? displayNameFor(login) : '…';
@@ -2678,14 +2683,51 @@ async function initProblemPage(meta) {
     if (editBtn) editBtn.addEventListener('click', () => {
       if (!pageLoaded) return;
       pendingBbox = currentBbox.slice();
+      // Make sure selection rectangle + Save are visible (in case the user
+      // previously opened "Full page" mode which hid them).
+      editor.classList.remove('readonly');
+      if (saveBtn) saveBtn.style.display = '';
       show();
       setupEditor();
       if (saveBtn) saveBtn.disabled = false;
+    });
+    // "Full page" — show the same page-image viewer as Edit but without
+    // the bbox selection rectangle or Save button. Visitors who can't edit
+    // get a way to still see the original page the problem came from.
+    const fullPageBtn = document.querySelector('.full-page-btn[data-instance="0"]');
+    if (fullPageBtn) fullPageBtn.addEventListener('click', () => {
+      if (!pageLoaded) return;
+      pendingBbox = null;                  // no bbox edit
+      editor.classList.add('readonly');    // CSS hides selection + save
+      if (saveBtn) saveBtn.style.display = 'none';
+      show();
+      setupEditor();
+      // Hide the selection rectangle explicitly (CSS does this too, defensive)
+      if (selectionBox) selectionBox.style.display = 'none';
     });
     if (cancelBtn) cancelBtn.addEventListener('click', () => {
       pendingBbox = null;
       hide();
     });
+
+    // "Edit LaTeX" — toggle the LaTeX pane back into the layout (signed-in
+    // users only; the button is CSS-hidden when signed out).
+    const editLatexBtn = document.querySelector('.edit-latex-btn');
+    if (editLatexBtn) {
+      // Initial state: persisted across page loads
+      const showLatex = localStorage.getItem('show-latex') === '1';
+      if (showLatex) {
+        document.body.classList.add('show-latex');
+        editLatexBtn.classList.add('active');
+        editLatexBtn.setAttribute('aria-pressed', 'true');
+      }
+      editLatexBtn.addEventListener('click', () => {
+        const on = document.body.classList.toggle('show-latex');
+        editLatexBtn.classList.toggle('active', on);
+        editLatexBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        localStorage.setItem('show-latex', on ? '1' : '0');
+      });
+    }
     if (saveBtn) saveBtn.addEventListener('click', () => {
       if (!pendingBbox) return;
       currentBbox = pendingBbox.slice();
@@ -2739,6 +2781,8 @@ async function initProblemPage(meta) {
     }
     fullCanvas.addEventListener('mousedown', (e) => {
       if (e.button !== 0) return;
+      // Read-only "Full page" mode — no bbox dragging allowed
+      if (editor.classList.contains('readonly')) return;
       e.preventDefault();
       dragStart = pointerToImage(e);
       pendingBbox = [dragStart[0], dragStart[1], dragStart[0], dragStart[1]];
@@ -2756,6 +2800,7 @@ async function initProblemPage(meta) {
     window.addEventListener('mouseup', () => { dragStart = null; });
     fullCanvas.addEventListener('touchstart', (e) => {
       if (!e.touches.length) return;
+      if (editor.classList.contains('readonly')) return;
       e.preventDefault();
       dragStart = pointerToImage(e.touches[0]);
       pendingBbox = [dragStart[0], dragStart[1], dragStart[0], dragStart[1]];
