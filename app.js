@@ -5183,6 +5183,26 @@ function groupSubtopicsUnderMains() {
     const mainCode = main.split(' ')[0] || '';
     return subCode.startsWith(mainCode + '.');
   };
+  // Slug helper matching build_webpage.py's slug() — lowercase, non-alnum
+  // collapsed to dashes, leading/trailing dashes stripped. Used to map
+  // data-target="topic/4-1-logika" → "4.1 Logika".
+  const slugify = (s) => (s || '').toLowerCase()
+    .replace(/[čć]/g, 'c').replace(/š/g, 's').replace(/ž/g, 'z')
+    .replace(/đ/g, 'd').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  const SLUG_TO_TID = {};
+  TOPIC_MAIN.forEach(m => { SLUG_TO_TID[slugify(m)] = m; });
+  Object.keys(TOPIC_PARENT || {}).forEach(s => { SLUG_TO_TID[slugify(s)] = s; });
+  const tidFromDetail = (d) => {
+    if (d.dataset.topicId) return d.dataset.topicId;
+    const t = d.dataset.target || '';
+    // Strip any prefix like "topic/" or "year/N/" and take the last segment.
+    const slug = t.split('/').pop();
+    return SLUG_TO_TID[slug] || null;
+  };
+  // For chronological-last-main filtering: each problem appears only under
+  // its LAST main topic in the DOM order. Build the order PER container.
+  const cardLastMain = new Map(); // (container, cardId) → last main tid
+
   // Process each container that holds a flat mix of mains + subs.
   // For Year tab: each .year-topic-list. For Topic tab: the panel itself.
   const containers = [];
@@ -5190,47 +5210,72 @@ function groupSubtopicsUnderMains() {
   const topicPanel = document.querySelector('.browse-mode-panel[data-mode="by-topic"]');
   if (topicPanel) containers.push(topicPanel);
   containers.forEach(container => {
-    // Find all direct-child topic <details>.
+    // Find all direct-child topic <details>. Topic tab details don't carry
+    // data-topic-id, so we derive the tid from data-target via SLUG_TO_TID.
     const allTopics = Array.from(container.children).filter(c =>
-      c.tagName === 'DETAILS' && c.dataset.topicId);
+      c.tagName === 'DETAILS' && (c.dataset.topicId || c.dataset.target));
+    // Annotate each detail with its derived tid for later lookups.
+    allTopics.forEach(d => { d._tid = tidFromDetail(d); });
     // Hide sub-topic details at this level (they get folded into mains).
     allTopics.forEach(d => {
-      const tid = d.dataset.topicId;
-      if (!isMain(tid)) d.style.display = 'none';
+      const tid = d._tid;
+      if (!tid || !isMain(tid)) d.style.display = 'none';
     });
-    // For each main-topic detail, build the subtopic chip row.
+    // Chronological order = DOM order of MAIN details in this container.
+    // This already reflects any user reorder via the Year-tab reorder grid.
+    const mainsOrdered = allTopics.filter(d => d._tid && isMain(d._tid))
+                                  .map(d => d._tid);
+    const mainOrderIdx = {};
+    mainsOrdered.forEach((m, i) => { mainOrderIdx[m] = i; });
+    // For every problem with a card in this container, compute its
+    // "relevant mains" set (mains it has directly, plus mains-of-its-subs)
+    // and pick the CHRONOLOGICALLY LAST one as the canonical placement.
+    // Cards visible only under their last main; cloned/duplicated under
+    // earlier mains will be removed below.
+    const containerCardIds = new Set();
+    container.querySelectorAll('.search-result-wrap[data-id]').forEach(c =>
+      containerCardIds.add(c.dataset.id));
+    const cardCanonicalMain = {};
+    containerCardIds.forEach(id => {
+      const ts = probTopics[id] || [];
+      const relevantMains = new Set();
+      ts.forEach(t => {
+        if (isMain(t) && (t in mainOrderIdx)) relevantMains.add(t);
+        const parent = TOPIC_PARENT && TOPIC_PARENT[t];
+        if (parent && (parent in mainOrderIdx)) relevantMains.add(parent);
+      });
+      if (relevantMains.size === 0) return;
+      // Pick the main with the highest index.
+      let best = null, bestIdx = -1;
+      relevantMains.forEach(m => {
+        if (mainOrderIdx[m] > bestIdx) { bestIdx = mainOrderIdx[m]; best = m; }
+      });
+      cardCanonicalMain[id] = best;
+    });
+    // For each main-topic detail, build the subtopic chip row + populate
+    // its card grid with only cards whose CANONICAL main is this main.
     allTopics.forEach(mainDetail => {
-      const mainTid = mainDetail.dataset.topicId;
-      if (!isMain(mainTid)) return;
-      // Find candidate subtopics: from the global TOPIC_PARENT, those whose
-      // parent is this main AND which have at least one problem represented
-      // somewhere in this container (any year-topic detail, whether visible
-      // or hidden, with that topic-id).
+      const mainTid = mainDetail._tid;
+      if (!mainTid || !isMain(mainTid)) return;
+      // Find candidate subtopics: from TOPIC_PARENT, those whose parent is
+      // this main. We'll filter to those actually represented by problems
+      // canonically placed in this main.
       const candidateSubs = new Set();
       Object.keys(TOPIC_PARENT || {}).forEach(s => {
         if (isSubOf(s, mainTid)) candidateSubs.add(s);
       });
-      // Filter to subs that actually have problems with this subtopic.
-      // Walk all cards in this container (across all topic details for now)
-      // and check their topics.
-      const allCards = container.querySelectorAll('.search-result-wrap[data-id]');
-      const cardsByN = {};
-      allCards.forEach(c => { cardsByN[c.dataset.id] = c; });
-      const presentSubs = new Set();
-      const cardsInMain = new Set();
-      // Cards in this main: those whose problem.topics includes mainTid.
-      Object.keys(probTopics).forEach(n => {
-        const ts = probTopics[n] || [];
-        if (ts.includes(mainTid) && cardsByN[n]) {
-          cardsInMain.add(n);
-          ts.forEach(t => {
-            if (candidateSubs.has(t)) presentSubs.add(t);
-          });
-        }
+      // Cards canonically belonging to this main:
+      const canonicalIds = [];
+      Object.keys(cardCanonicalMain).forEach(id => {
+        if (cardCanonicalMain[id] === mainTid) canonicalIds.push(id);
       });
-      if (presentSubs.size === 0) {
-        // No subs to filter, but still pull sub-topic-detail cards in below.
-      }
+      // Build presentSubs from canonical cards' topics.
+      const presentSubs = new Set();
+      canonicalIds.forEach(id => {
+        (probTopics[id] || []).forEach(t => {
+          if (candidateSubs.has(t)) presentSubs.add(t);
+        });
+      });
       // Build chip row INLINE in the summary, so chips render on the same
       // height as the main topic name (matching search-page UX).
       let contentArea = mainDetail.querySelector(':scope > div');
@@ -5269,29 +5314,34 @@ function groupSubtopicsUnderMains() {
         });
         summary.appendChild(chipRow);
       }
-      // Tag the cards inside this main with their subtopic data attributes
-      // so applySubtopicFilter can show/hide quickly. Note that cards
-      // currently rendered inside the main-detail might be a subset of all
-      // problems with this main topic (the build script renders each card
-      // exactly once per topic-detail, so the main-detail has only its own
-      // direct-main problems). We need to include subtopic-detail cards too
-      // — clone them into the main-detail content area.
+      // Reconcile the main-detail's card grid against the canonical set:
+      //  - Remove cards whose canonical main is NOT this main (they appear
+      //    here from the build-time per-topic render but should now be
+      //    shown under their later main).
+      //  - Add cards (cloned) whose canonical main IS this main but which
+      //    only exist in this container under a different (sub/main) detail.
       const mainGrid = contentArea.querySelector('.search-results');
       if (mainGrid) {
+        // Drop cards not canonically here.
+        Array.from(mainGrid.querySelectorAll('.search-result-wrap[data-id]')).forEach(c => {
+          if (cardCanonicalMain[c.dataset.id] !== mainTid) c.remove();
+        });
         const presentIds = new Set();
         mainGrid.querySelectorAll('.search-result-wrap[data-id]').forEach(c =>
           presentIds.add(c.dataset.id));
-        // Pull cards from hidden sub-topic details into the main grid.
-        allTopics.forEach(d => {
-          const tid = d.dataset.topicId;
-          if (!isSubOf(tid, mainTid)) return;
-          d.querySelectorAll('.search-result-wrap[data-id]').forEach(c => {
-            const id = c.dataset.id;
-            if (presentIds.has(id)) return;
-            presentIds.add(id);
-            mainGrid.appendChild(c.cloneNode(true));
+        // Source nodes anywhere in this container for ids we still need.
+        const needed = new Set(canonicalIds.filter(id => !presentIds.has(id)));
+        if (needed.size > 0) {
+          // Walk every detail (including the hidden subs) for source cards.
+          allTopics.forEach(d => {
+            d.querySelectorAll('.search-result-wrap[data-id]').forEach(c => {
+              const id = c.dataset.id;
+              if (!needed.has(id) || presentIds.has(id)) return;
+              presentIds.add(id);
+              mainGrid.appendChild(c.cloneNode(true));
+            });
           });
-        });
+        }
       }
     });
     // Re-trigger any lazy hydration observers for newly-added cards.
@@ -5300,8 +5350,9 @@ function groupSubtopicsUnderMains() {
         if (body.dataset.hydrated !== '1') _indexHydrateObserver.observe(body);
       });
     }
-    // Update the main detail's count to reflect actual card count.
-    container.querySelectorAll(':scope > details[data-topic-id]').forEach(d => {
+    // Update each main detail's count to reflect actual card count.
+    allTopics.forEach(d => {
+      if (!d._tid || !isMain(d._tid)) return;
       const count = d.querySelectorAll('.search-result-wrap[data-id]').length;
       // Match the build-time .count span (direct child of summary), not the
       // chip labels inside our injected .subtopic-chip-row.
@@ -5442,7 +5493,12 @@ function initTopicReorderPanel() {
       col.innerHTML = `<div class="reorder-year-label">${label}</div>`;
       bucket.querySelectorAll(':scope > .year-topic-list > .year-topic').forEach(topic => {
         const id    = topic.dataset.topicId || '';
-        // Strip a leading "4.x.y " prefix from the display name so the
+        // Reorder only operates on MAIN topics (4.X with 2 dotted parts).
+        // Sub-topics (4.X.Y) are folded under their parent main and don't
+        // get reordered independently.
+        const code = id.split(' ')[0] || '';
+        if (code.split('.').length !== 2) return;
+        // Strip a leading "4.x " prefix from the display name so the
         // pill matches the year-tab summary label.
         const sum   = topic.querySelector(':scope > summary');
         const txt   = sum ? sum.textContent.trim() : id;

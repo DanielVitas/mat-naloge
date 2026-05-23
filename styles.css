@@ -1001,11 +1001,11 @@ body:not(.signed-in) .edit-crop-btn { display: none; }
   max-width: 100%; max-height: 360px;
   width: auto; height: auto;
 }
-/* Original-crop images tend to be bigger than the TikZ render at their
-   natural size, so clamp them tighter — the TikZ "Original" toggle on
-   problem pages should swap between two figures of comparable size. */
+/* Original-crop images: match the same height limit as the TikZ SVG so
+   toggling between TikZ render and original gives comparable visual size.
+   The .is-locked rule below still letterboxes inside the locked box. */
 .preview-box .tex-tikz img.tikz-orig-img {
-  max-height: 280px;
+  max-height: 360px;
 }
 /* Once the JS locks .tex-tikz to {width, height}, child img/svg fills it
    exactly. For the original-crop case we use object-fit:contain so the
