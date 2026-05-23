@@ -4921,8 +4921,11 @@ function initIndexSourceFilter() {
     <!-- "Reorder topics" — standalone button to the right of Source.
          Only meaningful in the Year browse mode; JS toggles its
          visibility when the user switches tabs. Clicking the button
-         expands the reorder grid below. -->
+         expands the reorder grid below. The empty label placeholder
+         keeps the button vertically aligned with the Source pill
+         (Source has a "Source" label above it). -->
     <div class="filter-cell filter-reorder-cell is-hidden" id="topic-reorder-cell">
+      <label class="filter-label" aria-hidden="true">&nbsp;</label>
       <button type="button" class="reorder-topics-btn"
               id="topic-reorder-chip"
               data-target="topic-reorder-panel" aria-expanded="false"

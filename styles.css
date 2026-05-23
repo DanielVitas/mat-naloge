@@ -349,7 +349,7 @@ a:hover { text-decoration: underline; }
   color: var(--muted);
   cursor: pointer;
   display: inline-flex; align-items: center; gap: 0.4rem;
-  align-self: end;
+  align-self: start;  /* hug left within the cell, matching Source pill */
   transition: border-color 120ms ease, color 120ms ease;
 }
 .reorder-topics-btn:hover,
