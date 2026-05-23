@@ -771,7 +771,14 @@ body:not(.show-latex) .compact-grid {
   margin-top: 1rem;
 }
 body:not(.show-latex) .compact-grid > .problem-body { margin-top: 0; }
-body:not(.show-latex) .compact-grid > .problem-crops { margin-top: 0; }
+body:not(.show-latex) .compact-grid > .problem-crops {
+  margin-top: 0;
+  /* When sitting beside .preview-box (single column in compact-grid),
+     the inner crops grid should collapse to one column so the single
+     instance-block expands to fill the column — otherwise it stays at
+     half-width because of the default 1fr 1fr layout. */
+  grid-template-columns: 1fr;
+}
 @media (max-width: 800px) {
   body:not(.show-latex) .compact-grid { grid-template-columns: 1fr; }
 }
