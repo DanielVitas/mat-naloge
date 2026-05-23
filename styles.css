@@ -311,6 +311,34 @@ a:hover { text-decoration: underline; }
    matches the same chip+arrow combo style. Hidden unless the Year
    browse mode is the active one. */
 .filter-source-cell.is-hidden { display: none; }
+.filter-reorder-cell.is-hidden { display: none; }
+/* Standalone "Reorder topics" button — visually distinct from the
+   Source filter pill. Sits to the right of Source in the year-tab
+   filter strip and toggles the reorder grid panel below. */
+.reorder-topics-btn {
+  font: inherit; font-size: 0.85rem;
+  padding: 0.32rem 0.85rem;
+  border: 1px dashed var(--card-border);
+  border-radius: 6px;
+  background: var(--card-bg);
+  color: var(--muted);
+  cursor: pointer;
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  align-self: end;
+  transition: border-color 120ms ease, color 120ms ease;
+}
+.reorder-topics-btn:hover,
+.reorder-topics-btn[aria-expanded="true"] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.reorder-topics-caret {
+  font-size: 0.75rem; line-height: 1;
+  transition: transform 140ms ease;
+}
+.reorder-topics-btn[aria-expanded="true"] .reorder-topics-caret {
+  transform: rotate(180deg);
+}
 #topic-reorder-panel .reorder-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(180px, 1fr));

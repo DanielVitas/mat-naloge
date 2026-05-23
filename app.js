@@ -4918,23 +4918,17 @@ function initIndexSourceFilter() {
         }).join('')}
       </div>
     </div>
-    <!-- "Reorder topics" pill — only meaningful for the Year browse
-         mode; the JS toggles its visibility when the user switches
-         tabs. Click the arrow to expand the reorder grid below. -->
-    <div class="filter-cell filter-source-cell is-hidden" id="topic-reorder-cell">
-      <label class="filter-label">&nbsp;</label>
-      <div class="filter-chip-group">
-        <span class="filter-source-chip-combo">
-          <button type="button" class="filter-chip filter-chip-source filter-chip-source-combo"
-                  id="topic-reorder-chip" aria-pressed="false"
-                  title="Click the arrow to drag-reorder topics across years">
-            Reorder topics
-          </button>
-          <button type="button" class="filter-source-arrow"
-                  data-target="topic-reorder-panel" aria-expanded="false"
-                  aria-label="Toggle topic reorder panel">▾</button>
-        </span>
-      </div>
+    <!-- "Reorder topics" — standalone button to the right of Source.
+         Only meaningful in the Year browse mode; JS toggles its
+         visibility when the user switches tabs. Clicking the button
+         expands the reorder grid below. -->
+    <div class="filter-cell filter-reorder-cell is-hidden" id="topic-reorder-cell">
+      <button type="button" class="reorder-topics-btn"
+              id="topic-reorder-chip"
+              data-target="topic-reorder-panel" aria-expanded="false"
+              title="Drag-reorder topics across years">
+        Reorder topics <span class="reorder-topics-caret">▾</span>
+      </button>
     </div>
     <div class="filter-panel" id="topic-reorder-panel" hidden>
       <div class="reorder-grid" id="reorder-grid"></div>
@@ -5100,9 +5094,10 @@ function initIndexSourceFilter() {
   syncSourcePanels();
   document.getElementById('ix-sources').addEventListener('click', syncSourcePanels);
 
-  // Source-chip dropdown arrows → expand/collapse the matching panel.
-  // Mutually exclusive — only one panel open at a time.
-  const allArrows = document.querySelectorAll('.filter-source-arrow');
+  // Source-chip dropdown arrows AND the standalone "Reorder topics"
+  // button → expand/collapse the matching panel. Mutually exclusive —
+  // only one panel open at a time.
+  const allArrows = document.querySelectorAll('.filter-source-arrow, .reorder-topics-btn');
   allArrows.forEach(arrow => {
     arrow.addEventListener('click', (e) => {
       e.preventDefault();
@@ -5428,7 +5423,7 @@ function toggleTopicReorderPillVisibility() {
   // Collapsing the panel when the pill becomes irrelevant keeps the
   // expansion from "stranded" under a different tab.
   if (!isYearMode) {
-    const arrow = document.querySelector('.filter-source-arrow[data-target="topic-reorder-panel"]');
+    const arrow = document.getElementById('topic-reorder-chip');
     const panel = document.getElementById('topic-reorder-panel');
     if (arrow) arrow.setAttribute('aria-expanded', 'false');
     if (panel) panel.hidden = true;
