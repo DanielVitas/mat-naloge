@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="198.715pt" height="156.164pt" viewBox="0 0 198.715 156.164" version="1.2">
+<svg data-source-hash="3369f8d9cb35" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="198.715pt" height="156.164pt" viewBox="0 0 198.715 156.164" version="1.2">
 <defs>
 <g>
 <symbol overflow="visible" id="glyph0-0">
@@ -95,5 +95,4 @@
 <path style="fill:none;stroke-width:0.3985;stroke-linecap:butt;stroke-linejoin:miter;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-dasharray:2.98883,2.98883;stroke-miterlimit:10;" d="M 96.378418 -0.00095154 L 96.378418 48.189247 " transform="matrix(0.994675,0,0,-0.994675,52.482438,103.237335)"/>
 <path style="fill:none;stroke-width:0.3985;stroke-linecap:butt;stroke-linejoin:miter;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-dasharray:2.98883,2.98883;stroke-miterlimit:10;" d="M 0.00194692 48.189247 L 96.378418 48.189247 " transform="matrix(0.994675,0,0,-0.994675,52.482438,103.237335)"/>
 </g>
-<!-- tikz-hash:3369f8d9cb35 -->
 </svg>

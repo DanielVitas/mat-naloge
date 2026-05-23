@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="234.507pt" height="197.124pt" viewBox="0 0 234.507 197.124" version="1.2">
+<svg data-source-hash="80f7ec73fc89" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="234.507pt" height="197.124pt" viewBox="0 0 234.507 197.124" version="1.2">
 <defs>
 <g>
 <symbol overflow="visible" id="glyph0-0">
@@ -224,5 +224,4 @@
 <path style="fill:none;stroke-width:0.3985;stroke-linecap:butt;stroke-linejoin:miter;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;" d="M -58.919697 34.019443 L -58.919697 0.00175257 " transform="matrix(0.995576,0,0,-0.995576,127.135585,107.42362)"/>
 <path style="fill:none;stroke-width:0.3985;stroke-linecap:butt;stroke-linejoin:miter;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;" d="M 11.340369 0.00175257 C 11.340369 6.263833 6.263219 11.337059 0.00113882 11.337059 C -6.260941 11.337059 -11.338091 6.263833 -11.338091 0.00175257 C -11.338091 -6.260327 -6.260941 -11.337477 0.00113882 -11.337477 C 1.990409 -11.337477 3.944366 -10.815637 5.670754 -9.819041 " transform="matrix(0.995576,0,0,-0.995576,127.135585,107.42362)"/>
 </g>
-<!-- tikz-hash:80f7ec73fc89 -->
 </svg>

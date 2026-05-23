@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="168.808pt" height="202.226pt" viewBox="0 0 168.808 202.226" version="1.2">
+<svg data-source-hash="79633ab72e87" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="168.808pt" height="202.226pt" viewBox="0 0 168.808 202.226" version="1.2">
 <defs>
 <g>
 <symbol overflow="visible" id="glyph0-0">
@@ -63,5 +63,4 @@
   <use xlink:href="#glyph1-2" x="65.07498" y="97.966045"/>
 </g>
 </g>
-<!-- tikz-hash:79633ab72e87 -->
 </svg>

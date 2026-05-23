@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="208.396pt" height="148.368pt" viewBox="0 0 208.396 148.368" version="1.2">
+<svg data-source-hash="bc06a8c39d67" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="208.396pt" height="148.368pt" viewBox="0 0 208.396 148.368" version="1.2">
 <defs>
 <g>
 <symbol overflow="visible" id="glyph0-0">
@@ -117,5 +117,4 @@
 <path style=" stroke:none;fill-rule:nonzero;fill:rgb(0%,0%,0%);fill-opacity:1;" d="M 39.367188 98.410156 C 39.367188 97.753906 38.835938 97.21875 38.179688 97.21875 C 37.519531 97.21875 36.988281 97.753906 36.988281 98.410156 C 36.988281 99.066406 37.519531 99.601562 38.179688 99.601562 C 38.835938 99.601562 39.367188 99.066406 39.367188 98.410156 Z M 39.367188 98.410156 "/>
 <path style=" stroke:none;fill-rule:nonzero;fill:rgb(0%,0%,0%);fill-opacity:1;" d="M 61.949219 98.410156 C 61.949219 97.753906 61.417969 97.21875 60.761719 97.21875 C 60.101562 97.21875 59.570312 97.753906 59.570312 98.410156 C 59.570312 99.066406 60.101562 99.601562 60.761719 99.601562 C 61.417969 99.601562 61.949219 99.066406 61.949219 98.410156 Z M 61.949219 98.410156 "/>
 </g>
-<!-- tikz-hash:bc06a8c39d67 -->
 </svg>

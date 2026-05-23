@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="206.272pt" height="85.668pt" viewBox="0 0 206.272 85.668" version="1.2">
+<svg data-source-hash="78bcafd6cb27" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="206.272pt" height="85.668pt" viewBox="0 0 206.272 85.668" version="1.2">
 <defs>
 <g>
 <symbol overflow="visible" id="glyph0-0">
@@ -174,5 +174,4 @@
 </g>
 <path style="fill:none;stroke-width:0.79701;stroke-linecap:butt;stroke-linejoin:miter;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;" d="M -0.00130843 9.921286 L 148.819302 39.684624 " transform="matrix(0.99614,0,0,-0.99614,21.34896,69.625173)"/>
 </g>
-<!-- tikz-hash:78bcafd6cb27 -->
 </svg>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="127.833pt" height="112.95pt" viewBox="0 0 127.833 112.95" version="1.2">
+<svg data-source-hash="21d1310eac9a" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="127.833pt" height="112.95pt" viewBox="0 0 127.833 112.95" version="1.2">
 <defs>
 <clipPath id="clip1">
   <path d="M 0 0.046875 L 109 0.046875 L 109 112.851562 L 0 112.851562 Z M 0 0.046875 "/>
@@ -48,5 +48,4 @@
 </g>
 <path style="fill:none;stroke-width:0.3985;stroke-linecap:butt;stroke-linejoin:miter;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-dasharray:2.98883,2.98883;stroke-miterlimit:10;" d="M -33.736 17.85905 L -33.736 51.59447 L 33.734841 51.59447 " transform="matrix(0.998695,0,0,-0.998695,63.83261,78.745905)"/>
 </g>
-<!-- tikz-hash:21d1310eac9a -->
 </svg>
