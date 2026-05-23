@@ -5173,6 +5173,165 @@ function initCollectionPersistence() {
 // year buckets the user has touched appear in the map; untouched ones
 // fall back to the build-time order. Saved to localStorage so the
 // arrangement persists across reloads.
+// ── Main-topic grouping for Year/Topic tabs ─────────────────────────────
+// Walks the rendered DOM and:
+//  1. Hides sub-topic <details> at the top level (kids of .year-topic-list
+//     and direct kids of .browse-mode-panel[data-mode="by-topic"]).
+//  2. Inside each main-topic <details>, renders a chip row of subtopic
+//     buttons (extracted from TOPIC_PARENT). Clicking chips toggles
+//     visibility of cards within the main by their subtopic membership.
+//
+// Card subtopic membership is read from window.PROBLEMS (the meta list).
+// A card belongs to subtopic S if the problem's topics array includes S.
+function groupSubtopicsUnderMains() {
+  if (!Array.isArray(window.PROBLEMS)) return;
+  // Index problem→topics for fast lookup.
+  const probTopics = {};
+  window.PROBLEMS.forEach(p => { probTopics[String(p.n)] = p.topics || []; });
+  // Helper: is a topic-id a main (4.X, 2 dotted parts) vs sub (4.X.Y).
+  const isMain = (tid) => {
+    if (!tid) return false;
+    const code = tid.split(' ')[0] || '';
+    return code.split('.').length === 2;
+  };
+  const isSubOf = (sub, main) => {
+    if (!sub || !main) return false;
+    const subCode = sub.split(' ')[0] || '';
+    const mainCode = main.split(' ')[0] || '';
+    return subCode.startsWith(mainCode + '.');
+  };
+  // Process each container that holds a flat mix of mains + subs.
+  // For Year tab: each .year-topic-list. For Topic tab: the panel itself.
+  const containers = [];
+  document.querySelectorAll('.year-topic-list').forEach(c => containers.push(c));
+  const topicPanel = document.querySelector('.browse-mode-panel[data-mode="by-topic"]');
+  if (topicPanel) containers.push(topicPanel);
+  containers.forEach(container => {
+    // Find all direct-child topic <details>.
+    const allTopics = Array.from(container.children).filter(c =>
+      c.tagName === 'DETAILS' && c.dataset.topicId);
+    // Hide sub-topic details at this level (they get folded into mains).
+    allTopics.forEach(d => {
+      const tid = d.dataset.topicId;
+      if (!isMain(tid)) d.style.display = 'none';
+    });
+    // For each main-topic detail, build the subtopic chip row.
+    allTopics.forEach(mainDetail => {
+      const mainTid = mainDetail.dataset.topicId;
+      if (!isMain(mainTid)) return;
+      // Find candidate subtopics: from the global TOPIC_PARENT, those whose
+      // parent is this main AND which have at least one problem represented
+      // somewhere in this container (any year-topic detail, whether visible
+      // or hidden, with that topic-id).
+      const candidateSubs = new Set();
+      Object.keys(TOPIC_PARENT || {}).forEach(s => {
+        if (isSubOf(s, mainTid)) candidateSubs.add(s);
+      });
+      // Filter to subs that actually have problems with this subtopic.
+      // Walk all cards in this container (across all topic details for now)
+      // and check their topics.
+      const allCards = container.querySelectorAll('.search-result-wrap[data-id]');
+      const cardsByN = {};
+      allCards.forEach(c => { cardsByN[c.dataset.id] = c; });
+      const presentSubs = new Set();
+      const cardsInMain = new Set();
+      // Cards in this main: those whose problem.topics includes mainTid.
+      Object.keys(probTopics).forEach(n => {
+        const ts = probTopics[n] || [];
+        if (ts.includes(mainTid) && cardsByN[n]) {
+          cardsInMain.add(n);
+          ts.forEach(t => {
+            if (candidateSubs.has(t)) presentSubs.add(t);
+          });
+        }
+      });
+      if (presentSubs.size === 0) return;  // no subs to filter by
+      // Build chip row inside mainDetail's content area.
+      // The content area is the detail's only sibling div (after summary).
+      let contentArea = mainDetail.querySelector(':scope > div');
+      if (!contentArea) return;
+      // Prepend chip row.
+      const chipRow = document.createElement('div');
+      chipRow.className = 'subtopic-chip-row';
+      // Sort subs by curriculum code order.
+      const subsArr = Array.from(presentSubs).sort();
+      subsArr.forEach(sub => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'filter-chip-sub subtopic-chip';
+        btn.dataset.topic = sub;
+        btn.setAttribute('aria-pressed', 'false');
+        btn.textContent = (typeof displayTopicName === 'function')
+          ? displayTopicName(sub)
+          : sub.split(' ').slice(1).join(' ');
+        btn.addEventListener('click', (e) => {
+          e.preventDefault(); e.stopPropagation();
+          const pressed = btn.getAttribute('aria-pressed') === 'true';
+          btn.setAttribute('aria-pressed', pressed ? 'false' : 'true');
+          applySubtopicFilter(mainDetail, probTopics);
+        });
+        chipRow.appendChild(btn);
+      });
+      contentArea.insertBefore(chipRow, contentArea.firstChild);
+      // Tag the cards inside this main with their subtopic data attributes
+      // so applySubtopicFilter can show/hide quickly. Note that cards
+      // currently rendered inside the main-detail might be a subset of all
+      // problems with this main topic (the build script renders each card
+      // exactly once per topic-detail, so the main-detail has only its own
+      // direct-main problems). We need to include subtopic-detail cards too
+      // — clone them into the main-detail content area.
+      const mainGrid = contentArea.querySelector('.search-results');
+      if (mainGrid) {
+        const presentIds = new Set();
+        mainGrid.querySelectorAll('.search-result-wrap[data-id]').forEach(c =>
+          presentIds.add(c.dataset.id));
+        // Pull cards from hidden sub-topic details into the main grid.
+        allTopics.forEach(d => {
+          const tid = d.dataset.topicId;
+          if (!isSubOf(tid, mainTid)) return;
+          d.querySelectorAll('.search-result-wrap[data-id]').forEach(c => {
+            const id = c.dataset.id;
+            if (presentIds.has(id)) return;
+            presentIds.add(id);
+            mainGrid.appendChild(c.cloneNode(true));
+          });
+        });
+      }
+    });
+    // Re-trigger any lazy hydration observers for newly-added cards.
+    if (typeof _indexHydrateObserver !== 'undefined' && _indexHydrateObserver) {
+      container.querySelectorAll('.search-result-wrap[data-id] .result-body').forEach(body => {
+        if (body.dataset.hydrated !== '1') _indexHydrateObserver.observe(body);
+      });
+    }
+    // Update the main detail's count to reflect actual card count.
+    container.querySelectorAll(':scope > details[data-topic-id]').forEach(d => {
+      const count = d.querySelectorAll('.search-result-wrap[data-id]').length;
+      const span = d.querySelector(':scope > summary .count');
+      if (span) span.textContent = '(' + count + ')';
+    });
+  });
+}
+
+function applySubtopicFilter(mainDetail, probTopics) {
+  const chips = Array.from(mainDetail.querySelectorAll('.subtopic-chip'));
+  const active = chips.filter(c => c.getAttribute('aria-pressed') === 'true')
+                      .map(c => c.dataset.topic);
+  const cards = mainDetail.querySelectorAll('.search-result-wrap[data-id]');
+  cards.forEach(card => {
+    const ts = probTopics[card.dataset.id] || [];
+    let show = true;
+    if (active.length > 0) {
+      show = active.some(s => ts.includes(s));
+    }
+    card.classList.toggle('subtopic-filter-hidden', !show);
+  });
+  // Update count.
+  const visible = mainDetail.querySelectorAll('.search-result-wrap[data-id]:not(.subtopic-filter-hidden)').length;
+  const span = mainDetail.querySelector(':scope > summary .count');
+  if (span) span.textContent = '(' + visible + ')';
+}
+
 const YEAR_ORDER_KEY = 'year-topic-order-v1';
 function readYearOrder() {
   try {
@@ -5461,6 +5620,10 @@ async function initIndexPage() {
   // Must run after initIndexSourceFilter (which injects the pill).
   initTopicReorderPanel();
   toggleTopicReorderPillVisibility();
+  // Restructure Year/Topic tabs to show only main topics at the top level.
+  // Each main-topic <details> gets a subtopic-chip filter inside that
+  // toggles visibility of cards by their subtopic membership.
+  groupSubtopicsUnderMains();
   document.querySelectorAll('.browse-mode-tab').forEach(t => {
     t.addEventListener('click', () => {
       // The handler in bindBrowseModeTabs flips .active synchronously,

@@ -312,6 +312,31 @@ a:hover { text-decoration: underline; }
    browse mode is the active one. */
 .filter-source-cell.is-hidden { display: none; }
 .filter-reorder-cell.is-hidden { display: none; }
+/* Subtopic chip row inside each main-topic <details> on the Year/Topic
+   tabs. Same chip-style as the search-page subtopic filter. */
+.subtopic-chip-row {
+  display: flex; flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--card-border);
+  background: rgba(0,0,0,0.015);
+  margin-bottom: 0.5rem;
+}
+.subtopic-chip {
+  padding: 0.2rem 0.6rem;
+  font: inherit; font-size: 0.78rem;
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  background: var(--card-bg);
+  color: var(--muted);
+  cursor: pointer;
+}
+.subtopic-chip[aria-pressed="true"] {
+  background: var(--tag-source-bg);
+  color: var(--tag-source-fg);
+  border-color: var(--tag-source-fg);
+}
+.search-result-wrap.subtopic-filter-hidden { display: none !important; }
 /* Standalone "Reorder topics" button — visually distinct from the
    Source filter pill. Sits to the right of Source in the year-tab
    filter strip and toggles the reorder grid panel below. */
