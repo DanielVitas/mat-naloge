@@ -161,6 +161,36 @@ window.addEventListener('popstate', () => {
 
 window.spaNavigate = spaNavigate;
 
+// One-time delegated click handler for index-card hot zones. Each card on
+// the Problems / Search pages has a sibling <div class="search-result-hot-zone"
+// data-href="..."> stacked above the actual content so the whole card area
+// navigates on click. Per-card listeners get blown away when
+// groupSubtopicsUnderMains() clones cards into their canonical main grid
+// (cloneNode does NOT copy addEventListener-registered listeners), and were
+// also fragile across SPA re-renders. Delegating once at document level is
+// indestructible: bind on script load, survive every container swap.
+document.addEventListener('click', (e) => {
+  if (e.defaultPrevented) return;
+  if (e.button !== 0) return;
+  // Modifier-click → let the browser do its thing (open in tab, etc.) by
+  // synthesising a real <a> behaviour: we can't, but we can at least not
+  // hijack. Without an actual <a>, modifier-clicks just won't navigate —
+  // that's an acceptable trade since hot-zones aren't links.
+  const hot = e.target.closest('.search-result-hot-zone');
+  if (!hot) return;
+  const href = hot.dataset.href || hot.getAttribute('data-href');
+  if (!href) return;
+  // Don't fire if the click went through to an interactive child
+  // (e.g. the +/- Add button, which lives in a sibling layer but
+  // occasionally bubbles up through pointer events).
+  if (e.target.closest('button, a, input, select, textarea')) return;
+  if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  e.preventDefault();
+  // Hot zones always go to per-problem pages, which are full-reload
+  // (see _isProblemPagePath rationale above the SPA click intercept).
+  window.location.href = new URL(href, window.location.href).href;
+}, true);
+
 
 // SPA Phase 2: split data into meta + lazy bodies. Pages emit
 //   window.META_URL   = "meta.<hash>.json"    — slim problem index
@@ -2110,9 +2140,11 @@ function hydrateIndexCards() {
   document.querySelectorAll('.search-result-wrap[data-id] .result-body').forEach(body => {
     _indexHydrateObserver.observe(body);
   });
-  // Per-card hover + click listeners. These are idempotent — we tag
-  // each wrap with data-card-wired so re-running hydrateIndexCards
-  // after an SPA navigation doesn't double-bind.
+  // Per-card hover listeners. Idempotent via data-card-wired so re-running
+  // hydrateIndexCards after an SPA navigation doesn't double-bind. (Clicks
+  // are handled by the document-level delegated listener installed near
+  // the top of this file — see "delegated click handler for index-card
+  // hot zones" — which survives cloneNode and container swaps.)
   document.querySelectorAll('.search-result-wrap[data-id]').forEach(wrap => {
     if (wrap.dataset.cardWired === '1') return;
     const hot = wrap.querySelector('.search-result-hot-zone');
@@ -2132,8 +2164,36 @@ function hydrateIndexCards() {
     };
     hot.addEventListener('mouseenter', enter);
     hot.addEventListener('mouseleave', leave);
-    hot.addEventListener('click', () => {
-      if (hot.dataset.href) window.location.href = hot.dataset.href;
+  });
+  // Defensive: kick the IntersectionObserver synchronously for cards that
+  // are already in the viewport at hydrate time. After an SPA container
+  // swap the observer is set up AFTER layout, and some browsers don't
+  // fire entries for already-intersecting targets until the next
+  // scroll/resize tick — which leaves the visible cards with empty
+  // bodies until the user moves the scrollbar. We only hydrate cards
+  // strictly inside the viewport here (no rootMargin), so this is at
+  // most ~5-10 cards on a typical screen — cheap enough not to lag.
+  requestAnimationFrame(() => {
+    const vh = window.innerHeight || document.documentElement.clientHeight;
+    const toRender = [];
+    document.querySelectorAll('.search-result-wrap[data-id] .result-body').forEach(body => {
+      if (body.dataset.hydrated === '1') return;
+      const r = body.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > vh) return;
+      body.dataset.hydrated = '1';
+      if (_indexHydrateObserver) _indexHydrateObserver.unobserve(body);
+      toRender.push(body);
+    });
+    if (toRender.length === 0) return;
+    bootstrapBodies().then(() => {
+      const ready = [];
+      for (const body of toRender) {
+        const ok = _hydrateOneIndexCard(body);
+        if (ok) ready.push(ok);
+      }
+      if (ready.length && window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise(ready).catch(() => {});
+      }
     });
   });
 }
