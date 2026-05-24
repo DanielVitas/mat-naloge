@@ -2110,77 +2110,31 @@ function hydrateIndexCards() {
   document.querySelectorAll('.search-result-wrap[data-id] .result-body').forEach(body => {
     _indexHydrateObserver.observe(body);
   });
-  // After SPA navigation we sometimes hit the case where cards exist in the
-  // DOM but the IntersectionObserver hasn't flushed yet. Force a synchronous
-  // initial hydrate pass for cards already in viewport so the user sees
-  // content immediately instead of a blank grid.
-  requestAnimationFrame(() => {
-    const cards = document.querySelectorAll(
-      '.search-result-wrap[data-id] .result-body:not([data-hydrated="1"])');
-    const visible = [];
-    const vh = (window.innerHeight || 800) + 600;
-    cards.forEach(body => {
-      try {
-        const r = body.getBoundingClientRect();
-        if (r.top < vh && r.bottom > -600) visible.push(body);
-      } catch (_e) {}
+  // Per-card hover + click listeners. These are idempotent — we tag
+  // each wrap with data-card-wired so re-running hydrateIndexCards
+  // after an SPA navigation doesn't double-bind.
+  document.querySelectorAll('.search-result-wrap[data-id]').forEach(wrap => {
+    if (wrap.dataset.cardWired === '1') return;
+    const hot = wrap.querySelector('.search-result-hot-zone');
+    if (!hot) return;
+    wrap.dataset.cardWired = '1';
+    const enter = () => {
+      wrap.classList.add('is-hovered');
+      adjustHoverOverflowGuard(wrap, true);
+    };
+    const leave = () => {
+      setTimeout(() => {
+        if (!hot.matches(':hover')) {
+          wrap.classList.remove('is-hovered');
+          adjustHoverOverflowGuard(wrap, false);
+        }
+      }, 0);
+    };
+    hot.addEventListener('mouseenter', enter);
+    hot.addEventListener('mouseleave', leave);
+    hot.addEventListener('click', () => {
+      if (hot.dataset.href) window.location.href = hot.dataset.href;
     });
-    if (visible.length) {
-      bootstrapBodies().then(() => {
-        for (const body of visible) {
-          if (body.dataset.hydrated === '1') continue;
-          body.dataset.hydrated = '1';
-          if (_indexHydrateObserver) _indexHydrateObserver.unobserve(body);
-          _hydrateOneIndexCard(body);
-        }
-        if (window.MathJax && window.MathJax.typesetPromise) {
-          window.MathJax.typesetPromise(visible).catch(() => {});
-        }
-      });
-    }
-  });
-  // Hover + click are wired via DELEGATION on the document body once
-  // (see _wireIndexCardDelegation below), so they survive SPA swaps.
-  _wireIndexCardDelegation();
-}
-
-// One-time delegated handlers for the .search-result cards. Using
-// delegation means we don't have to re-attach per-card listeners after
-// every SPA navigation — clicks/hovers anywhere in the document are
-// routed to the relevant card.
-let _indexCardDelegationWired = false;
-function _wireIndexCardDelegation() {
-  if (_indexCardDelegationWired) return;
-  _indexCardDelegationWired = true;
-  document.addEventListener('mouseenter', (e) => {
-    const hot = e.target && e.target.closest
-      ? e.target.closest('.search-result-hot-zone') : null;
-    if (!hot) return;
-    const wrap = hot.closest('.search-result-wrap');
-    if (!wrap) return;
-    wrap.classList.add('is-hovered');
-    adjustHoverOverflowGuard(wrap, true);
-  }, true);
-  document.addEventListener('mouseleave', (e) => {
-    const hot = e.target && e.target.closest
-      ? e.target.closest('.search-result-hot-zone') : null;
-    if (!hot) return;
-    const wrap = hot.closest('.search-result-wrap');
-    if (!wrap) return;
-    setTimeout(() => {
-      if (!hot.matches(':hover')) {
-        wrap.classList.remove('is-hovered');
-        adjustHoverOverflowGuard(wrap, false);
-      }
-    }, 0);
-  }, true);
-  document.addEventListener('click', (e) => {
-    const hot = e.target && e.target.closest
-      ? e.target.closest('.search-result-hot-zone') : null;
-    if (!hot || !hot.dataset.href) return;
-    e.preventDefault();
-    // Problem pages are not SPA-swappable; do a full reload.
-    window.location.href = hot.dataset.href;
   });
 }
 
