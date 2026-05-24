@@ -797,10 +797,11 @@ function setShowUnapprovedFlag(v) {
   if (v) localStorage.setItem(SHOW_UNAPPROVED_KEY, '1');
   else   localStorage.removeItem(SHOW_UNAPPROVED_KEY);
 }
-// Effective check used everywhere a card is filtered. Signed-in users skip
-// the filter entirely; signed-out users honor the toggle.
+// Effective check used everywhere a card is filtered. Signed-in users
+// (either with token OR export-only name) skip the filter entirely;
+// signed-out users honor the toggle.
 function shouldShowProblem(id) {
-  if (getToken()) return true;
+  if (typeof isSignedIn === 'function' ? isSignedIn() : !!getToken()) return true;
   if (showUnapprovedFlag()) return true;
   return isApproved(id);
 }
@@ -1342,8 +1343,8 @@ function initSyncBar() {
       exportBtn.hidden = !exportOnly;
       exportBtn.disabled = n === 0;
       exportBtn.textContent = n === 0
-        ? '⬇ Export (JSON)'
-        : `⬇ Export (JSON) (${n} edit${n === 1 ? '' : 's'})`;
+        ? '⬇ Export'
+        : `⬇ Export (${n} edit${n === 1 ? '' : 's'})`;
     }
     pushBtn.hidden = exportOnly;
     if (discardBtn) {
@@ -1379,22 +1380,34 @@ function initSyncBar() {
     signinDropdown.hidden = true;
     tokenInput.value = '';
   });
-  // Export-only checkbox: shows a name field, hides the token field.
-  const exportOnlyChk = bar.querySelector('#gh-export-only');
+  // Name/Key tabs in the sign-in dropdown. The active tab determines
+  // which sign-in mode (export-only by name vs GitHub PAT) the form uses.
   const nameInput     = bar.querySelector('#gh-name-input');
-  if (exportOnlyChk) {
-    exportOnlyChk.addEventListener('change', () => {
-      const on = exportOnlyChk.checked;
-      tokenInput.hidden = on;
-      if (nameInput) {
-        nameInput.hidden = !on;
-        if (on) setTimeout(() => nameInput.focus(), 0);
-      }
-    });
+  const signinTabs    = bar.querySelectorAll('.gh-signin-tab[data-signin-tab]');
+  const signinPanels  = bar.querySelectorAll('.gh-signin-tab-panel[data-signin-panel]');
+  function activeSigninTab() {
+    const t = bar.querySelector('.gh-signin-tab.active[data-signin-tab]');
+    return t ? t.dataset.signinTab : 'name';
   }
+  signinTabs.forEach(t => {
+    t.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const tab = t.dataset.signinTab;
+      signinTabs.forEach(b => {
+        const on = b.dataset.signinTab === tab;
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      signinPanels.forEach(p => {
+        p.hidden = p.dataset.signinPanel !== tab;
+      });
+      const focusEl = tab === 'name' ? nameInput : tokenInput;
+      if (focusEl) setTimeout(() => focusEl.focus(), 0);
+    });
+  });
   setBtn.addEventListener('click', async (e) => {
     e.stopPropagation();
-    if (exportOnlyChk && exportOnlyChk.checked) {
+    if (activeSigninTab() === 'name') {
       // Export-only sign-in: just save the name.
       const nm = (nameInput && nameInput.value || '').trim();
       if (!nm) { alert('Enter your name first.'); return; }
@@ -1407,6 +1420,7 @@ function initSyncBar() {
       refresh();
       return;
     }
+    // Key tab → GitHub token flow.
     const v = tokenInput.value.trim();
     if (!v) { alert('Paste your token first.'); return; }
     setBtn.disabled = true;
@@ -2096,26 +2110,77 @@ function hydrateIndexCards() {
   document.querySelectorAll('.search-result-wrap[data-id] .result-body').forEach(body => {
     _indexHydrateObserver.observe(body);
   });
-  document.querySelectorAll('.search-result-wrap[data-id]').forEach(wrap => {
-    const hot = wrap.querySelector('.search-result-hot-zone');
-    if (!hot) return;
-    const enter = () => {
-      wrap.classList.add('is-hovered');
-      adjustHoverOverflowGuard(wrap, true);
-    };
-    const leave = () => {
-      setTimeout(() => {
-        if (!hot.matches(':hover')) {
-          wrap.classList.remove('is-hovered');
-          adjustHoverOverflowGuard(wrap, false);
-        }
-      }, 0);
-    };
-    hot.addEventListener('mouseenter', enter);
-    hot.addEventListener('mouseleave', leave);
-    hot.addEventListener('click', () => {
-      if (hot.dataset.href) window.location.href = hot.dataset.href;
+  // After SPA navigation we sometimes hit the case where cards exist in the
+  // DOM but the IntersectionObserver hasn't flushed yet. Force a synchronous
+  // initial hydrate pass for cards already in viewport so the user sees
+  // content immediately instead of a blank grid.
+  requestAnimationFrame(() => {
+    const cards = document.querySelectorAll(
+      '.search-result-wrap[data-id] .result-body:not([data-hydrated="1"])');
+    const visible = [];
+    const vh = (window.innerHeight || 800) + 600;
+    cards.forEach(body => {
+      try {
+        const r = body.getBoundingClientRect();
+        if (r.top < vh && r.bottom > -600) visible.push(body);
+      } catch (_e) {}
     });
+    if (visible.length) {
+      bootstrapBodies().then(() => {
+        for (const body of visible) {
+          if (body.dataset.hydrated === '1') continue;
+          body.dataset.hydrated = '1';
+          if (_indexHydrateObserver) _indexHydrateObserver.unobserve(body);
+          _hydrateOneIndexCard(body);
+        }
+        if (window.MathJax && window.MathJax.typesetPromise) {
+          window.MathJax.typesetPromise(visible).catch(() => {});
+        }
+      });
+    }
+  });
+  // Hover + click are wired via DELEGATION on the document body once
+  // (see _wireIndexCardDelegation below), so they survive SPA swaps.
+  _wireIndexCardDelegation();
+}
+
+// One-time delegated handlers for the .search-result cards. Using
+// delegation means we don't have to re-attach per-card listeners after
+// every SPA navigation — clicks/hovers anywhere in the document are
+// routed to the relevant card.
+let _indexCardDelegationWired = false;
+function _wireIndexCardDelegation() {
+  if (_indexCardDelegationWired) return;
+  _indexCardDelegationWired = true;
+  document.addEventListener('mouseenter', (e) => {
+    const hot = e.target && e.target.closest
+      ? e.target.closest('.search-result-hot-zone') : null;
+    if (!hot) return;
+    const wrap = hot.closest('.search-result-wrap');
+    if (!wrap) return;
+    wrap.classList.add('is-hovered');
+    adjustHoverOverflowGuard(wrap, true);
+  }, true);
+  document.addEventListener('mouseleave', (e) => {
+    const hot = e.target && e.target.closest
+      ? e.target.closest('.search-result-hot-zone') : null;
+    if (!hot) return;
+    const wrap = hot.closest('.search-result-wrap');
+    if (!wrap) return;
+    setTimeout(() => {
+      if (!hot.matches(':hover')) {
+        wrap.classList.remove('is-hovered');
+        adjustHoverOverflowGuard(wrap, false);
+      }
+    }, 0);
+  }, true);
+  document.addEventListener('click', (e) => {
+    const hot = e.target && e.target.closest
+      ? e.target.closest('.search-result-hot-zone') : null;
+    if (!hot || !hot.dataset.href) return;
+    e.preventDefault();
+    // Problem pages are not SPA-swappable; do a full reload.
+    window.location.href = hot.dataset.href;
   });
 }
 

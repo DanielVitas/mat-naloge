@@ -1551,13 +1551,50 @@ canvas.crop-display {
 }
 .gh-sync .gh-dropdown {
   position: absolute; top: calc(100% + 6px); right: 0;
-  min-width: 240px;
+  min-width: 280px;
   background: white;
   border: 1px solid var(--card-border);
   border-radius: 8px;
   box-shadow: 0 6px 18px rgba(0,0,0,0.10);
   padding: 0.6rem;
   z-index: 100;
+}
+/* Sign-in dropdown is anchored directly under the Sign in button, not
+   spread across the bar. The button itself acts as the positioning
+   ancestor via a wrapper. */
+.gh-signed-out { position: relative; }
+.gh-signed-out .gh-signin-dropdown {
+  right: 0;
+  top: calc(100% + 6px);
+}
+/* Name/Key tabs inside the sign-in dropdown. */
+.gh-signin-tabs {
+  display: flex; gap: 0;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid var(--card-border);
+}
+.gh-signin-tab {
+  flex: 1;
+  font: inherit; font-size: 0.85rem;
+  padding: 0.4rem 0.6rem;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.gh-signin-tab:hover { color: var(--fg); }
+.gh-signin-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+.gh-signin-tab-panel { margin-bottom: 0.5rem; }
+.gh-signin-tab-panel[hidden] { display: none; }
+.gh-signin-tab-panel input[type="text"],
+.gh-signin-tab-panel input[type="password"] {
+  width: 100%;
+  box-sizing: border-box;
 }
 .gh-sync .gh-dropdown[hidden] { display: none; }
 /* On narrow viewports the .gh-sync button can sit near the left side
