@@ -118,23 +118,8 @@ async function spaNavigate(url, push = true) {
 // the page visually empty until a manual reload. Full reload is
 // ~12 KB shell + cached data bundle, so the perceived delay is
 // negligible and the page lands deterministically every time.
-//
-// The Problems page (index.html / "/") gets the same treatment: its
-// initIndexPage() bootstrap is heavy (hydration observer, source
-// filter, topic re-grouping, subtopic chips) and the order in which
-// those run vs. async fetches doesn't survive an IIFE re-execution
-// inside a swapped container — cards land as bare skeletons that
-// never get their bodies hydrated. Full-reload trades ~50ms for
-// guaranteed-correct first paint.
 function _isProblemPagePath(pathname) {
   return /\/problems\/\d+\.html?$/.test(pathname);
-}
-function _isIndexPagePath(pathname) {
-  // "/", "/index.html", or any subdir variant ending in /index.html.
-  return pathname === '/' || /\/index\.html?$/.test(pathname);
-}
-function _needsFullReload(pathname) {
-  return _isProblemPagePath(pathname) || _isIndexPagePath(pathname);
 }
 
 // Intercept clicks on internal links. Skip modifier-clicks (which open
@@ -160,10 +145,10 @@ document.addEventListener('click', (e) => {
       target.search === window.location.search && target.hash) {
     return;
   }
-  // **Problem pages + Problems index**: always full-reload (never SPA-swap).
-  // See _needsFullReload for rationale.
-  if (_needsFullReload(target.pathname) ||
-      _needsFullReload(window.location.pathname)) {
+  // **Problem pages**: always full-reload (never SPA-swap). See
+  // _isProblemPagePath for the rationale.
+  if (_isProblemPagePath(target.pathname) ||
+      _isProblemPagePath(window.location.pathname)) {
     return;  // let the browser navigate normally
   }
   e.preventDefault();
@@ -2209,6 +2194,40 @@ function hydrateIndexCards() {
       if (ready.length && window.MathJax && window.MathJax.typesetPromise) {
         window.MathJax.typesetPromise(ready).catch(() => {});
       }
+    });
+  });
+  // Defensive #2: hydrate-on-details-open. Most cards on the Problems
+  // page live inside collapsed <details> elements (each topic/section).
+  // While collapsed they have zero height → the IntersectionObserver
+  // doesn't fire for them. When the user expands a section we eagerly
+  // hydrate every unhydrated card inside. This guarantees a section's
+  // cards are populated by the time the open animation completes,
+  // regardless of whether the observer also fires. Idempotent via
+  // body.dataset.hydrated flag. Bound once per <details> via the
+  // dataset.toggleHydrateBound guard.
+  document.querySelectorAll('details').forEach(d => {
+    if (d.dataset.toggleHydrateBound === '1') return;
+    d.dataset.toggleHydrateBound = '1';
+    d.addEventListener('toggle', () => {
+      if (!d.open) return;
+      const unhydrated = [];
+      d.querySelectorAll('.search-result-wrap[data-id] .result-body').forEach(body => {
+        if (body.dataset.hydrated === '1') return;
+        body.dataset.hydrated = '1';
+        if (_indexHydrateObserver) _indexHydrateObserver.unobserve(body);
+        unhydrated.push(body);
+      });
+      if (unhydrated.length === 0) return;
+      bootstrapBodies().then(() => {
+        const ready = [];
+        for (const body of unhydrated) {
+          const ok = _hydrateOneIndexCard(body);
+          if (ok) ready.push(ok);
+        }
+        if (ready.length && window.MathJax && window.MathJax.typesetPromise) {
+          window.MathJax.typesetPromise(ready).catch(() => {});
+        }
+      });
     });
   });
 }
