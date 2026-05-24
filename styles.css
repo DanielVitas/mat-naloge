@@ -1716,6 +1716,23 @@ canvas.crop-display {
   margin-bottom: 1rem;
 }
 .filter-cell { display: flex; flex-direction: column; gap: 0.3rem; }
+/* Search-page keyword input — sits at the top of the filter strip,
+   above Source. Substring match against the transcribed LaTeX. */
+.filter-keyword-cell { width: 100%; }
+.filter-keyword-input {
+  font: inherit; font-size: 0.95rem;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  background: var(--card-bg); color: var(--fg);
+  width: 100%; max-width: 32rem;
+  box-sizing: border-box;
+  transition: border-color 120ms ease;
+}
+.filter-keyword-input:focus {
+  outline: none; border-color: var(--accent);
+}
+.filter-keyword-input::placeholder { color: var(--muted); }
 .filter-label {
   font-size: 0.78rem;
   font-weight: 700;

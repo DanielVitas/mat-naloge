@@ -3065,6 +3065,7 @@ async function initSearchPage(opts) {
     levels:    pickSet(savedState.levels,    allLevels),
     sections:  pickSet(savedState.sections,  allSections),
     topics:    pickSet(savedState.topics,    allTopicsArr),
+    keyword:   (savedState.keyword || ''),
   } : {
     yearMin, yearMax, pointsMin, pointsMax,
     sources:  new Set(allSources),
@@ -3072,6 +3073,7 @@ async function initSearchPage(opts) {
     levels:   new Set(allLevels),
     sections: new Set(allSections),
     topics:   new Set(allTopicsArr),
+    keyword:  '',
   };
   function persistFilterState() {
     try {
@@ -3084,6 +3086,7 @@ async function initSearchPage(opts) {
         levels:   [...state.levels],
         sections: [...state.sections],
         topics:   [...state.topics],
+        keyword:  state.keyword || '',
       }));
     } catch (_e) { /* private mode etc — skip */ }
   }
@@ -3098,6 +3101,12 @@ async function initSearchPage(opts) {
   // affecting the layout immediately.
   const hasTextbookSecs = textbookSections.length > 0;
   root.innerHTML = `
+    <div class="filter-cell filter-keyword-cell">
+      <label class="filter-label" for="f-keyword">Keyword</label>
+      <input type="search" id="f-keyword" class="filter-keyword-input"
+             placeholder="e.g. mediana, integral, …"
+             autocomplete="off" spellcheck="false">
+    </div>
     <div class="filter-cell filter-source-cell">
       <label class="filter-label">Source</label>
       <div class="filter-chip-group" id="f-sources">
@@ -3246,6 +3255,21 @@ async function initSearchPage(opts) {
       render();
     });
   });
+  // Keyword search input — debounce slightly so render() doesn't fire
+  // on every keystroke.
+  const kwInput = document.getElementById('f-keyword');
+  if (kwInput) {
+    if (state.keyword) kwInput.value = state.keyword;
+    let kwTimer = null;
+    kwInput.addEventListener('input', () => {
+      clearTimeout(kwTimer);
+      kwTimer = setTimeout(() => {
+        state.keyword = kwInput.value.trim();
+        persistFilterState();
+        render();
+      }, 150);
+    });
+  }
   wireChipGroup('f-sources',  state.sources);
   wireChipGroup('f-polas',    state.polas);
   wireChipGroup('f-levels',   state.levels);
@@ -3396,6 +3420,31 @@ async function initSearchPage(opts) {
     render();
   });
 
+  // Keyword filter helper. Strips common LaTeX wrappers ($...$, \frac{}{},
+  // \begin{}/end{}, comments, control sequences) before matching to make
+  // results closer to "what the rendered problem says". Case-insensitive,
+  // accent-insensitive substring match. Cached per problem.
+  const _kwCache = {};
+  function kwHaystack(n) {
+    if (n in _kwCache) return _kwCache[n];
+    const bodies = (window.PROBLEMS_LATEX || {});
+    const entry  = bodies[n] || {};
+    const ed     = (typeof effectiveState === 'function') ? effectiveState(n) : {};
+    let latex    = (ed && ed.latex !== undefined) ? ed.latex : (entry.latex || '');
+    // Strip LaTeX control sequences and braces; keep alphanumerics + spaces.
+    let plain = latex
+      .replace(/\\[a-zA-Z]+\*?/g, ' ')   // \command, \command*
+      .replace(/[{}\[\]]/g, ' ')          // braces and brackets
+      .replace(/\$+/g, ' ')               // math delimiters
+      .replace(/%[^\n]*/g, ' ')           // comments
+      .replace(/\s+/g, ' ')
+      .toLowerCase()
+      // Slovenian diacritics → plain so "mediana" matches "mediano"-style.
+      .replace(/[čć]/g, 'c').replace(/š/g, 's').replace(/ž/g, 'z').replace(/đ/g, 'd');
+    _kwCache[n] = plain;
+    return plain;
+  }
+
   // Filter + render. A problem matches if its scalar fields are in range
   // and at least one value of each multi-valued field is selected.
   function matches(p) {
@@ -3403,6 +3452,13 @@ async function initSearchPage(opts) {
     // default (toggle in the top-right opts back into the full set).
     if (!shouldShowProblem(p.n)) return false;
     if (!state.sources.has(p.source)) return false;
+    // Keyword (substring) filter — applies to all sources. Empty = no filter.
+    if (state.keyword) {
+      const kw = state.keyword.toLowerCase()
+                  .replace(/[čć]/g,'c').replace(/š/g,'s').replace(/ž/g,'z').replace(/đ/g,'d')
+                  .trim();
+      if (kw && !kwHaystack(p.n).includes(kw)) return false;
+    }
     // Textbook problems don't carry the Matura-paper fields (year, season,
     // pola, level, section letter, points), so skip those filters and only
     // honour Source + Topic. (Topics will be filterable once they're tagged.)
