@@ -674,6 +674,16 @@ function setName(n) {
   if (n) localStorage.setItem('gh-name', n);
   else   localStorage.removeItem('gh-name');
 }
+// Export-only sign-in: user signed in BY NAME only (no GitHub PAT). They
+// get all editing features but get an Export (JSON) button instead of Push.
+function isExportOnlyMode() { return localStorage.getItem('gh-export-only') === '1'; }
+function setExportOnlyMode(on) {
+  if (on) localStorage.setItem('gh-export-only', '1');
+  else    localStorage.removeItem('gh-export-only');
+}
+// Anyone is "signed in" if they have a GitHub token OR are in export-only mode
+// with a saved name.
+function isSignedIn() { return !!getToken() || (isExportOnlyMode() && !!getName()); }
 
 // ---- Display-name layer ---------------------------------------------------
 // Display names are keyed by GitHub login and live at top-level data.json
@@ -918,6 +928,31 @@ function pendingChanges() {
     }
   }
   return out;
+}
+
+// Export-only mode: dump pendingChanges() to a downloadable JSON file
+// that Claude (or a sync script) can apply later. Shape mirrors the
+// pendingChanges() output, plus an `author` field with the reviewer name
+// so server-side merge knows who made the edits.
+function exportChangesAsJSON() {
+  const changes = pendingChanges();
+  const author  = getName() || 'anonymous';
+  const payload = {
+    exported_at: new Date().toISOString(),
+    author: author,
+    changes: changes,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)],
+                         { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  a.href = url;
+  a.download = `mat-naloge-changes-${author}-${ts}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 async function pushChanges() {
@@ -1266,33 +1301,53 @@ function initSyncBar() {
     showMenu();
   }
   function refresh() {
-    const has = !!getToken();
-    signedOut.hidden = has;
-    signedIn.hidden  = !has;
-    // Toggle body-level class so the problem page can switch between the
-    // signed-out (no LaTeX pane, Full page button) and signed-in
-    // (Edit crop + Edit LaTeX toggle) layouts.
-    document.body.classList.toggle('signed-in', has);
-    if (!has) document.body.classList.remove('show-latex');
-    if (has) {
+    const hasToken = !!getToken();
+    const exportOnly = isExportOnlyMode() && !!getName() && !hasToken;
+    const signedIn_  = hasToken || exportOnly;
+    signedOut.hidden = signedIn_;
+    signedIn.hidden  = !signedIn_;
+    // Toggle body-level classes so other CSS/JS can branch on auth state.
+    document.body.classList.toggle('signed-in', signedIn_);
+    document.body.classList.toggle('export-only', exportOnly);
+    if (!signedIn_) document.body.classList.remove('show-latex');
+    if (signedIn_) {
       const login = getName();
       const dn = login ? displayNameFor(login) : '…';
       if (displayNameEl) displayNameEl.textContent = dn;
       if (usernameSpan)  usernameSpan.textContent  = login || '…';
-      // Only show the "@login" row if the display name differs from login.
       if (loginRowEl) {
         const showLogin = login && dn && dn !== login;
         loginRowEl.parentElement.style.display = showLogin ? '' : 'none';
       }
     }
     const n = Object.keys(pendingChanges()).length;
-    pushBtn.disabled = !has || n === 0;
+    // Push button: visible only when signed in WITH a GitHub token. In
+    // export-only mode the wrapper hides it via CSS .export-only rule.
+    pushBtn.disabled = !hasToken || n === 0;
     pushBtn.textContent = n === 0
       ? '⬆ Push'
       : `⬆ Push (${n} edit${n === 1 ? '' : 's'})`;
+    // Export (JSON) button: built lazily next to Push, only shown in
+    // export-only mode. Click serializes pendingChanges() to a download.
+    let exportBtn = bar.querySelector('#gh-export-changes');
+    if (!exportBtn && pushBtn.parentNode) {
+      exportBtn = document.createElement('button');
+      exportBtn.type = 'button';
+      exportBtn.id = 'gh-export-changes';
+      exportBtn.className = 'primary pdf-split-main';
+      exportBtn.addEventListener('click', exportChangesAsJSON);
+      pushBtn.parentNode.insertBefore(exportBtn, pushBtn);
+    }
+    if (exportBtn) {
+      exportBtn.hidden = !exportOnly;
+      exportBtn.disabled = n === 0;
+      exportBtn.textContent = n === 0
+        ? '⬇ Export (JSON)'
+        : `⬇ Export (JSON) (${n} edit${n === 1 ? '' : 's'})`;
+    }
+    pushBtn.hidden = exportOnly;
     if (discardBtn) {
-      // Only meaningful when signed in AND there are unpushed changes.
-      discardBtn.hidden = !has || n === 0;
+      discardBtn.hidden = !signedIn_ || n === 0;
       discardBtn.title  = `Discard ${n} unpushed edit${n === 1 ? '' : 's'}`;
     }
     // Approvers chip + outdated badge depend on the signed-in state, so
@@ -1324,8 +1379,34 @@ function initSyncBar() {
     signinDropdown.hidden = true;
     tokenInput.value = '';
   });
+  // Export-only checkbox: shows a name field, hides the token field.
+  const exportOnlyChk = bar.querySelector('#gh-export-only');
+  const nameInput     = bar.querySelector('#gh-name-input');
+  if (exportOnlyChk) {
+    exportOnlyChk.addEventListener('change', () => {
+      const on = exportOnlyChk.checked;
+      tokenInput.hidden = on;
+      if (nameInput) {
+        nameInput.hidden = !on;
+        if (on) setTimeout(() => nameInput.focus(), 0);
+      }
+    });
+  }
   setBtn.addEventListener('click', async (e) => {
     e.stopPropagation();
+    if (exportOnlyChk && exportOnlyChk.checked) {
+      // Export-only sign-in: just save the name.
+      const nm = (nameInput && nameInput.value || '').trim();
+      if (!nm) { alert('Enter your name first.'); return; }
+      setExportOnlyMode(true);
+      setToken('');
+      setName(nm);
+      if (nameInput) nameInput.value = '';
+      tokenInput.value = '';
+      closeDropdowns();
+      refresh();
+      return;
+    }
     const v = tokenInput.value.trim();
     if (!v) { alert('Paste your token first.'); return; }
     setBtn.disabled = true;
@@ -1337,6 +1418,7 @@ function initSyncBar() {
       alert('Could not validate token (GitHub /user returned an error). Check the token and try again.');
       return;
     }
+    setExportOnlyMode(false);
     setToken(v);
     setName(login);
     tokenInput.value = '';
@@ -1388,8 +1470,8 @@ function initSyncBar() {
   }
   clearBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    if (!confirm('Sign out and forget GitHub token from this browser?')) return;
-    setToken(''); setName('');
+    if (!confirm('Sign out?')) return;
+    setToken(''); setName(''); setExportOnlyMode(false);
     closeDropdowns();
     refresh();
   });
@@ -1697,12 +1779,16 @@ function latexToHtml(src, problemId, tikzCount, hydrateTikz, tikzOriginals) {
 // ---------- Topic editor (problem page) ------------------------------------
 // Renders the editable topic chips into #topics-tags: each chip has an inline
 // × that removes it; a + button at the end opens a topic picker.
+// When not signed in (no GitHub token AND no export-only mode), topic editing
+// is disabled — chips render read-only, no × buttons, no + button.
 function renderTopicsEditor(meta) {
   const row = document.getElementById('topics-tags');
   if (!row) return;
   const current = effectiveTopics(meta.n, meta.topics);
-  renderTopicChipGroups(row, current, /*editable*/ true);
-  // Append the + button at the end of the row.
+  const canEdit = (typeof isSignedIn === 'function') ? isSignedIn() : !!getToken();
+  renderTopicChipGroups(row, current, /*editable*/ canEdit);
+  if (!canEdit) return;
+  // Append the + button at the end of the row (only when signed in).
   const addBtn = document.createElement('button');
   addBtn.className = 'topic-add';
   addBtn.id = 'topic-add';
@@ -2691,21 +2777,68 @@ async function initProblemPage(meta) {
       setupEditor();
       if (saveBtn) saveBtn.disabled = false;
     });
-    // "Full page" — show the same page-image viewer as Edit but without
-    // the bbox selection rectangle or Save button. Visitors who can't edit
-    // get a way to still see the original page the problem came from.
+    // "Full page" — persistent toggle. When ON, the editor shows the
+    // whole page image (read-only, no bbox selection, no Save button)
+    // and that preference is remembered across all problem pages. The
+    // crop-view header is hidden (the editor's own header carries the
+    // paper title + Cancel button instead).
     const fullPageBtn = document.querySelector('.full-page-btn[data-instance="0"]');
+    function applyFullPageState() {
+      const on = localStorage.getItem('full-page-on') === '1';
+      document.body.classList.toggle('full-page-on', on);
+      if (on && pageLoaded) {
+        pendingBbox = null;
+        editor.classList.add('readonly');
+        if (saveBtn) saveBtn.style.display = 'none';
+        // Pull the original instance label into the editor header.
+        try {
+          const lbl = document.getElementById('instance-label');
+          const edH = editor.querySelector('.pane-header');
+          if (lbl && edH) {
+            let edLbl = edH.querySelector('.full-page-label');
+            if (!edLbl) {
+              edLbl = document.createElement('h3');
+              edLbl.className = 'full-page-label';
+              edLbl.style.margin = '0';
+              edLbl.style.fontSize = '1rem';
+              edLbl.style.fontWeight = '600';
+              edH.insertBefore(edLbl, edH.firstChild);
+            }
+            edLbl.textContent = lbl.textContent;
+          }
+        } catch (_e) {}
+        show();
+        setupEditor();
+        if (selectionBox) selectionBox.style.display = 'none';
+      } else {
+        editor.classList.remove('readonly');
+        if (saveBtn) saveBtn.style.display = '';
+        hide();
+        const edLbl = editor.querySelector('.full-page-label');
+        if (edLbl) edLbl.remove();
+      }
+      if (fullPageBtn) {
+        fullPageBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        fullPageBtn.classList.toggle('active', on);
+      }
+    }
     if (fullPageBtn) fullPageBtn.addEventListener('click', () => {
-      if (!pageLoaded) return;
-      pendingBbox = null;                  // no bbox edit
-      editor.classList.add('readonly');    // CSS hides selection + save
-      if (saveBtn) saveBtn.style.display = 'none';
-      show();
-      setupEditor();
-      // Hide the selection rectangle explicitly (CSS does this too, defensive)
-      if (selectionBox) selectionBox.style.display = 'none';
+      const cur = localStorage.getItem('full-page-on') === '1';
+      localStorage.setItem('full-page-on', cur ? '0' : '1');
+      applyFullPageState();
     });
+    // Apply persisted state on init (after a tick so pageImg has a chance
+    // to load — if it isn't ready yet, the inline pageLoaded onload also
+    // triggers a re-application).
+    setTimeout(applyFullPageState, 0);
     if (cancelBtn) cancelBtn.addEventListener('click', () => {
+      // In full-page mode, Cancel turns OFF the persistent toggle so the
+      // user returns to the normal crop view.
+      if (localStorage.getItem('full-page-on') === '1') {
+        localStorage.setItem('full-page-on', '0');
+        applyFullPageState();
+        return;
+      }
       pendingBbox = null;
       hide();
     });
@@ -2750,15 +2883,38 @@ async function initProblemPage(meta) {
     });
     function setupEditor() {
       const [imgW, imgH] = activeInst.page_size;
-      const maxW = Math.min(900, document.documentElement.clientWidth - 60);
-      const scale = Math.min(maxW / imgW, 700 / imgH);
+      const isFullPage = document.body.classList.contains('full-page-on');
+      // Full page (read-only) mode uses the full viewport width so the
+      // page reads at high resolution. Edit-crop mode keeps the smaller
+      // working size (so dragging the selection is responsive on a
+      // typical desktop layout).
+      const viewportW = document.documentElement.clientWidth - 40;
+      const viewportH = (window.innerHeight || 900) - 100;
+      const maxW = isFullPage
+        ? Math.min(imgW, viewportW)
+        : Math.min(900, viewportW);
+      const maxH = isFullPage
+        ? Math.min(imgH, viewportH * 1.5)
+        : 700;
+      const scale = Math.min(maxW / imgW, maxH / imgH);
       editorScale = scale;
-      fullCanvas.width  = Math.round(imgW * scale);
-      fullCanvas.height = Math.round(imgH * scale);
+      // Render the canvas with a device-pixel-ratio multiplier so the
+      // image is crisp on retina/HiDPI screens. The CSS width/height stay
+      // at the layout size; the backing store is dpr× larger.
+      const dpr = window.devicePixelRatio || 1;
+      const cssW = Math.round(imgW * scale);
+      const cssH = Math.round(imgH * scale);
+      fullCanvas.style.width  = cssW + 'px';
+      fullCanvas.style.height = cssH + 'px';
+      fullCanvas.width  = Math.round(cssW * dpr);
+      fullCanvas.height = Math.round(cssH * dpr);
       const ctx = fullCanvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
       ctx.fillStyle = 'white';
-      ctx.fillRect(0, 0, fullCanvas.width, fullCanvas.height);
-      ctx.drawImage(pageImg, 0, 0, fullCanvas.width, fullCanvas.height);
+      ctx.fillRect(0, 0, cssW, cssH);
+      ctx.drawImage(pageImg, 0, 0, cssW, cssH);
       drawSelection(pendingBbox);
     }
     function drawSelection(bbox) {
@@ -5719,7 +5875,7 @@ async function initIndexPage() {
   initMenuBar();
   initSyncBar();
   initCollectionBar();
-  bindBrowseModeTabs('by-year');
+  bindBrowseModeTabs('by-topic');
   bindPageTabs('matura');
   // Restore previously-opened <details> BEFORE the hash handler (which
   // also opens sections by deep-link) so saved state doesn't fight it.

@@ -866,7 +866,14 @@ body:not(.signed-in) .edit-crop-btn { display: none; }
 .crop-editor.readonly .save-crop-btn { display: none !important; }
 .crop-editor.readonly canvas { cursor: default; }
 .crop-editor.readonly .cancel-crop-btn::before { content: ""; }
-.crop-editor.readonly .pane-header h3::after { content: " — pregled"; font-weight: normal; opacity: 0.7; }
+/* Read-only Full page: don't say "Select an area"; the JS hides the
+   editor's own h3 and shows the instance label from .crop-view instead
+   so the user sees the paper title (e.g. "2025 Spomladanski rok …"). */
+.crop-editor.readonly .pane-header h3 { display: none; }
+/* When body has the full-page toggle ON, the active full-page editor
+   replaces the crop-view; the standalone .crop-view (with title +
+   buttons) is the only header visible. */
+body.full-page-on .crop-view { display: none; }
 .preview-box .tex-center,
 .finishing-block-body .tex-center { text-align: center; margin: 0.4rem 0; }
 /* Tables that would otherwise overflow the card get wrapped in
