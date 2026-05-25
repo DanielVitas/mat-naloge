@@ -3325,11 +3325,52 @@ button.status-badge:hover { filter: brightness(0.97); }
 .browse-mode-panel[data-mode="by-topic"] > .collection[open] {
   background: var(--card-bg);
 }
-
-/* ----- Coloured year folders in the by-source / matura panel -------- */
-.page-panel[data-panel="matura"] > .collection-l1 {
-  border-width: 2px;
+/* Subtopics (collection-l2) inside an opened main topic should NOT
+   inherit the parent's tinted background — they live on a neutral
+   white/transparent surface for readability. The CSS file's earlier
+   `.collection .collection { background: transparent }` rule already
+   sets transparent, but the parent's coloured bg shows through; force
+   white here so the nested rows read cleanly. */
+.browse-mode-panel[data-mode="by-topic"] > .collection[open] .collection {
+  background: transparent;
+  border-color: transparent;
 }
+
+/* ----- Matura year folders: 3-per-row coloured grid, same expand-in-place
+   behaviour as the by-topic panel above. The .page-panel container becomes
+   a CSS grid and each year `.collection-l1` is a coloured box that spans
+   the full row when opened. -------------------------------------------- */
+.page-panel[data-panel="matura"] {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-top: 1rem;
+}
+@media (max-width: 800px) {
+  .page-panel[data-panel="matura"] { grid-template-columns: 1fr; }
+}
+.page-panel[data-panel="matura"] > .collection-l1 {
+  margin-top: 0;
+  border-width: 2px;
+  transition: transform 120ms ease, filter 120ms ease;
+}
+.page-panel[data-panel="matura"] > .collection-l1:not([open]):hover {
+  filter: brightness(0.97);
+  transform: translateY(-1px);
+}
+.page-panel[data-panel="matura"] > .collection-l1:not([open]) > summary {
+  padding: 1.1rem 1rem;
+  font-size: 1.05rem;
+}
+.page-panel[data-panel="matura"] > .collection-l1:not([open]) > summary::before {
+  display: none;
+}
+.page-panel[data-panel="matura"] > .collection-l1[open] {
+  grid-column: 1 / -1;
+  background: var(--card-bg);
+  border-top-width: 6px;
+}
+/* Per-position cycling colour for year boxes. */
 .page-panel[data-panel="matura"] > .collection-l1:nth-child(5n+1) {
   background: var(--palette-1-bg); border-color: var(--palette-1-fg);
 }
@@ -3350,9 +3391,9 @@ button.status-badge:hover { filter: brightness(0.97); }
   background: var(--palette-5-bg); border-color: var(--palette-5-fg);
 }
 .page-panel[data-panel="matura"] > .collection-l1:nth-child(5n+5) > summary { color: var(--palette-5-fg); }
-/* When opened, switch year sections to white so nested season/level
-   folders and the problem list inside read on a neutral background. */
-.page-panel[data-panel="matura"] > .collection-l1[open] {
-  background: var(--card-bg);
-  border-top-width: 6px;
+/* Inside an opened year, the nested season/level <details> stay
+   transparent so they read on the white parent background. */
+.page-panel[data-panel="matura"] > .collection-l1[open] .collection {
+  background: transparent;
+  border-color: transparent;
 }
