@@ -1951,6 +1951,87 @@ function renderTopicsEditor(meta) {
   });
 }
 
+// Build the stacked sidebar (topics box + tags box) that signed-out users
+// see in place of the matura-crop element. CSS hides it for signed-in
+// users so we can build it once unconditionally and let presence flip
+// with the body.signed-in class.
+function buildSignedOutSidebar(meta) {
+  const grid = document.querySelector('.compact-grid');
+  if (!grid) return;
+  if (grid.querySelector('.problem-sidebar')) return;          // idempotent
+
+  const sidebar = document.createElement('aside');
+  sidebar.className = 'problem-sidebar';
+
+  // ---- topics box (top) ----
+  const topicsBox = document.createElement('div');
+  topicsBox.className = 'sidebar-box sidebar-topics';
+  const topicsH = document.createElement('h3');
+  topicsH.textContent = 'Vsebine';
+  topicsBox.appendChild(topicsH);
+  const topicsTags = document.createElement('div');
+  topicsTags.className = 'tags';
+  const currentTopics = (typeof effectiveTopics === 'function')
+    ? effectiveTopics(meta.n, meta.topics)
+    : (meta.topics || []);
+  renderTopicChipGroups(topicsTags, currentTopics, /*editable*/ false);
+  topicsBox.appendChild(topicsTags);
+  sidebar.appendChild(topicsBox);
+
+  // ---- tags box (bottom) ----
+  const tagsBox = document.createElement('div');
+  tagsBox.className = 'sidebar-box sidebar-tags';
+  const tagsH = document.createElement('h3');
+  tagsH.textContent = 'Oznake';
+  tagsBox.appendChild(tagsH);
+  const tags = document.createElement('div');
+  tags.className = 'tags';
+
+  function chip(cls, text, title) {
+    const t = document.createElement('span');
+    t.className = 'tag ' + cls;
+    t.textContent = text;
+    if (title) t.title = title;
+    tags.appendChild(t);
+  }
+
+  // Year(s) — prefix with "Leto" so it reads as a year tag.
+  const years = (Array.isArray(meta.years) && meta.years.length)
+    ? meta.years
+    : (meta.year ? [meta.year] : []);
+  years.forEach(y => chip('year', 'Leto ' + y));
+
+  // Pola number(s).
+  const polasN = (Array.isArray(meta.polas_n) && meta.polas_n.length)
+    ? meta.polas_n
+    : [];
+  polasN.forEach(p => chip('pola', p + '. pola'));
+
+  // Section letter(s) — prefix with "Del".
+  const sections = (Array.isArray(meta.section_letters) && meta.section_letters.length)
+    ? meta.section_letters
+    : [];
+  sections.forEach(s => chip('section', 'Del ' + s));
+
+  // Levels (OR / VR) with explanatory title attribute.
+  const levelTitle = { 'OR': 'Osnovna raven', 'VR': 'Višja raven' };
+  const levels = (Array.isArray(meta.levels) && meta.levels.length)
+    ? meta.levels
+    : [];
+  levels.forEach(l => chip('level', l, levelTitle[l] || ''));
+
+  // Points (e.g. "6 točk").
+  const pts = (Array.isArray(meta.points_list) && meta.points_list.length)
+    ? meta.points_list
+    : [];
+  pts.forEach(p => chip('points', p));
+
+  tagsBox.appendChild(tags);
+  sidebar.appendChild(tagsBox);
+
+  grid.appendChild(sidebar);
+}
+
 function openTopicPicker(meta, anchorBtn) {
   // Close any existing picker
   const existing = document.querySelector('.topic-picker');
@@ -2682,6 +2763,10 @@ async function initProblemPage(meta) {
   // the dropdown) update the chip text without a reload.
   window.refreshApprovalChip = renderApprovers;
   wireExportAndBadge();
+  // For signed-out users we hide the top meta-row and the matura crop
+  // element, and show a stacked topics+tags sidebar in the crop's place.
+  // The sidebar reads its values from meta — see buildSignedOutSidebar.
+  buildSignedOutSidebar(meta);
 
   // Reparent the "Uredi LaTeX" toggle button so it overlays the preview
   // pane's top-right corner instead of living in the crop-view's header.
@@ -2898,6 +2983,17 @@ async function initProblemPage(meta) {
         if (pageImg !== myImg) return;          // a newer load supersedes this
         pageLoaded = true;
         drawCropFromImage(cropCanvas, myImg, myBbox, myPageSize);
+        // If the user had "Cela stran" (full-page) toggled ON when the
+        // page mounted, applyFullPageState ran before the image was
+        // ready and fell through to the else branch (which hides the
+        // editor). Now that pageLoaded is true, re-apply so the editor
+        // actually opens in read-only mode. Without this, body has the
+        // full-page-on class (CSS-hiding .crop-view) AND the editor is
+        // hidden → the whole crop section disappears after SPA-navigating
+        // to another problem while full-page is on.
+        if (localStorage.getItem('full-page-on') === '1') {
+          applyFullPageState();
+        }
       });
       myImg.addEventListener('error', () => {
         if (pageImg !== myImg) return;

@@ -861,6 +861,25 @@ body.signed-in .edit-latex-btn { display: inline-block; }
   right: 0.6rem;
   margin-left: 0;
   z-index: 5;
+  /* See-through so the underlying preview content remains visible
+     through the button. Background uses an rgba over the card colour;
+     border softened; opacity drops further until hover. */
+  background: rgba(255, 255, 255, 0.35);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: rgba(0, 0, 0, 0.55);
+  opacity: 0.55;
+  transition: opacity 120ms ease, background 120ms ease;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+.problem-body .pane.has-edit-latex-overlay > .edit-latex-btn:hover {
+  opacity: 1;
+  background: var(--card-bg);
+  color: inherit;
+  border-color: var(--card-border);
+}
+.problem-body .pane.has-edit-latex-overlay > .edit-latex-btn.active {
+  opacity: 1;
 }
 
 /* "Full page" button — shown when signed-out (instead of Edit), shows the
@@ -873,6 +892,44 @@ body.signed-in .edit-latex-btn { display: inline-block; }
 }
 body.signed-in .full-page-btn { display: none; }
 body:not(.signed-in) .edit-crop-btn { display: none; }
+
+/* ─── Signed-out problem page: hide matura crop + figure toggle, show
+   a sidebar with stacked topics + tags boxes in its place. ─── */
+body:not(.signed-in) .meta-row { display: none; }
+body:not(.signed-in) .problem-crops { display: none; }
+body:not(.signed-in) .tikz-toggle { display: none; }
+body.signed-in .problem-sidebar { display: none; }
+.problem-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.problem-sidebar .sidebar-box {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 0.9rem;
+}
+.problem-sidebar .sidebar-box h3 {
+  margin: 0 0 0.6rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+.problem-sidebar .sidebar-box .tags {
+  display: flex; flex-wrap: wrap; gap: 0.35rem;
+  margin: 0;
+}
+.problem-sidebar .sidebar-box .topic-group {
+  margin-right: 0.35rem;
+}
+/* Signed-out: widen the preview pane, narrow the sidebar. */
+body:not(.signed-in):not(.show-latex) .compact-grid {
+  grid-template-columns: 1.7fr 1fr;
+}
 
 /* "Full page" mode of the crop editor — hide selection box + Save button,
    show only Cancel ("Close") plus the read-only page view. */
@@ -1016,6 +1073,18 @@ body.full-page-on .crop-view { display: none; }
   overflow: hidden;
   max-width: 100%;
   min-width: 200px; min-height: 100px;
+  /* Hover-enlarge: scale the figure up smoothly so it can be inspected
+     in place. Returns to natural size on mouse-leave. The z-index lift
+     and shadow make the scaled figure float cleanly above neighbouring
+     prose; the transform-origin keeps it growing from its centre. */
+  transition: transform 180ms ease, box-shadow 180ms ease;
+  transform-origin: center center;
+  position: relative;
+}
+.preview-box .tex-tikz:hover {
+  transform: scale(1.7);
+  z-index: 10;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
 }
 .preview-box .tex-tikz img,
 .preview-box .tex-tikz svg {
@@ -3171,3 +3240,119 @@ button.status-badge {
   border-radius: 999px;
 }
 button.status-badge:hover { filter: brightness(0.97); }
+
+/* ───────────────────────────────────────────────────────────────────
+   Naloge page palette: 5 cycling colors used on the by-topic grid and
+   the by-source year folders. Tones chosen from the user's reference
+   image (coral / yellow / cream / teal / sky blue). Backgrounds are
+   pastel for readability; the matching darker tone is used for borders
+   and the summary text color.
+   ─────────────────────────────────────────────────────────────────── */
+:root {
+  --palette-1-bg: #fadcd6;  --palette-1-fg: #c44a3e;  /* coral red */
+  --palette-2-bg: #fbe4b3;  --palette-2-fg: #b07a16;  /* warm yellow */
+  --palette-3-bg: #f5e0c5;  --palette-3-fg: #8a6c3b;  /* cream/peach */
+  --palette-4-bg: #cfe8e9;  --palette-4-fg: #2f7174;  /* teal */
+  --palette-5-bg: #dbeaee;  --palette-5-fg: #3a6f7d;  /* sky blue */
+}
+
+/* ----- By-topic grid: 3 boxes per row, colored cycling backgrounds ---- */
+.browse-mode-panel[data-mode="by-topic"] {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-top: 1.2rem;
+}
+@media (max-width: 800px) {
+  .browse-mode-panel[data-mode="by-topic"] {
+    grid-template-columns: 1fr;
+  }
+}
+.browse-mode-panel[data-mode="by-topic"] > .collection {
+  margin-top: 0;
+  border-width: 2px;
+  transition: transform 120ms ease, filter 120ms ease;
+}
+.browse-mode-panel[data-mode="by-topic"] > .collection:not([open]):hover {
+  filter: brightness(0.97);
+  transform: translateY(-1px);
+}
+/* Closed grid card: chevron-free summary, centred label looks like a chip */
+.browse-mode-panel[data-mode="by-topic"] > .collection:not([open]) > summary {
+  padding: 1.1rem 1rem;
+  font-size: 1.05rem;
+}
+.browse-mode-panel[data-mode="by-topic"] > .collection:not([open]) > summary::before {
+  display: none;
+}
+/* Open state: the box spans the full row, gets a white background so
+   the problem list inside is readable, and keeps a thick coloured top
+   border (the per-nth-child border-color tints it). */
+.browse-mode-panel[data-mode="by-topic"] > .collection[open] {
+  grid-column: 1 / -1;
+  background: var(--card-bg);
+  border-top-width: 6px;
+}
+.browse-mode-panel[data-mode="by-topic"] > .collection[open] > summary {
+  background: transparent;
+}
+
+/* Per-position cycling colour. Applies to direct main-topic children. */
+.browse-mode-panel[data-mode="by-topic"] > .collection:nth-child(5n+1) {
+  background: var(--palette-1-bg); border-color: var(--palette-1-fg);
+}
+.browse-mode-panel[data-mode="by-topic"] > .collection:nth-child(5n+1) > summary { color: var(--palette-1-fg); }
+.browse-mode-panel[data-mode="by-topic"] > .collection:nth-child(5n+2) {
+  background: var(--palette-2-bg); border-color: var(--palette-2-fg);
+}
+.browse-mode-panel[data-mode="by-topic"] > .collection:nth-child(5n+2) > summary { color: var(--palette-2-fg); }
+.browse-mode-panel[data-mode="by-topic"] > .collection:nth-child(5n+3) {
+  background: var(--palette-3-bg); border-color: var(--palette-3-fg);
+}
+.browse-mode-panel[data-mode="by-topic"] > .collection:nth-child(5n+3) > summary { color: var(--palette-3-fg); }
+.browse-mode-panel[data-mode="by-topic"] > .collection:nth-child(5n+4) {
+  background: var(--palette-4-bg); border-color: var(--palette-4-fg);
+}
+.browse-mode-panel[data-mode="by-topic"] > .collection:nth-child(5n+4) > summary { color: var(--palette-4-fg); }
+.browse-mode-panel[data-mode="by-topic"] > .collection:nth-child(5n+5) {
+  background: var(--palette-5-bg); border-color: var(--palette-5-fg);
+}
+.browse-mode-panel[data-mode="by-topic"] > .collection:nth-child(5n+5) > summary { color: var(--palette-5-fg); }
+
+/* When OPEN the box returns to a white card so the problem list reads
+   normally — but keep the coloured top border so the section still
+   reads as part of its colour group. */
+.browse-mode-panel[data-mode="by-topic"] > .collection[open] {
+  background: var(--card-bg);
+}
+
+/* ----- Coloured year folders in the by-source / matura panel -------- */
+.page-panel[data-panel="matura"] > .collection-l1 {
+  border-width: 2px;
+}
+.page-panel[data-panel="matura"] > .collection-l1:nth-child(5n+1) {
+  background: var(--palette-1-bg); border-color: var(--palette-1-fg);
+}
+.page-panel[data-panel="matura"] > .collection-l1:nth-child(5n+1) > summary { color: var(--palette-1-fg); }
+.page-panel[data-panel="matura"] > .collection-l1:nth-child(5n+2) {
+  background: var(--palette-2-bg); border-color: var(--palette-2-fg);
+}
+.page-panel[data-panel="matura"] > .collection-l1:nth-child(5n+2) > summary { color: var(--palette-2-fg); }
+.page-panel[data-panel="matura"] > .collection-l1:nth-child(5n+3) {
+  background: var(--palette-3-bg); border-color: var(--palette-3-fg);
+}
+.page-panel[data-panel="matura"] > .collection-l1:nth-child(5n+3) > summary { color: var(--palette-3-fg); }
+.page-panel[data-panel="matura"] > .collection-l1:nth-child(5n+4) {
+  background: var(--palette-4-bg); border-color: var(--palette-4-fg);
+}
+.page-panel[data-panel="matura"] > .collection-l1:nth-child(5n+4) > summary { color: var(--palette-4-fg); }
+.page-panel[data-panel="matura"] > .collection-l1:nth-child(5n+5) {
+  background: var(--palette-5-bg); border-color: var(--palette-5-fg);
+}
+.page-panel[data-panel="matura"] > .collection-l1:nth-child(5n+5) > summary { color: var(--palette-5-fg); }
+/* When opened, switch year sections to white so nested season/level
+   folders and the problem list inside read on a neutral background. */
+.page-panel[data-panel="matura"] > .collection-l1[open] {
+  background: var(--card-bg);
+  border-top-width: 6px;
+}
