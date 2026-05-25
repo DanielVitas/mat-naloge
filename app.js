@@ -2140,34 +2140,35 @@ function hydrateIndexCards() {
       if (hot.dataset.href) window.location.href = hot.dataset.href;
     });
   });
-  // ── Idle-time background hydration ────────────────────────────────────
+  // ── Background hydration ──────────────────────────────────────────────
   // The IntersectionObserver above handles eager hydration as cards scroll
   // into view. BUT after an SPA-swap (Search/Exam → Problems), the
   // observer's first intersection cycle can fail to fire for already-
   // visible targets — a known quirk when targets are inserted via
   // replaceWith() with no rendering update in between. Cards then stay
-  // blank until the user scrolls. To paper over this without adding
-  // any main-thread work, we run a low-priority loop during browser idle
-  // slices that hydrates any unhydrated card. Idle time = no other
-  // work is happening, so this is effectively free perf-wise, and the
-  // page fills in invisibly within a few seconds of landing on it.
+  // blank until the user scrolls. Backstop: hydrate everything in
+  // one-frame slices via a setTimeout chain — 8 cards every 16 ms, so a
+  // full ~600-card list fills in inside ~1.2 s. We deliberately don't
+  // use requestIdleCallback because some browsers throttle it heavily
+  // (and may never fire it on a quiet tab), which would leave cards
+  // blank indefinitely.
   //
   // Bound to a generation token so re-running hydrateIndexCards cancels
-  // any in-flight idle loop cleanly.
+  // any in-flight loop cleanly.
   _indexIdleGen += 1;
   const myGen = _indexIdleGen;
-  const CHUNK = 5;      // cards processed per idle slice
-  const TIME_BUDGET = 8;  // ms — bail early if the slice gets tight
-  const idle = window.requestIdleCallback
-    ? window.requestIdleCallback.bind(window)
-    : (cb) => setTimeout(() => cb({ timeRemaining: () => 12, didTimeout: false }), 1);
-  function idleStep(deadline) {
-    if (myGen !== _indexIdleGen) return;        // superseded by a re-init
-    if (!window.PROBLEMS_LATEX) {                // bodies still loading
-      idle(idleStep);
+  const CHUNK = 8;
+  const CHUNK_DELAY_MS = 16;
+  // Diagnostic so we can verify from devtools whether this code is even
+  // running: window._hydrateInfo.gen bumps on every init; .processed
+  // increments per chunk; .done flips true when the loop finishes.
+  window._hydrateInfo = { gen: myGen, processed: 0, done: false };
+  function bgStep() {
+    if (myGen !== _indexIdleGen) return;                  // superseded
+    if (!window.PROBLEMS_LATEX) {                          // bodies still loading
+      setTimeout(bgStep, CHUNK_DELAY_MS);
       return;
     }
-    // Collect a batch of unhydrated bodies and process them in one go.
     const batch = [];
     const all = document.querySelectorAll('.search-result-wrap[data-id] .result-body');
     for (const body of all) {
@@ -2176,10 +2177,11 @@ function hydrateIndexCards() {
       if (_indexHydrateObserver) _indexHydrateObserver.unobserve(body);
       batch.push(body);
       if (batch.length >= CHUNK) break;
-      // Allow longer slices when the browser tells us it has more time.
-      if (deadline && deadline.timeRemaining && deadline.timeRemaining() < TIME_BUDGET) break;
     }
-    if (batch.length === 0) return;              // nothing left to hydrate
+    if (batch.length === 0) {                              // done
+      window._hydrateInfo.done = true;
+      return;
+    }
     const ready = [];
     for (const body of batch) {
       const ok = _hydrateOneIndexCard(body);
@@ -2188,11 +2190,12 @@ function hydrateIndexCards() {
     if (ready.length && window.MathJax && window.MathJax.typesetPromise) {
       window.MathJax.typesetPromise(ready).catch(() => {});
     }
-    idle(idleStep);                              // schedule next slice
+    window._hydrateInfo.processed += batch.length;
+    setTimeout(bgStep, CHUNK_DELAY_MS);
   }
-  // Wait for the bodies fetch to resolve before starting; otherwise the
-  // first few slices would all no-op.
-  bootstrapBodies().then(() => idle(idleStep));
+  // Start immediately after the bodies fetch resolves. No initial delay —
+  // we want the visible cards to fill in as fast as possible.
+  bootstrapBodies().then(() => setTimeout(bgStep, 0));
 }
 
 // Pick between the body-image fallback (used when no LaTeX is available)
@@ -5944,6 +5947,14 @@ function toggleTopicReorderPillVisibility() {
 }
 
 async function initIndexPage() {
+  // Diagnostic: bump a counter every time this function is entered so we
+  // can verify from devtools that the SPA-swap re-execution is firing.
+  // Inspect window._initIndexInfo in the console — if `entered` is 1 on
+  // a Search→Problems navigation, the function ran. If `reachedHydrate`
+  // is 0, something between the entry and hydrateIndexCards is throwing.
+  window._initIndexInfo = window._initIndexInfo || { entered: 0, reachedHydrate: 0, errored: null };
+  window._initIndexInfo.entered += 1;
+  try {
   await bootstrapData();
   await fetchRemoteData();
   migrateLocalTopics();
@@ -5960,6 +5971,7 @@ async function initIndexPage() {
   window.addEventListener('hashchange', handleSectionHash);
   // Make sure we have the latest reviewer name from /user before colouring.
   await ensureNameFromToken();
+  window._initIndexInfo.reachedHydrate += 1;
   hydrateIndexCards();
   applyIndexStatuses();
   // Hide unapproved cards for signed-out viewers (default) and refresh
@@ -6002,5 +6014,12 @@ async function initIndexPage() {
       document.body.appendChild(a); a.click(); a.remove();
       URL.revokeObjectURL(url);
     });
+  }
+  } catch (err) {
+    // Surface any silently-eaten async errors via the diagnostic global
+    // so we can see them with a peek at devtools instead of trawling
+    // unhandled rejection logs.
+    window._initIndexInfo.errored = err && (err.stack || err.message || String(err));
+    throw err;
   }
 }
