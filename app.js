@@ -2062,6 +2062,10 @@ function adjustHoverOverflowGuard(wrap, isHovered) {
 // the Problems page block the main thread for several seconds. Now
 // only the visible window pays the MathJax cost.
 let _indexHydrateObserver = null;
+// Idle-loop generation token: each call to hydrateIndexCards bumps this
+// and the currently-scheduled idle slice checks it on each iteration so a
+// re-init (e.g. via SPA navigation) cleanly cancels any prior idle work.
+let _indexIdleGen = 0;
 function _hydrateOneIndexCard(body) {
   const data = window.PROBLEMS_LATEX || {};
   const n = body.dataset.id;
@@ -2136,6 +2140,59 @@ function hydrateIndexCards() {
       if (hot.dataset.href) window.location.href = hot.dataset.href;
     });
   });
+  // ── Idle-time background hydration ────────────────────────────────────
+  // The IntersectionObserver above handles eager hydration as cards scroll
+  // into view. BUT after an SPA-swap (Search/Exam → Problems), the
+  // observer's first intersection cycle can fail to fire for already-
+  // visible targets — a known quirk when targets are inserted via
+  // replaceWith() with no rendering update in between. Cards then stay
+  // blank until the user scrolls. To paper over this without adding
+  // any main-thread work, we run a low-priority loop during browser idle
+  // slices that hydrates any unhydrated card. Idle time = no other
+  // work is happening, so this is effectively free perf-wise, and the
+  // page fills in invisibly within a few seconds of landing on it.
+  //
+  // Bound to a generation token so re-running hydrateIndexCards cancels
+  // any in-flight idle loop cleanly.
+  _indexIdleGen += 1;
+  const myGen = _indexIdleGen;
+  const CHUNK = 5;      // cards processed per idle slice
+  const TIME_BUDGET = 8;  // ms — bail early if the slice gets tight
+  const idle = window.requestIdleCallback
+    ? window.requestIdleCallback.bind(window)
+    : (cb) => setTimeout(() => cb({ timeRemaining: () => 12, didTimeout: false }), 1);
+  function idleStep(deadline) {
+    if (myGen !== _indexIdleGen) return;        // superseded by a re-init
+    if (!window.PROBLEMS_LATEX) {                // bodies still loading
+      idle(idleStep);
+      return;
+    }
+    // Collect a batch of unhydrated bodies and process them in one go.
+    const batch = [];
+    const all = document.querySelectorAll('.search-result-wrap[data-id] .result-body');
+    for (const body of all) {
+      if (body.dataset.hydrated === '1') continue;
+      body.dataset.hydrated = '1';
+      if (_indexHydrateObserver) _indexHydrateObserver.unobserve(body);
+      batch.push(body);
+      if (batch.length >= CHUNK) break;
+      // Allow longer slices when the browser tells us it has more time.
+      if (deadline && deadline.timeRemaining && deadline.timeRemaining() < TIME_BUDGET) break;
+    }
+    if (batch.length === 0) return;              // nothing left to hydrate
+    const ready = [];
+    for (const body of batch) {
+      const ok = _hydrateOneIndexCard(body);
+      if (ok) ready.push(ok);
+    }
+    if (ready.length && window.MathJax && window.MathJax.typesetPromise) {
+      window.MathJax.typesetPromise(ready).catch(() => {});
+    }
+    idle(idleStep);                              // schedule next slice
+  }
+  // Wait for the bodies fetch to resolve before starting; otherwise the
+  // first few slices would all no-op.
+  bootstrapBodies().then(() => idle(idleStep));
 }
 
 // Pick between the body-image fallback (used when no LaTeX is available)
