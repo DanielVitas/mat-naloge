@@ -930,6 +930,22 @@ body.signed-in .problem-sidebar { display: none; }
 body:not(.signed-in):not(.show-latex) .compact-grid {
   grid-template-columns: 1.7fr 1fr;
 }
+/* Mobile / narrow viewports: stack the preview on top and the sidebar
+   (topics + tags) below it instead of running them side-by-side. We
+   need this dedicated media query because the signed-out rule above
+   has higher specificity than the generic `body:not(.show-latex)`
+   collapse at line ~837, so without an explicit mobile override the
+   1.7fr/1fr split sticks on phones. */
+@media (max-width: 800px) {
+  body:not(.signed-in):not(.show-latex) .compact-grid {
+    grid-template-columns: 1fr;
+  }
+  /* Drop the redundant margin-top so the stacked sidebar's spacing is
+     governed entirely by the grid's `gap`, avoiding double-spacing. */
+  body:not(.signed-in):not(.show-latex) .compact-grid > .problem-sidebar {
+    margin-top: 0;
+  }
+}
 
 /* "Full page" mode of the crop editor — hide selection box + Save button,
    show only Cancel ("Close") plus the read-only page view. */
