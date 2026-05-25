@@ -2881,11 +2881,13 @@ async function initProblemPage(meta) {
   // so CSS can hide the crop pane and let the preview expand to fill the
   // row. The signed-out sidebar still renders (topics + whatever tags do
   // exist — section letter, source).
+  //
+  // Use `.toggle(name, force)` rather than `.add()` so SPA navigation from
+  // a textbook problem TO a matura problem also clears the class. Without
+  // this, the class persists and the matura page's crop pane stays hidden.
   const inst0 = (meta.instances && meta.instances[0]) || {};
   const isTextbook = !!meta.is_textbook || (!inst0.page_image && !inst0.paper_id);
-  if (isTextbook) {
-    document.body.classList.add('textbook-problem');
-  }
+  document.body.classList.toggle('textbook-problem', isTextbook);
 
   // Reparent the "Uredi LaTeX" toggle button so it overlays the preview
   // pane's top-right corner instead of living in the crop-view's header.
