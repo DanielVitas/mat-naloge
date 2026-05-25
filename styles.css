@@ -3251,9 +3251,8 @@ button.status-badge:hover { filter: brightness(0.97); }
 :root {
   --palette-1-bg: #fadcd6;  --palette-1-fg: #c44a3e;  /* coral red */
   --palette-2-bg: #fbe4b3;  --palette-2-fg: #b07a16;  /* warm yellow */
-  --palette-3-bg: #f5e0c5;  --palette-3-fg: #8a6c3b;  /* cream/peach */
-  --palette-4-bg: #cfe8e9;  --palette-4-fg: #2f7174;  /* teal */
-  --palette-5-bg: #dbeaee;  --palette-5-fg: #3a6f7d;  /* sky blue */
+  --palette-3-bg: #cfe8e9;  --palette-3-fg: #2f7174;  /* teal */
+  --palette-4-bg: #dbeaee;  --palette-4-fg: #3a6f7d;  /* sky blue */
 }
 
 /* ----- By-topic grid: 3 boxes per row, colored cycling backgrounds ---- */
@@ -3298,26 +3297,22 @@ button.status-badge:hover { filter: brightness(0.97); }
 }
 
 /* Per-position cycling colour. Applies to direct main-topic children. */
-.browse-mode-panel[data-mode="by-topic"] > .collection:nth-child(5n+1) {
+.browse-mode-panel[data-mode="by-topic"] > .collection:nth-child(4n+1) {
   background: var(--palette-1-bg); border-color: var(--palette-1-fg);
 }
-.browse-mode-panel[data-mode="by-topic"] > .collection:nth-child(5n+1) > summary { color: var(--palette-1-fg); }
-.browse-mode-panel[data-mode="by-topic"] > .collection:nth-child(5n+2) {
+.browse-mode-panel[data-mode="by-topic"] > .collection:nth-child(4n+1) > summary { color: var(--palette-1-fg); }
+.browse-mode-panel[data-mode="by-topic"] > .collection:nth-child(4n+2) {
   background: var(--palette-2-bg); border-color: var(--palette-2-fg);
 }
-.browse-mode-panel[data-mode="by-topic"] > .collection:nth-child(5n+2) > summary { color: var(--palette-2-fg); }
-.browse-mode-panel[data-mode="by-topic"] > .collection:nth-child(5n+3) {
+.browse-mode-panel[data-mode="by-topic"] > .collection:nth-child(4n+2) > summary { color: var(--palette-2-fg); }
+.browse-mode-panel[data-mode="by-topic"] > .collection:nth-child(4n+3) {
   background: var(--palette-3-bg); border-color: var(--palette-3-fg);
 }
-.browse-mode-panel[data-mode="by-topic"] > .collection:nth-child(5n+3) > summary { color: var(--palette-3-fg); }
-.browse-mode-panel[data-mode="by-topic"] > .collection:nth-child(5n+4) {
+.browse-mode-panel[data-mode="by-topic"] > .collection:nth-child(4n+3) > summary { color: var(--palette-3-fg); }
+.browse-mode-panel[data-mode="by-topic"] > .collection:nth-child(4n+4) {
   background: var(--palette-4-bg); border-color: var(--palette-4-fg);
 }
-.browse-mode-panel[data-mode="by-topic"] > .collection:nth-child(5n+4) > summary { color: var(--palette-4-fg); }
-.browse-mode-panel[data-mode="by-topic"] > .collection:nth-child(5n+5) {
-  background: var(--palette-5-bg); border-color: var(--palette-5-fg);
-}
-.browse-mode-panel[data-mode="by-topic"] > .collection:nth-child(5n+5) > summary { color: var(--palette-5-fg); }
+.browse-mode-panel[data-mode="by-topic"] > .collection:nth-child(4n+4) > summary { color: var(--palette-4-fg); }
 
 /* When OPEN the box returns to a white card so the problem list reads
    normally — but keep the coloured top border so the section still
@@ -3325,15 +3320,20 @@ button.status-badge:hover { filter: brightness(0.97); }
 .browse-mode-panel[data-mode="by-topic"] > .collection[open] {
   background: var(--card-bg);
 }
-/* Subtopics (collection-l2) inside an opened main topic should NOT
-   inherit the parent's tinted background — they live on a neutral
-   white/transparent surface for readability. The CSS file's earlier
-   `.collection .collection { background: transparent }` rule already
-   sets transparent, but the parent's coloured bg shows through; force
-   white here so the nested rows read cleanly. */
-.browse-mode-panel[data-mode="by-topic"] > .collection[open] .collection {
-  background: transparent;
-  border-color: transparent;
+/* Subtopic chips inside Po temah boxes — the inline pills next to each
+   main topic name (e.g. "Polinomska funkcija"). Force a white surface
+   for BOTH default and pressed states so they read on the coloured
+   parent box; the pressed state is signalled by border + text color
+   instead of a tinted fill. */
+.browse-mode-panel[data-mode="by-topic"] .subtopic-chip,
+.browse-mode-panel[data-mode="by-topic"] .subtopic-chip[aria-pressed="true"] {
+  background: #ffffff;
+  color: var(--fg);
+  border-color: rgba(0, 0, 0, 0.18);
+}
+.browse-mode-panel[data-mode="by-topic"] .subtopic-chip[aria-pressed="true"] {
+  border-color: rgba(0, 0, 0, 0.55);
+  font-weight: 600;
 }
 
 /* ----- Matura year folders: 3-per-row coloured grid, same expand-in-place
@@ -3371,26 +3371,22 @@ button.status-badge:hover { filter: brightness(0.97); }
   border-top-width: 6px;
 }
 /* Per-position cycling colour for year boxes. */
-.page-panel[data-panel="matura"] > .collection-l1:nth-child(5n+1) {
+.page-panel[data-panel="matura"] > .collection-l1:nth-child(4n+1) {
   background: var(--palette-1-bg); border-color: var(--palette-1-fg);
 }
-.page-panel[data-panel="matura"] > .collection-l1:nth-child(5n+1) > summary { color: var(--palette-1-fg); }
-.page-panel[data-panel="matura"] > .collection-l1:nth-child(5n+2) {
+.page-panel[data-panel="matura"] > .collection-l1:nth-child(4n+1) > summary { color: var(--palette-1-fg); }
+.page-panel[data-panel="matura"] > .collection-l1:nth-child(4n+2) {
   background: var(--palette-2-bg); border-color: var(--palette-2-fg);
 }
-.page-panel[data-panel="matura"] > .collection-l1:nth-child(5n+2) > summary { color: var(--palette-2-fg); }
-.page-panel[data-panel="matura"] > .collection-l1:nth-child(5n+3) {
+.page-panel[data-panel="matura"] > .collection-l1:nth-child(4n+2) > summary { color: var(--palette-2-fg); }
+.page-panel[data-panel="matura"] > .collection-l1:nth-child(4n+3) {
   background: var(--palette-3-bg); border-color: var(--palette-3-fg);
 }
-.page-panel[data-panel="matura"] > .collection-l1:nth-child(5n+3) > summary { color: var(--palette-3-fg); }
-.page-panel[data-panel="matura"] > .collection-l1:nth-child(5n+4) {
+.page-panel[data-panel="matura"] > .collection-l1:nth-child(4n+3) > summary { color: var(--palette-3-fg); }
+.page-panel[data-panel="matura"] > .collection-l1:nth-child(4n+4) {
   background: var(--palette-4-bg); border-color: var(--palette-4-fg);
 }
-.page-panel[data-panel="matura"] > .collection-l1:nth-child(5n+4) > summary { color: var(--palette-4-fg); }
-.page-panel[data-panel="matura"] > .collection-l1:nth-child(5n+5) {
-  background: var(--palette-5-bg); border-color: var(--palette-5-fg);
-}
-.page-panel[data-panel="matura"] > .collection-l1:nth-child(5n+5) > summary { color: var(--palette-5-fg); }
+.page-panel[data-panel="matura"] > .collection-l1:nth-child(4n+4) > summary { color: var(--palette-4-fg); }
 /* Inside an opened year, the nested season/level <details> stay
    transparent so they read on the white parent background. */
 .page-panel[data-panel="matura"] > .collection-l1[open] .collection {
