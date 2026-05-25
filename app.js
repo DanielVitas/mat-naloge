@@ -832,20 +832,33 @@ function isApproved(id) {
   const s = effectiveState(id);
   return approverList(s.approved_by).length > 0;
 }
-const SHOW_UNAPPROVED_KEY = 'show-unapproved';
-function showUnapprovedFlag() {
-  return localStorage.getItem(SHOW_UNAPPROVED_KEY) === '1';
+// Approval-filter flag — INVERTED from earlier semantics. The default
+// (no key set) now means "show everything"; setting the flag opts the
+// viewer into the "approved only" filter. We keep the old storage key
+// name so existing users who had explicitly toggled "show all" don't
+// flip semantics under them — but the toggle button's aria-pressed
+// state is now read as "approved-only filter ON" when SHOW_ONLY_APPROVED
+// === '1' (a new key), and we leave the old `show-unapproved` key alone.
+const SHOW_ONLY_APPROVED_KEY = 'show-only-approved';
+function showOnlyApprovedFlag() {
+  return localStorage.getItem(SHOW_ONLY_APPROVED_KEY) === '1';
 }
-function setShowUnapprovedFlag(v) {
-  if (v) localStorage.setItem(SHOW_UNAPPROVED_KEY, '1');
-  else   localStorage.removeItem(SHOW_UNAPPROVED_KEY);
+function setShowOnlyApprovedFlag(v) {
+  if (v) localStorage.setItem(SHOW_ONLY_APPROVED_KEY, '1');
+  else   localStorage.removeItem(SHOW_ONLY_APPROVED_KEY);
 }
+// Legacy aliases so callsites elsewhere that still use the old names
+// keep working (e.g. `showUnapprovedFlag()` is true exactly when the
+// new filter is OFF, i.e. everything is shown).
+function showUnapprovedFlag()      { return !showOnlyApprovedFlag(); }
+function setShowUnapprovedFlag(v)  { setShowOnlyApprovedFlag(!v); }
 // Effective check used everywhere a card is filtered. Signed-in users
 // (either with token OR export-only name) skip the filter entirely;
-// signed-out users honor the toggle.
+// signed-out viewers see everything by default and only see the
+// approved subset when they've opted in via the toggle.
 function shouldShowProblem(id) {
   if (typeof isSignedIn === 'function' ? isSignedIn() : !!getToken()) return true;
-  if (showUnapprovedFlag()) return true;
+  if (!showOnlyApprovedFlag()) return true;   // default: show all
   return isApproved(id);
 }
 
@@ -1317,22 +1330,24 @@ function initSyncBar() {
   const discardBtn      = bar.querySelector('#gh-discard');
 
   // ----- Approval-only toggle (signed-out only) ---------------------------
+  // Default: filter OFF (show everything). User can opt in to
+  // "Le potrjene" (approved-only) by clicking the toggle.
   // aria-pressed === 'true'  → filter ON  (only approved problems)
-  // aria-pressed === 'false' → showing everything
+  // aria-pressed === 'false' → showing everything (default)
   function syncApprovalToggleUI() {
     if (!approvalToggle) return;
-    const on = !showUnapprovedFlag();
+    const on = showOnlyApprovedFlag();
     approvalToggle.setAttribute('aria-pressed', on ? 'true' : 'false');
     const label = approvalToggle.querySelector('.approval-filter-label');
-    if (label) label.textContent = on ? 'Approved only' : 'All problems';
+    if (label) label.textContent = on ? 'Le potrjene' : 'Vse naloge';
     approvalToggle.title = on
-      ? 'Showing only problems approved by a reviewer. Click to show all.'
-      : 'Showing all problems. Click to hide unapproved ones.';
+      ? 'Prikazane so le naloge, ki jih je potrdil ocenjevalec. Klikni za prikaz vseh.'
+      : 'Prikazane so vse naloge. Klikni za prikaz le potrjenih.';
   }
   if (approvalToggle) {
     approvalToggle.addEventListener('click', (e) => {
       e.stopPropagation();
-      setShowUnapprovedFlag(!showUnapprovedFlag());
+      setShowOnlyApprovedFlag(!showOnlyApprovedFlag());
       syncApprovalToggleUI();
       applyApprovalFilter();
     });
@@ -1381,8 +1396,8 @@ function initSyncBar() {
     // export-only mode the wrapper hides it via CSS .export-only rule.
     pushBtn.disabled = !hasToken || n === 0;
     pushBtn.textContent = n === 0
-      ? '⬆ Push'
-      : `⬆ Push (${n} edit${n === 1 ? '' : 's'})`;
+      ? '⬆ Potisni'
+      : `⬆ Potisni (${n})`;
     // Export (JSON) button: built lazily next to Push, only shown in
     // export-only mode. Click serializes pendingChanges() to a download.
     let exportBtn = bar.querySelector('#gh-export-changes');
@@ -1398,8 +1413,8 @@ function initSyncBar() {
       exportBtn.hidden = !exportOnly;
       exportBtn.disabled = n === 0;
       exportBtn.textContent = n === 0
-        ? '⬇ Export'
-        : `⬇ Export (${n} edit${n === 1 ? '' : 's'})`;
+        ? '⬇ Izvozi'
+        : `⬇ Izvozi (${n})`;
     }
     pushBtn.hidden = exportOnly;
     if (discardBtn) {
@@ -1548,7 +1563,7 @@ function initSyncBar() {
     e.stopPropagation();
     closeDropdowns();
     pushBtn.disabled = true;
-    pushBtn.textContent = 'Pushing…';
+    pushBtn.textContent = 'Potiskanje…';
     const ok = await pushChanges();
     if (!ok) refresh();
   });
@@ -3332,13 +3347,13 @@ async function initSearchPage(opts) {
   const hasTextbookSecs = textbookSections.length > 0;
   root.innerHTML = `
     <div class="filter-cell filter-keyword-cell">
-      <label class="filter-label" for="f-keyword">Keyword</label>
+      <label class="filter-label" for="f-keyword">Ključna beseda</label>
       <input type="search" id="f-keyword" class="filter-keyword-input"
              placeholder="e.g. mediana, integral, …"
              autocomplete="off" spellcheck="false">
     </div>
     <div class="filter-cell filter-source-cell">
-      <label class="filter-label">Source</label>
+      <label class="filter-label">Vir</label>
       <div class="filter-chip-group" id="f-sources">
         ${allSources.map(s => {
           // Only Matura and Textbook have a per-source filter panel — any
@@ -3417,7 +3432,7 @@ async function initSearchPage(opts) {
     </div>` : ''}
     <div class="filter-cell topics-cell">
       <div class="filter-label-row">
-        <label class="filter-label">Topics</label>
+        <label class="filter-label">Teme</label>
         <div class="topics-actions">
           <button type="button" class="link-btn" id="topics-all">Select all</button>
           <button type="button" class="link-btn" id="topics-none">Select none</button>
@@ -3805,7 +3820,7 @@ async function initSearchPage(opts) {
   function render() {
     const out = PROBLEMS.filter(matches);
     lastMatches = out;
-    countEl.textContent = `${out.length} of ${PROBLEMS.length} problems`;
+    countEl.textContent = `${out.length} zadetkov`;
     // Index for the observer callback so it can look up problem data
     // by `n` without scanning the array.
     window.__problemsByN = {};
@@ -4684,10 +4699,10 @@ ${itemsTex}
     const addBlock = document.createElement('div');
     addBlock.className = 'finishing-add-block';
     addBlock.innerHTML =
-      '<div class="finishing-add-header">+ Add a problem</div>' +
+      '<div class="finishing-add-header">+ Dodaj nalogo</div>' +
       '<div class="finishing-add-actions">' +
         '<button type="button" class="finishing-add-from-coll">Collection</button>' +
-        '<button type="button" class="finishing-add-search">Search</button>' +
+        '<button type="button" class="finishing-add-search">Iskalnik</button>' +
       '</div>';
     addBlock.querySelector('.finishing-add-from-coll')
             .addEventListener('click', () => openAddProblemModal('collection'));
@@ -4708,7 +4723,7 @@ ${itemsTex}
       '<div class="exam-modal-backdrop"></div>' +
       '<div class="exam-modal-window">' +
         '<div class="exam-modal-header">' +
-          '<h2 class="exam-modal-title">Add a problem</h2>' +
+          '<h2 class="exam-modal-title">Dodaj nalogo</h2>' +
           '<button type="button" class="exam-modal-close" aria-label="Close">×</button>' +
         '</div>' +
         '<div class="exam-modal-body"></div>' +
@@ -5021,7 +5036,7 @@ ${itemsTex}
     toggleLatexBtn.addEventListener('click', () => {
       const open = document.body.classList.toggle('latex-open');
       toggleLatexBtn.setAttribute('aria-pressed', open ? 'true' : 'false');
-      toggleLatexBtn.textContent = open ? '✎ Hide LaTeX' : '✎ Edit LaTeX';
+      toggleLatexBtn.textContent = open ? '✎ Skrij LaTeX' : '✎ Uredi LaTeX';
     });
   }
 
@@ -5186,7 +5201,7 @@ function initIndexSourceFilter() {
   const hasTextbookSecs = textbookSections.length > 0;
   root.innerHTML = `
     <div class="filter-cell filter-source-cell">
-      <label class="filter-label">Source</label>
+      <label class="filter-label">Vir</label>
       <div class="filter-chip-group" id="ix-sources">
         ${allSources.map(s => {
           const slug = s === 'Matura' ? 'matura'

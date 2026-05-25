@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Search</title>
+<title>Iskalnik</title>
 <link rel="stylesheet" href="styles.css?v=85ae00">
 
 <script>
@@ -95,16 +95,16 @@
   </button>
   <div class="menu-dropdown" id="menu-dropdown" hidden>
     <div class="menu-tree">
-      <a class="menu-link l1" href="index.html">Problems</a>
-      <a class="menu-link l1" href="search.html">Search</a>
-      <a class="menu-link l1" href="exam.html">Exam</a>
+      <a class="menu-link l1" href="index.html">Naloge</a>
+      <a class="menu-link l1" href="search.html">Iskalnik</a>
+      <a class="menu-link l1" href="exam.html">Test</a>
       <button type="button" class="menu-link l1 menu-signin" id="menu-signin"
               hidden>Sign in</button>
     </div>
   </div>
 </div>
 
-    <h1 class="page-title">Search</h1>
+    <h1 class="page-title">Iskalnik</h1>
     <span style="flex:1"></span>
     
 <div class="collection-bar" id="collection-bar">
@@ -125,8 +125,8 @@
   <!-- Signed-out state -->
   <div class="gh-state gh-signed-out" id="gh-signed-out">
     <button id="approval-filter-toggle" class="approval-filter-btn"
-            type="button" aria-pressed="true"
-            title="Showing only problems approved by a reviewer. Click to show all.">
+            type="button" aria-pressed="false"
+            title="Prikazane so vse naloge. Klikni za prikaz le potrjenih.">
       <svg class="af-icon af-icon-on" viewBox="0 0 24 24" width="16" height="16"
            aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"
            stroke-linecap="round" stroke-linejoin="round">
@@ -138,7 +138,7 @@
         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/>
         <circle cx="12" cy="12" r="3"/>
       </svg>
-      <span class="approval-filter-label">Approved only</span>
+      <span class="approval-filter-label">Vse naloge</span>
     </button>
     <button id="gh-signin-btn" class="primary">Sign in</button>
     <div class="gh-dropdown gh-signin-dropdown" id="gh-signin-dropdown" hidden>
@@ -199,7 +199,7 @@
 </div>
 <script>window.META_URL = "data/meta.640f7419f3.json"; window.BODIES_URL = "data/bodies.0f3749552c.json";</script>
 
-<script src="app.js?v=36642c"></script>
+<script src="app.js?v=64b9a3"></script>
 <script>initSearchPage();</script>
 </body>
 </html>

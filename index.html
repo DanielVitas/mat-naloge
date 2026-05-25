@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Problems</title>
+<title>Naloge</title>
 <link rel="stylesheet" href="styles.css?v=85ae00">
 
 <script>
@@ -95,16 +95,16 @@
   </button>
   <div class="menu-dropdown" id="menu-dropdown" hidden>
     <div class="menu-tree">
-      <a class="menu-link l1" href="index.html">Problems</a>
-      <a class="menu-link l1" href="search.html">Search</a>
-      <a class="menu-link l1" href="exam.html">Exam</a>
+      <a class="menu-link l1" href="index.html">Naloge</a>
+      <a class="menu-link l1" href="search.html">Iskalnik</a>
+      <a class="menu-link l1" href="exam.html">Test</a>
       <button type="button" class="menu-link l1 menu-signin" id="menu-signin"
               hidden>Sign in</button>
     </div>
   </div>
 </div>
 
-    <h1 class="page-title">Problems</h1>
+    <h1 class="page-title">Naloge</h1>
     <span style="flex:1"></span>
     
 <div class="collection-bar" id="collection-bar">
@@ -125,8 +125,8 @@
   <!-- Signed-out state -->
   <div class="gh-state gh-signed-out" id="gh-signed-out">
     <button id="approval-filter-toggle" class="approval-filter-btn"
-            type="button" aria-pressed="true"
-            title="Showing only problems approved by a reviewer. Click to show all.">
+            type="button" aria-pressed="false"
+            title="Prikazane so vse naloge. Klikni za prikaz le potrjenih.">
       <svg class="af-icon af-icon-on" viewBox="0 0 24 24" width="16" height="16"
            aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"
            stroke-linecap="round" stroke-linejoin="round">
@@ -138,7 +138,7 @@
         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/>
         <circle cx="12" cy="12" r="3"/>
       </svg>
-      <span class="approval-filter-label">Approved only</span>
+      <span class="approval-filter-label">Vse naloge</span>
     </button>
     <button id="gh-signin-btn" class="primary">Sign in</button>
     <div class="gh-dropdown gh-signin-dropdown" id="gh-signin-dropdown" hidden>
@@ -204,8 +204,8 @@
 
   </div>
   <nav class="page-tabs browse-mode-tabs" id="browse-mode-tabs">
-    <button class="page-tab browse-mode-tab active" type="button" data-mode="by-topic">Topic <span class="count">(665)</span></button>
-    <button class="page-tab browse-mode-tab" type="button" data-mode="by-source">All <span class="count">(665)</span></button>
+    <button class="page-tab browse-mode-tab active" type="button" data-mode="by-topic">Po temah <span class="count">(665)</span></button>
+    <button class="page-tab browse-mode-tab" type="button" data-mode="by-source">Seznam <span class="count">(665)</span></button>
     <span class="page-tabs-spacer"></span>
     <!-- Source filter sits inline in the tab row, to the left of
          Export all. Shown ONLY in the By-topic view (the By-source view
@@ -214,7 +214,7 @@
          doesn't push the Export button. -->
     <details class="index-source-filter-wrap" id="index-source-filter-wrap" hidden>
       <summary class="index-source-filter-summary">
-        <span class="index-source-filter-label">Source</span>
+        <span class="index-source-filter-label">Vir</span>
         <span class="index-source-filter-arrow" aria-hidden="true">▾</span>
       </summary>
       <div class="index-source-filter filters-panel" id="index-source-filter"></div>
@@ -224,7 +224,7 @@
   <section class="browse-mode-panel" data-mode="by-source" hidden>
     <nav class="page-tabs page-tabs-sub" id="page-tabs">
       <button class="page-tab active" type="button" data-tab="matura">Matura <span class="count">(644)</span></button>
-      <button class="page-tab" type="button" data-tab="textbook">Textbook <span class="count">(21)</span></button>
+      <button class="page-tab" type="button" data-tab="textbook">Učbenik <span class="count">(21)</span></button>
     </nav>
     <section class="page-panel" data-panel="matura">
       <details class="collection collection-l1" data-target="matura/2025"><summary>2025 <span class="count">(88)</span></summary>
@@ -2952,7 +2952,7 @@
 
   <script>window.META_URL = "data/meta.640f7419f3.json"; window.BODIES_URL = "data/bodies.0f3749552c.json";</script>
 
-<script src="app.js?v=36642c"></script>
+<script src="app.js?v=64b9a3"></script>
 <script>initIndexPage();</script>
 </body>
 </html>
