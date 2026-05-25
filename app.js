@@ -910,6 +910,26 @@ function applyApprovalFilter() {
     });
     span.textContent = `(${seen.size})`;
   });
+  // Browse-mode tab counts (Problems-page "Po temah (N) / Seznam (N)").
+  // Each tab's panel holds one full layout of every problem — so the
+  // visible-unique count across the panel reflects the filtered total.
+  document.querySelectorAll('.browse-mode-tab[data-mode]').forEach(btn => {
+    const span = btn.querySelector('.count');
+    if (!span) return;
+    if (!span.dataset.total) {
+      const m = span.textContent.match(/\d+/);
+      if (m) span.dataset.total = m[0];
+    }
+    const mode = btn.dataset.mode;
+    const panel = document.querySelector(
+      `section.browse-mode-panel[data-mode="${mode}"]`);
+    if (!panel) return;
+    const seen = new Set();
+    panel.querySelectorAll('.search-result-wrap[data-id]').forEach(w => {
+      if (!w.classList.contains('unapproved-hidden')) seen.add(w.dataset.id);
+    });
+    span.textContent = `(${seen.size})`;
+  });
   // Search page: notify listeners so they can re-render their result list.
   window.dispatchEvent(new CustomEvent('approval-filter-changed'));
 }
@@ -3851,7 +3871,12 @@ async function initSearchPage(opts) {
   }
 
   function render() {
-    const out = PROBLEMS.filter(matches);
+    // Apply the active filters first, then drop unapproved problems
+    // when the signed-out approval-only toggle is on. shouldShowProblem
+    // returns true for signed-in users and when the toggle is off, so
+    // this is a no-op outside the "Potrjene naloge" mode.
+    const out = PROBLEMS.filter(matches)
+                        .filter(p => shouldShowProblem(p.n));
     lastMatches = out;
     countEl.textContent = `${out.length} zadetkov`;
     // Index for the observer callback so it can look up problem data
