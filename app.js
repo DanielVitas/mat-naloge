@@ -1112,7 +1112,13 @@ function initMenuBar() {
     dd.hidden = !dd.hidden;
   });
   document.addEventListener('click', (e) => {
-    if (!bar.contains(e.target)) dd.hidden = true;
+    // Don't auto-close the menu while interacting with the sign-in
+    // dropdown — the dropdown opens next to the menu item and the user
+    // expects both panels to stay visible together.
+    if (bar.contains(e.target)) return;
+    const signin = document.getElementById('gh-signin-dropdown');
+    if (signin && !signin.hidden && signin.contains(e.target)) return;
+    dd.hidden = true;
   });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') dd.hidden = true;
@@ -1155,7 +1161,9 @@ function initMenuBar() {
         dropdown.style.top  = rect.top + 'px';
         dropdown.style.right = 'auto';
       }
-      dd.hidden = true;
+      // Note: we intentionally do NOT close the hamburger menu here.
+      // The dropdown opens next to the menu item, so leaving the menu
+      // visible gives a clearer visual anchor.
       const syncBtn = document.getElementById('gh-signin-btn');
       if (syncBtn) syncBtn.click();
     });
@@ -1361,7 +1369,7 @@ function initSyncBar() {
     const on = showOnlyApprovedFlag();
     approvalToggle.setAttribute('aria-pressed', on ? 'true' : 'false');
     const label = approvalToggle.querySelector('.approval-filter-label');
-    if (label) label.textContent = on ? 'Le potrjene' : 'Vse naloge';
+    if (label) label.textContent = on ? 'Potrjene naloge' : 'Vse naloge';
     approvalToggle.title = on
       ? 'Prikazane so le naloge, ki jih je potrdil ocenjevalec. Klikni za prikaz vseh.'
       : 'Prikazane so vse naloge. Klikni za prikaz le potrjenih.';
@@ -3379,17 +3387,20 @@ async function initSearchPage(opts) {
       <div class="filter-chip-group" id="f-sources">
         ${allSources.map(s => {
           // Only Matura and Textbook have a per-source filter panel — any
-          // other source value gets a plain chip (no arrow).
+          // other source value gets a plain chip (no arrow). The label is
+          // localised; the underlying data-val keeps the canonical English
+          // name so the filter logic still matches.
           const slug = s === 'Matura' ? 'matura'
                       : s === 'Textbook' ? 'textbook' : '';
+          const label = s === 'Textbook' ? 'Učbenik' : s;
           const panelId = slug ? `panel-${slug}` : '';
           return `<span class="filter-source-chip-combo">`
             + `<button type="button" class="filter-chip filter-chip-source filter-chip-source-combo${slug ? ' filter-chip-source-' + slug : ''}" `
-            +         `data-val="${escapeHtml(s)}" aria-pressed="true">${escapeHtml(s)}</button>`
+            +         `data-val="${escapeHtml(s)}" aria-pressed="true">${escapeHtml(label)}</button>`
             + (panelId
                 ? `<button type="button" class="filter-source-arrow" `
                   +         `data-target="${panelId}" aria-expanded="false" `
-                  +         `aria-label="Toggle ${escapeHtml(s)} filters">▾</button>`
+                  +         `aria-label="Toggle ${escapeHtml(label)} filters">▾</button>`
                 : '')
             + `</span>`;
         }).join('')}
@@ -3398,7 +3409,7 @@ async function initSearchPage(opts) {
     <div class="filter-panel filter-panel-matura" id="panel-matura" hidden>
       <div class="filter-grid">
         <div class="filter-cell">
-          <label class="filter-label">Year</label>
+          <label class="filter-label">Leto</label>
           <div class="range-inputs">
             <input type="number" id="f-year-min" value="${yearMin}" min="${yearMin}" max="${yearMax}">
             <span>–</span>
@@ -3406,7 +3417,7 @@ async function initSearchPage(opts) {
           </div>
         </div>
         <div class="filter-cell">
-          <label class="filter-label">Points</label>
+          <label class="filter-label">Točke</label>
           <div class="range-inputs">
             <input type="number" id="f-points-min" value="${pointsMin}" min="${pointsMin}" max="${pointsMax}">
             <span>–</span>
@@ -3422,7 +3433,7 @@ async function initSearchPage(opts) {
           </div>
         </div>
         <div class="filter-cell">
-          <label class="filter-label">Level</label>
+          <label class="filter-label">Nivo</label>
           <div class="filter-chip-group" id="f-levels">
             ${allLevels.map(l =>
               `<button type="button" class="filter-chip filter-chip-level" data-val="${escapeHtml(l)}" aria-pressed="true">${escapeHtml(l)}</button>`
@@ -3430,7 +3441,7 @@ async function initSearchPage(opts) {
           </div>
         </div>
         <div class="filter-cell">
-          <label class="filter-label">Section</label>
+          <label class="filter-label">Del</label>
           <div class="filter-chip-group" id="f-sections-matura">
             ${maturaSections.map(s =>
               `<button type="button" class="filter-chip filter-chip-section" data-val="${escapeHtml(s)}" aria-pressed="true">${escapeHtml(s)}</button>`
@@ -3443,7 +3454,7 @@ async function initSearchPage(opts) {
     <div class="filter-panel filter-panel-textbook" id="panel-textbook" hidden>
       <div class="filter-grid">
         <div class="filter-cell">
-          <label class="filter-label">Section</label>
+          <label class="filter-label">Del</label>
           <div class="filter-chip-group" id="f-sections-textbook">
             ${textbookSections.map(s =>
               `<button type="button" class="filter-chip filter-chip-section filter-chip-section-textbook" data-val="${escapeHtml(s)}" aria-pressed="true">${escapeHtml(s)}</button>`
@@ -4724,7 +4735,7 @@ ${itemsTex}
       '<div class="finishing-add-header">+ Dodaj nalogo</div>' +
       '<div class="finishing-add-actions">' +
         '<button type="button" class="finishing-add-from-coll">Collection</button>' +
-        '<button type="button" class="finishing-add-search">Iskalnik</button>' +
+        '<button type="button" class="finishing-add-search">Poišči</button>' +
       '</div>';
     addBlock.querySelector('.finishing-add-from-coll')
             .addEventListener('click', () => openAddProblemModal('collection'));
@@ -5228,14 +5239,15 @@ function initIndexSourceFilter() {
         ${allSources.map(s => {
           const slug = s === 'Matura' ? 'matura'
                       : s === 'Textbook' ? 'textbook' : '';
+          const label = s === 'Textbook' ? 'Učbenik' : s;
           const panelId = slug ? `ix-panel-${slug}` : '';
           return `<span class="filter-source-chip-combo">`
             + `<button type="button" class="filter-chip filter-chip-source filter-chip-source-combo${slug ? ' filter-chip-source-' + slug : ''}" `
-            +         `data-val="${escapeHtml(s)}" aria-pressed="true">${escapeHtml(s)}</button>`
+            +         `data-val="${escapeHtml(s)}" aria-pressed="true">${escapeHtml(label)}</button>`
             + (panelId
                 ? `<button type="button" class="filter-source-arrow" `
                   +         `data-target="${panelId}" aria-expanded="false" `
-                  +         `aria-label="Toggle ${escapeHtml(s)} filters">▾</button>`
+                  +         `aria-label="Toggle ${escapeHtml(label)} filters">▾</button>`
                 : '')
             + `</span>`;
         }).join('')}
@@ -5247,7 +5259,7 @@ function initIndexSourceFilter() {
     <div class="filter-panel filter-panel-matura" id="ix-panel-matura" hidden>
       <div class="filter-grid">
         <div class="filter-cell">
-          <label class="filter-label">Year</label>
+          <label class="filter-label">Leto</label>
           <div class="range-inputs">
             <input type="number" id="ix-year-min" value="${yearMin}" min="${yearMin}" max="${yearMax}">
             <span>–</span>
@@ -5255,7 +5267,7 @@ function initIndexSourceFilter() {
           </div>
         </div>
         <div class="filter-cell">
-          <label class="filter-label">Points</label>
+          <label class="filter-label">Točke</label>
           <div class="range-inputs">
             <input type="number" id="ix-points-min" value="${pointsMin}" min="${pointsMin}" max="${pointsMax}">
             <span>–</span>
@@ -5271,7 +5283,7 @@ function initIndexSourceFilter() {
           </div>
         </div>
         <div class="filter-cell">
-          <label class="filter-label">Level</label>
+          <label class="filter-label">Nivo</label>
           <div class="filter-chip-group" id="ix-levels">
             ${allLevels.map(l =>
               `<button type="button" class="filter-chip filter-chip-level" data-val="${escapeHtml(l)}" aria-pressed="true">${escapeHtml(l)}</button>`
@@ -5279,7 +5291,7 @@ function initIndexSourceFilter() {
           </div>
         </div>
         <div class="filter-cell">
-          <label class="filter-label">Section</label>
+          <label class="filter-label">Del</label>
           <div class="filter-chip-group" id="ix-sections-matura">
             ${maturaSections.map(s =>
               `<button type="button" class="filter-chip filter-chip-section" data-val="${escapeHtml(s)}" aria-pressed="true">${escapeHtml(s)}</button>`
@@ -5292,7 +5304,7 @@ function initIndexSourceFilter() {
     <div class="filter-panel filter-panel-textbook" id="ix-panel-textbook" hidden>
       <div class="filter-grid">
         <div class="filter-cell">
-          <label class="filter-label">Section</label>
+          <label class="filter-label">Del</label>
           <div class="filter-chip-group" id="ix-sections-textbook">
             ${textbookSections.map(s =>
               `<button type="button" class="filter-chip filter-chip-section filter-chip-section-textbook" data-val="${escapeHtml(s)}" aria-pressed="true">${escapeHtml(s)}</button>`

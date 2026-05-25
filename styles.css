@@ -1595,6 +1595,22 @@ canvas.crop-display {
 .gh-signin-tab-panel input[type="password"] {
   width: 100%;
   box-sizing: border-box;
+  /* Pin the same padding / font / border / radius for both inputs so
+     they render identically regardless of type="text" vs "password"
+     browser defaults. */
+  padding: 0.5rem 0.7rem;
+  font: inherit;
+  font-size: 0.95rem;
+  line-height: 1.3;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  background: white;
+  color: var(--fg);
+  outline: none;
+}
+.gh-signin-tab-panel input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent);
 }
 .gh-sync .gh-dropdown[hidden] { display: none; }
 /* On narrow viewports the .gh-sync button can sit near the left side
