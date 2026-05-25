@@ -1220,7 +1220,14 @@ function writeSavedBrowseMode(mode) {
 function bindBrowseModeTabs(defaultMode) {
   const tabs = document.querySelectorAll('.browse-mode-tab');
   if (!tabs.length) return;
-  const valid = new Set(['by-source', 'by-topic', 'by-year']);
+  // Build the valid set from the tabs ACTUALLY present in the DOM, not a
+  // hard-coded list. The Year tab used to be in this list but was removed
+  // — if a user still has 'by-year' in localStorage, the old code would
+  // pick it, call switchBrowseMode('by-year') which finds no matching tab
+  // and returns false WITHOUT un-hiding any panel, leaving every section
+  // hidden and the whole page empty (= unclickable).
+  const valid = new Set();
+  tabs.forEach(t => { if (t.dataset.mode) valid.add(t.dataset.mode); });
   tabs.forEach(t => {
     t.addEventListener('click', (e) => {
       e.preventDefault();
@@ -1240,7 +1247,12 @@ function bindBrowseModeTabs(defaultMode) {
   const pick = valid.has(initial) ? initial
              : valid.has(saved)   ? saved
              :                      defaultMode;
-  switchBrowseMode(pick);
+  // Safety net: if for any reason switchBrowseMode fails on `pick`, retry
+  // with the argument default so a stale localStorage / hash value can
+  // never leave every panel hidden.
+  if (!switchBrowseMode(pick) && pick !== defaultMode) {
+    switchBrowseMode(defaultMode);
+  }
 }
 
 // Wire up tab click → switch + update hash. `defaultName` is used when
