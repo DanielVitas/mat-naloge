@@ -4545,6 +4545,64 @@ function initFinishing(byN) {
   const headingState = { title: true, name: true, surname: true, points: true, grade: true };
   let headingTitle = 'Izpit';
 
+  // ─── Persistence across page navigation ─────────────────────────────
+  // The user can edit the title, toggle heading fields, reorder items
+  // and change inter-item gaps. We persist all of that to localStorage
+  // so navigating away (Test → Naloge → Test) preserves the edits.
+  //
+  // Title + heading toggles + latex-pane open state restore unconditionally.
+  // Item order + gaps are keyed by the current exam fingerprint (sorted
+  // list of problem IDs) — if the exam set changes between visits, the
+  // saved order/gaps don't make sense any more and we fall back to the
+  // default (sortBySection).
+  const EXAM_STATE_KEY = 'exam-state-v1';
+  function loadExamState() {
+    try {
+      const raw = localStorage.getItem(EXAM_STATE_KEY);
+      if (!raw) return null;
+      const v = JSON.parse(raw);
+      return (v && typeof v === 'object') ? v : null;
+    } catch { return null; }
+  }
+  function saveExamState() {
+    try {
+      const fp = items.map(it => it.n).sort((a, b) => a - b).join(',');
+      const cur = loadExamState() || {};
+      cur.headingTitle = headingTitle;
+      cur.headingState = Object.assign({}, headingState);
+      cur.latexOpen    = document.body.classList.contains('latex-open');
+      cur.byFp = cur.byFp || {};
+      cur.byFp[fp] = {
+        order: items.map(it => it.n),
+        gaps:  gaps.map(g => ({ space: g.space|0, pageBreak: !!g.pageBreak })),
+      };
+      // Cap byFp size — keep at most the 12 most-recent fingerprints so
+      // localStorage doesn't grow unbounded.
+      const fps = Object.keys(cur.byFp);
+      if (fps.length > 12) {
+        delete cur.byFp[fps[0]];
+      }
+      localStorage.setItem(EXAM_STATE_KEY, JSON.stringify(cur));
+    } catch {}
+  }
+  // Apply heading-level state (title + toggles) at the earliest opportunity
+  // so the first regenerateTex() emits the right LaTeX.
+  (function applyHeadingFromStorage() {
+    const s = loadExamState();
+    if (!s) return;
+    if (typeof s.headingTitle === 'string' && s.headingTitle.trim()) {
+      headingTitle = s.headingTitle;
+    }
+    if (s.headingState && typeof s.headingState === 'object') {
+      ['title','name','surname','points','grade'].forEach(k => {
+        if (typeof s.headingState[k] === 'boolean') headingState[k] = s.headingState[k];
+      });
+    }
+    if (typeof s.latexOpen === 'boolean') {
+      document.body.classList.toggle('latex-open', s.latexOpen);
+    }
+  })();
+
   function sortBySection(ns) {
     return [...ns].sort((a, b) => {
       const sa = ((byN[a]?.section_letters) || ['Z'])[0] || 'Z';
@@ -4664,6 +4722,10 @@ ${itemsTex}
 \\end{document}
 `;
     tex.value = doc;
+    // Every regeneration reflects a real state mutation (title edit,
+    // heading toggle, reorder, gap change, etc.), so this is the right
+    // single chokepoint to persist exam state to localStorage.
+    saveExamState();
   }
 
   // Parse the textarea content into items[] (best-effort). Also picks up
@@ -5341,14 +5403,31 @@ ${itemsTex}
       // Set unchanged — keep user edits to ordering, content, etc.
     } else {
       lastExamFingerprint = fp;
-      items = sortBySection(exam).map(n => {
+      // Default ordering: by section letter. Then, if we have a saved
+      // order for this exact exam-set fingerprint, prefer that.
+      let order = sortBySection(exam);
+      let gapsDefaults = order.map(() => ({ space: 0, pageBreak: false }));
+      const saved = loadExamState();
+      if (saved && saved.byFp && saved.byFp[fp]) {
+        const sf = saved.byFp[fp];
+        if (Array.isArray(sf.order) && sf.order.length === exam.length &&
+            sf.order.every(n => exam.includes(n))) {
+          order = sf.order.slice();
+        }
+        if (Array.isArray(sf.gaps) && sf.gaps.length === order.length) {
+          gapsDefaults = sf.gaps.map(g => ({
+            space: (g && g.space|0) || 0,
+            pageBreak: !!(g && g.pageBreak),
+          }));
+        }
+      }
+      items = order.map(n => {
         const data = byN[n] || {};
         const ed = effectiveState(n);
         const src = (ed.latex !== undefined) ? ed.latex : (data.latex || '');
         return { n, content: src.trim() };
       });
-      // Reset positional gaps to defaults whenever the exam set changes.
-      gaps = items.map(() => ({ space: 0, pageBreak: false }));
+      gaps = gapsDefaults;
       regenerateTex();
     }
     renderPreview();
@@ -5374,6 +5453,9 @@ ${itemsTex}
     toggleLatexBtn.addEventListener('click', () => {
       document.body.classList.toggle('latex-open');
       syncLabel();
+      // Persist the pane state so it survives an SPA navigation away
+      // from /exam.html and back (or a hard refresh).
+      saveExamState();
     });
   }
 
