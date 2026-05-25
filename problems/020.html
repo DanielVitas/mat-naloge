@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Naloga 20 — Matura 2025</title>
-<link rel="stylesheet" href="styles.css?v=b05228">
+<link rel="stylesheet" href="styles.css?v=e0b60ee">
 
 <script>
   // Prevent orphaned commas/periods/semicolons/colons at the start of a
@@ -42,7 +42,7 @@
       // Without it, math like `$27,\ 9,\ 3,\ box{\quad}$` renders as
       // raw source. Load the extension so `box{...}` works inside
       // `$...$` (which is how Matura "fill-in" prompts are written).
-      load: []
+      load: ['[tex]/bbox']
     },
     tex: {
       inlineMath: [['$', '$']],
@@ -52,8 +52,8 @@
       displayMath: [['$$', '$$'], ['\\[', '\\]']],
       processEscapes: true,
       processEnvironments: false,
-      packages: {'[+]': []},
-      macros: { euro: '{\\unicode{x20AC}}', fbox: ['{\\boxed{\\,#1\\,}}', 1] }
+      packages: {'[+]': ['bbox']},
+      macros: { euro: '{\\unicode{x20AC}}', fbox: ['{\\bbox[border:1px solid black]{\\,#1\\,}}', 1] }
     },
     options: {
       // Keep MathJax's own defaults (which include `mjx-container` so
@@ -226,7 +226,7 @@
 
   <div class="compact-grid"><div class="problem-body">  <div class="pane">    <div class="pane-header"><h3>Preview</h3></div>    <div class="preview-box" id="preview"></div>  </div>  <div class="pane latex-pane">    <div class="pane-header"><h3>LaTeX</h3></div>    <textarea id="latex-source" spellcheck="false"></textarea>  </div></div><div class="problem-crops"><div class="instance-block" data-instance="0">  <div class="crop-view" id="crop-view-0">    <div class="pane-header">      <h3 id="instance-label">2025 · Spomladanski rok · Pola 2 · OR</h3>      <span style="flex:1"></span>      <button class="full-page-btn" data-instance="0" type="button">📄 Cela stran</button><button class="edit-crop-btn" data-instance="0">✎ Uredi izrez</button><button class="edit-latex-btn" type="button" aria-pressed="false">✎ Uredi LaTeX</button>    </div>    <canvas class="crop-display" id="crop-canvas-0"></canvas>  </div>  <div class="crop-editor" id="crop-editor-0" hidden>    <div class="pane-header">      <h3>Določi izrez</h3>      <span style="flex:1"></span>      <button class="save-crop-btn primary" data-instance="0">Shrani</button>      <button class="cancel-crop-btn" data-instance="0">Prekliči</button>    </div>    <div class="canvas-wrap">      <canvas id="full-page-canvas-0"></canvas>      <div id="selection-box-0" class="selection-box"></div>    </div>  </div></div></div></div>
 <script>window.META_URL = "data/meta.dee8d0fa79.json"; window.BODIES_URL = "data/bodies.7f44b11a0a.json";</script>
-<script src="app.js?v=b05228"></script>
+<script src="app.js?v=e0b60ee"></script>
 <script>
   const PROBLEM = {"n": 20, "latex": "Na sliki je graf polinoma tretje stopnje. Odgovorite na zastavljena vprašanja tako, da obkrožite črko pred pravilnim odgovorom.\n\n\\begin{center}\n\\begin{tikzpicture}[scale=0.85,>=latex]\n  \\draw[->] (-1.6,0) -- (2.7,0) node[right] {$x$};\n  \\draw[->] (0,-2.4) -- (0,2.6) node[above] {$y$};\n  \\draw (1,0.06) -- (1,-0.06) node[below] {$1$};\n  \\draw (0.06,1) -- (-0.06,1) node[left] {$1$};\n  \\node[below left] at (0,0) {$0$};\n  \\draw[thick,smooth,domain=-1.35:2.2,samples=80]\n    plot (\\x,{2.6*(\\x+1.1)*(\\x-0.7)*(\\x-1.4)});\n\\end{tikzpicture}\n\\end{center}\n\n\\begin{itemize}[leftmargin=2em,itemsep=2pt,topsep=2pt]\n  \\item \\textbf{Koliko ničel ima polinom?}\\quad A. Nič.\\quad B. Eno.\\quad C. Dve.\\quad D. Tri.\n  \\item \\textbf{Kakšen je predznak vodilnega koeficienta?}\\quad A. Pozitiven.\\quad B. Negativen.\n  \\item \\textbf{Koliko stacionarnih točk ima?}\\quad A. Nič.\\quad B. Eno.\\quad C. Dve.\\quad D. Tri.\n\\end{itemize}", "topics": ["4.10 Funkcije", "4.10.7 Polinomska funkcija"], "tikz_count": 1, "tikz_originals": ["matura_figures/2025_Spomladanski_Pola2_OR_prob04_fig1.png"], "instances": [{"paper_id": "2025_Spomladanski_Pola2_OR", "paper_prob_n": 4, "season": "Spomladanski rok", "pola": "Izpitna pola 2", "level": "OR", "section": "A kratka naloga", "points": "3 točke", "page": 10, "page_image": "pages/2025_Spomladanski_Pola2_OR_page-10.png", "page_size": [1654, 2339], "bbox_default": [185, 955, 1470, 1788]}], "body_image": "", "is_textbook": false};
   initProblemPage(PROBLEM);

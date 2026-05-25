@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Naloga 818 — Matura 2016</title>
-<link rel="stylesheet" href="styles.css?v=b05228">
+<link rel="stylesheet" href="styles.css?v=e0b60ee">
 
 <script>
   // Prevent orphaned commas/periods/semicolons/colons at the start of a
@@ -42,7 +42,7 @@
       // Without it, math like `$27,\ 9,\ 3,\ box{\quad}$` renders as
       // raw source. Load the extension so `box{...}` works inside
       // `$...$` (which is how Matura "fill-in" prompts are written).
-      load: []
+      load: ['[tex]/bbox']
     },
     tex: {
       inlineMath: [['$', '$']],
@@ -52,8 +52,8 @@
       displayMath: [['$$', '$$'], ['\\[', '\\]']],
       processEscapes: true,
       processEnvironments: false,
-      packages: {'[+]': []},
-      macros: { euro: '{\\unicode{x20AC}}', fbox: ['{\\boxed{\\,#1\\,}}', 1] }
+      packages: {'[+]': ['bbox']},
+      macros: { euro: '{\\unicode{x20AC}}', fbox: ['{\\bbox[border:1px solid black]{\\,#1\\,}}', 1] }
     },
     options: {
       // Keep MathJax's own defaults (which include `mjx-container` so
@@ -226,7 +226,7 @@
 
   <div class="compact-grid"><div class="problem-body">  <div class="pane">    <div class="pane-header"><h3>Preview</h3></div>    <div class="preview-box" id="preview"></div>  </div>  <div class="pane latex-pane">    <div class="pane-header"><h3>LaTeX</h3></div>    <textarea id="latex-source" spellcheck="false"></textarea>  </div></div><div class="problem-crops"><div class="instance-block" data-instance="0">  <div class="crop-view" id="crop-view-0">    <div class="pane-header">      <h3 id="instance-label">2016 · Spomladanski rok · Pola 1 · OR</h3>      <span style="flex:1"></span>      <button class="full-page-btn" data-instance="0" type="button">📄 Cela stran</button><button class="edit-crop-btn" data-instance="0">✎ Uredi izrez</button><button class="edit-latex-btn" type="button" aria-pressed="false">✎ Uredi LaTeX</button>    </div>    <canvas class="crop-display" id="crop-canvas-0"></canvas>  </div>  <div class="crop-editor" id="crop-editor-0" hidden>    <div class="pane-header">      <h3>Določi izrez</h3>      <span style="flex:1"></span>      <button class="save-crop-btn primary" data-instance="0">Shrani</button>      <button class="cancel-crop-btn" data-instance="0">Prekliči</button>    </div>    <div class="canvas-wrap">      <canvas id="full-page-canvas-0"></canvas>      <div id="selection-box-0" class="selection-box"></div>    </div>  </div></div></div></div>
 <script>window.META_URL = "data/meta.dee8d0fa79.json"; window.BODIES_URL = "data/bodies.7f44b11a0a.json";</script>
-<script src="app.js?v=b05228"></script>
+<script src="app.js?v=e0b60ee"></script>
 <script>
   const PROBLEM = {"n": 818, "latex": "Dana je funkcija $f$ s predpisom $f(x)=\\begin{cases}x^{2}+c\\,; & x>0 \\\\ 2x+2\\,; & x\\leq 0\\end{cases}$.\n\\begin{enumerate}\n  \\item[11.1.] V spodnji koordinatni sistem narišite graf funkcije $f$ za $c=1$.\n\n\\begin{center}\n\\begin{tikzpicture}[>=latex, scale=0.45]\n  \\draw[->] (-4, 0) -- (5, 0) node[right] {$x$};\n  \\draw[->] (0, -4) -- (0, 4) node[above] {$y$};\n  \\foreach \\x in {-4,-3,-2,-1,1,2,3,4} \\draw (\\x,-0.12) -- (\\x,0.12);\n  \\foreach \\y in {-4,-3,-2,-1,1,2,3} \\draw (-0.12,\\y) -- (0.12,\\y);\n  \\node[below left] at (0,0) {$0$};\n  \\node[below] at (1,-0.18) {$1$};\n  \\node[left] at (-0.18,1) {$1$};\n\\end{tikzpicture}\n\\end{center}V katerih točkah je funkcija zvezna?\n  \\item[11.2.] Določite vrednost konstante $c$ tako, da bo funkcija $f$ zvezna za vsak $x\\in\\mathbb{R}$.\n\\end{enumerate}", "topics": ["4.10 Funkcije", "4.10.1 Linearna funkcija", "4.10.4 Kvadratna funkcija", "4.12 Zaporedja", "4.12.3 Limita"], "tikz_count": 1, "tikz_originals": ["matura_figs/2016_Spomladanski_Pola1_OR_prob_818_fig1.png?v=cd3f60"], "instances": [{"paper_id": "2016_Spomladanski_Pola1_OR", "paper_prob_n": 11, "season": "Spomladanski rok", "pola": "Izpitna pola 1", "level": "OR", "section": "", "points": "5 točk", "page": 14, "page_image": "pages/2016_Spomladanski_Pola1_OR_page-14.png", "page_size": [1654, 2339], "bbox_default": [157, 134, 1514, 1500]}, {"paper_id": "2016_Spomladanski_Pola1_VR", "paper_prob_n": 11, "season": "Spomladanski rok", "pola": "Izpitna pola 1", "level": "VR", "section": "", "points": "5 točk", "page": 14, "page_image": "pages/2016_Spomladanski_Pola1_VR_page-14.png", "page_size": [1654, 2339], "bbox_default": [157, 134, 1514, 1500]}], "body_image": "matura_refined/2016_Spomladanski_Pola1_OR/prob_11.png?v=1d8bbc", "is_textbook": false};
   initProblemPage(PROBLEM);
