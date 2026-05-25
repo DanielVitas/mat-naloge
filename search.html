@@ -52,7 +52,7 @@
       processEscapes: true,
       processEnvironments: false,
       packages: {'[+]': ['bbox']},
-      macros: { euro: '{\\unicode{x20AC}}' }
+      macros: { euro: '{\\unicode{x20AC}}', fbox: ['{\\bbox[border:1px solid black, padding:3px]{#1}}', 1] }
     },
     options: {
       // Keep MathJax's own defaults (which include `mjx-container` so
@@ -207,7 +207,7 @@
   </div>
   <div class="search-results" id="search-results"></div>
 </div>
-<script>window.META_URL = "data/meta.dee8d0fa79.json"; window.BODIES_URL = "data/bodies.dc6256f6aa.json";</script>
+<script>window.META_URL = "data/meta.dee8d0fa79.json"; window.BODIES_URL = "data/bodies.148c3d020f.json";</script>
 
 <script src="app.js?v=e1f3b2"></script>
 <script>initSearchPage();</script>

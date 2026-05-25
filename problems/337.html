@@ -53,7 +53,7 @@
       processEscapes: true,
       processEnvironments: false,
       packages: {'[+]': ['bbox']},
-      macros: { euro: '{\\unicode{x20AC}}' }
+      macros: { euro: '{\\unicode{x20AC}}', fbox: ['{\\bbox[border:1px solid black, padding:3px]{#1}}', 1] }
     },
     options: {
       // Keep MathJax's own defaults (which include `mjx-container` so
@@ -215,7 +215,7 @@
   </div>
 
   <div class="compact-grid"><div class="problem-body">  <div class="pane">    <div class="pane-header"><h3>Preview</h3></div>    <div class="preview-box" id="preview"></div>  </div>  <div class="pane latex-pane">    <div class="pane-header"><h3>LaTeX</h3></div>    <textarea id="latex-source" spellcheck="false"></textarea>  </div></div><div class="problem-crops"><div class="instance-block" data-instance="0">  <div class="crop-view" id="crop-view-0">    <div class="pane-header">      <select class="instance-picker title-picker"               id="instance-picker"               title="Select Matura instance"><option value="0" selected>2017 · Jesenski rok · Pola 1 · OR</option><option value="1">2017 · Jesenski rok · Pola 1 · VR</option>      </select>      <span style="flex:1"></span>      <button class="full-page-btn" data-instance="0" type="button">📄 Full page</button><button class="edit-crop-btn" data-instance="0">✎ Uredi izrez</button><button class="edit-latex-btn" type="button" aria-pressed="false">✎ Uredi LaTeX</button>    </div>    <canvas class="crop-display" id="crop-canvas-0"></canvas>  </div>  <div class="crop-editor" id="crop-editor-0" hidden>    <div class="pane-header">      <h3>Določi izrez</h3>      <span style="flex:1"></span>      <button class="save-crop-btn primary" data-instance="0">Shrani</button>      <button class="cancel-crop-btn" data-instance="0">Prekliči</button>    </div>    <div class="canvas-wrap">      <canvas id="full-page-canvas-0"></canvas>      <div id="selection-box-0" class="selection-box"></div>    </div>  </div></div></div></div>
-<script>window.META_URL = "data/meta.dee8d0fa79.json"; window.BODIES_URL = "data/bodies.dc6256f6aa.json";</script>
+<script>window.META_URL = "data/meta.dee8d0fa79.json"; window.BODIES_URL = "data/bodies.148c3d020f.json";</script>
 <script src="app.js?v=e1f3b2"></script>
 <script>
   const PROBLEM = {"n": 337, "latex": "Ceno puloverja so znižali za $20\\,\\%$, a ker ni šel v prodajo, so ga pocenili še za $30\\,\\%$. Po drugi pocenitvi ga je Jan kupil in zanj plačal $30{,}24\\ \\mathrm{\\euro}$. Odgovorite v povedih na spodnja vprašanja.\n\nKoliko odstotkov prvotne cene puloverja je Jan plačal?\\\\\nKolikšna je bila začetna cena puloverja?\\\\\nKolikšna je bila cena puloverja neposredno pred drugim znižanjem?", "topics": ["4.3 Števila", "4.3.2 Racionalna števila"], "tikz_count": 0, "tikz_originals": [], "instances": [{"paper_id": "2017_Jesenski_Pola1_OR", "paper_prob_n": 11, "season": "Jesenski rok", "pola": "Izpitna pola 1", "level": "OR", "section": "", "points": "5 točk", "page": null, "page_image": "pages/2017_Jesenski_Pola1_OR_page-14.png", "page_size": [1654, 2339], "bbox_default": [157, 198, 1514, 527]}, {"paper_id": "2017_Jesenski_Pola1_VR", "paper_prob_n": 11, "season": "Jesenski rok", "pola": "Izpitna pola 1", "level": "VR", "section": "", "points": "5 točk", "page": null, "page_image": "pages/2017_Jesenski_Pola1_VR_page-14.png", "page_size": [1654, 2339], "bbox_default": [157, 198, 1514, 526]}], "body_image": "matura_refined/2017_Jesenski_Pola1_OR/prob_11.png?v=5fa81f", "is_textbook": false};
