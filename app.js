@@ -2068,6 +2068,13 @@ function buildSignedOutSidebar(meta) {
   if (!pts.length) pts = uniq(insts.map(i => i.points).filter(Boolean));
   pts.forEach(p => chip('points', p));
 
+  // Source (Matura / Učbenik). Localised for the Slovenian UI.
+  const sourceLabel = { 'Textbook': 'Učbenik', 'Matura': 'Matura' };
+  const sourceVals = Array.isArray(M.sources) && M.sources.length
+    ? M.sources
+    : (M.source ? [M.source] : []);
+  sourceVals.forEach(s => chip('source', sourceLabel[s] || s));
+
   tagsBox.appendChild(tags);
   sidebar.appendChild(tagsBox);
 
@@ -2867,6 +2874,18 @@ async function initProblemPage(meta) {
   // element, and show a stacked topics+tags sidebar in the crop's place.
   // The sidebar reads its values from meta — see buildSignedOutSidebar.
   buildSignedOutSidebar(meta);
+
+  // Textbook problems have a null paper_id / page_image / pola / level /
+  // points on instances[0], so the matura crop pane would render as a
+  // blank canvas with an empty title. Tag the body with `textbook-problem`
+  // so CSS can hide the crop pane and let the preview expand to fill the
+  // row. The signed-out sidebar still renders (topics + whatever tags do
+  // exist — section letter, source).
+  const inst0 = (meta.instances && meta.instances[0]) || {};
+  const isTextbook = !!meta.is_textbook || (!inst0.page_image && !inst0.paper_id);
+  if (isTextbook) {
+    document.body.classList.add('textbook-problem');
+  }
 
   // Reparent the "Uredi LaTeX" toggle button so it overlays the preview
   // pane's top-right corner instead of living in the crop-view's header.

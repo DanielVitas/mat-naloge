@@ -930,6 +930,21 @@ body.signed-in .problem-sidebar { display: none; }
 body:not(.signed-in):not(.show-latex) .compact-grid {
   grid-template-columns: 1.7fr 1fr;
 }
+
+/* Textbook problems don't carry a source-PDF page_image / paper_id /
+   pola / level / points, so the matura crop pane would render as a
+   blank canvas with an empty title — that's the "empty element" users
+   were seeing. Hide it for textbook problems; the preview is the only
+   thing in the row so the grid collapses to a single column. */
+body.textbook-problem .problem-crops { display: none; }
+body.textbook-problem.signed-in .compact-grid:not(.show-latex) {
+  grid-template-columns: 1fr;
+}
+body.textbook-problem:not(.signed-in):not(.show-latex) .compact-grid {
+  /* Sidebar (topics + tags) is the only side element; keep the slightly
+     narrower side ratio so it doesn't dominate. */
+  grid-template-columns: 2fr 1fr;
+}
 /* Mobile / narrow viewports: stack the preview on top and the sidebar
    (topics + tags) below it instead of running them side-by-side. We
    need this dedicated media query because the signed-out rule above
