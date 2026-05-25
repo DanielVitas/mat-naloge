@@ -1983,7 +1983,7 @@ function buildSignedOutSidebar(meta) {
   const topicsBox = document.createElement('div');
   topicsBox.className = 'sidebar-box sidebar-topics';
   const topicsH = document.createElement('h3');
-  topicsH.textContent = 'Vsebine';
+  topicsH.textContent = 'Vsebina';
   topicsBox.appendChild(topicsH);
   const topicsTags = document.createElement('div');
   topicsTags.className = 'tags';

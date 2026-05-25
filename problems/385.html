@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Naloga 385 — Matura 2025</title>
-<link rel="stylesheet" href="styles.css?v=bb89e9">
+<link rel="stylesheet" href="styles.css?v=b0b4d1e">
 
 <script>
   // Prevent orphaned commas/periods/semicolons/colons at the start of a
@@ -143,15 +143,25 @@
         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/>
         <circle cx="12" cy="12" r="3"/>
       </svg>
-      <span class="approval-filter-label">Approved only</span>
+      <span class="approval-filter-label">Vse naloge</span>
     </button>
-    <button id="gh-signin-btn" class="primary">Sign in</button>
+    <button id="gh-signin-btn" class="primary">Prijava</button>
     <div class="gh-dropdown gh-signin-dropdown" id="gh-signin-dropdown" hidden>
-      <p class="gh-hint">Paste a fine-grained PAT for <code>DanielVitas/mat-naloge</code> with <strong>Contents: write</strong>.</p>
-      <input id="gh-token-input" type="password" autocomplete="off" placeholder="github_pat_…">
+      <div class="gh-signin-tabs" role="tablist">
+        <button type="button" class="gh-signin-tab active"
+                data-signin-tab="name" role="tab" aria-selected="true">Ime</button>
+        <button type="button" class="gh-signin-tab"
+                data-signin-tab="key" role="tab" aria-selected="false">Ključ</button>
+      </div>
+      <div class="gh-signin-tab-panel" data-signin-panel="name">
+        <input id="gh-name-input" type="text" autocomplete="off" placeholder="ime...">
+      </div>
+      <div class="gh-signin-tab-panel" data-signin-panel="key" hidden>
+        <input id="gh-token-input" type="password" autocomplete="off" placeholder="ključ...">
+      </div>
       <div class="gh-actions">
-        <button id="gh-set-token" class="primary">Sign in</button>
-        <button id="gh-cancel-signin">Cancel</button>
+        <button id="gh-set-token" class="primary">Prijava</button>
+        <button id="gh-cancel-signin">Prekliči</button>
       </div>
     </div>
   </div>
@@ -180,7 +190,7 @@
         <div class="gh-row gh-login-row"><span class="gh-muted" id="gh-login-row">@<span id="gh-username">…</span></span></div>
         <hr>
         <button id="gh-display-edit" class="dropdown-item">Display name</button>
-        <button id="gh-clear-token" class="dropdown-item">Sign out</button>
+        <button id="gh-clear-token" class="dropdown-item">Odjava</button>
       </div>
       <div class="gh-display-form" id="gh-display-form" hidden>
         <p class="gh-hint">Shown on approvals. Linked to your GitHub account, not the token.</p>
@@ -216,7 +226,7 @@
 
   <div class="compact-grid"><div class="problem-body">  <div class="pane">    <div class="pane-header"><h3>Preview</h3></div>    <div class="preview-box" id="preview"></div>  </div>  <div class="pane latex-pane">    <div class="pane-header"><h3>LaTeX</h3></div>    <textarea id="latex-source" spellcheck="false"></textarea>  </div></div><div class="problem-crops"><div class="instance-block" data-instance="0">  <div class="crop-view" id="crop-view-0">    <div class="pane-header">      <select class="instance-picker title-picker"               id="instance-picker"               title="Select Matura instance"><option value="0" selected>2018 · Spomladanski rok · Pola 1 · OR</option><option value="1">2018 · Spomladanski rok · Pola 1 · VR</option>      </select>      <span style="flex:1"></span>      <button class="full-page-btn" data-instance="0" type="button">📄 Cela stran</button><button class="edit-crop-btn" data-instance="0">✎ Uredi izrez</button><button class="edit-latex-btn" type="button" aria-pressed="false">✎ Uredi LaTeX</button>    </div>    <canvas class="crop-display" id="crop-canvas-0"></canvas>  </div>  <div class="crop-editor" id="crop-editor-0" hidden>    <div class="pane-header">      <h3>Določi izrez</h3>      <span style="flex:1"></span>      <button class="save-crop-btn primary" data-instance="0">Shrani</button>      <button class="cancel-crop-btn" data-instance="0">Prekliči</button>    </div>    <div class="canvas-wrap">      <canvas id="full-page-canvas-0"></canvas>      <div id="selection-box-0" class="selection-box"></div>    </div>  </div></div></div></div>
 <script>window.META_URL = "data/meta.dee8d0fa79.json"; window.BODIES_URL = "data/bodies.7f44b11a0a.json";</script>
-<script src="app.js?v=bb89e9"></script>
+<script src="app.js?v=b0b4d1e"></script>
 <script>
   const PROBLEM = {"n": 385, "latex": "Na sliki je graf zvezne funkcije $f$, ki ima natanko tri ničle: $x_1=0$, $x_2=2$ in $x_3=5$. Ploščina območja, ki ga omejujeta graf funkcije $f$ in abscisna os na intervalu $[0,\\,2]$, je $S_1=1{,}3$. Ploščina območja, ki ga omejujeta graf funkcije $f$ in abscisna os na intervalu $[2,\\,5]$, je $S_2=3{,}9$ (glejte sliko).\n\n\\begin{center}\n\\begin{tikzpicture}[scale=0.6,>=latex]\n  \\draw[->] (-1.5,0) -- (8,0) node[right] {$x$};\n  \\draw[->] (0,-3) -- (0,3) node[above] {$y$};\n  \\node[below left] at (0,0) {$0$};\n  \\node[below] at (1,0) {$1$};\n  \\node[below] at (2,0) {$2$};\n  \\node[below right] at (5,0) {$5$};\n  \\node[left] at (0,1) {$1$};\n  \\fill[gray!30,domain=0:2,samples=40,variable=\\x] plot (\\x,{0.65*\\x*(2-\\x)}) -- cycle;\n  \\fill[gray!60,domain=2:5,samples=40,variable=\\x] plot (\\x,{0.6*(\\x-2)*(\\x-5)}) -- cycle;\n  \\draw[thick,domain=-0.5:2,samples=40] plot (\\x,{0.65*\\x*(2-\\x)});\n  \\draw[thick,domain=2:5.6,samples=40] plot (\\x,{0.6*(\\x-2)*(\\x-5)});\n  \\draw[thick,domain=5:6.5,samples=40] plot (\\x,{0.6*(\\x-2)*(\\x-5)});\n  \\node at (1,0.4) {$S_1=1{,}3$};\n  \\node at (3.5,-1.2) {$S_2=3{,}9$};\n  \\node[right] at (6.5,1.5) {$f$};\n\\end{tikzpicture}\n\\end{center}\n\nS slike preberite ali izračunajte določene integrale:\n\\[\\int_{0}^{2}f(x)\\,\\mathrm{d}x=\\rule{2cm}{0.4pt}\\]\n\\[\\int_{2}^{5}f(x)\\,\\mathrm{d}x=\\rule{2cm}{0.4pt}\\]\n\\[\\int_{0}^{5}f(x)\\,\\mathrm{d}x=\\rule{2cm}{0.4pt}\\]\n\\[\\int_{0}^{2}4f(x)\\,\\mathrm{d}x=\\rule{2cm}{0.4pt}\\]\n\\[\\int_{2}^{5}\\bigl(f(x)+2x^2\\bigr)\\,\\mathrm{d}x=\\rule{2cm}{0.4pt}\\]\n\\[\\int_{1}^{3}f(x-1)\\,\\mathrm{d}x=\\rule{2cm}{0.4pt}\\]", "topics": ["4.9 Koordinatni sistem", "4.14 Integral"], "tikz_count": 1, "tikz_originals": ["matura_figs/2018_Spomladanski_Pola1_OR_prob_11_fig1.png?v=7781f4"], "instances": [{"paper_id": "2018_Spomladanski_Pola1_OR", "paper_prob_n": 11, "season": "Spomladanski rok", "pola": "Izpitna pola 1", "level": "OR", "section": "", "points": "8 točk", "page": null, "page_image": "pages/2018_Spomladanski_Pola1_OR_page-14.png", "page_size": [1654, 2339], "bbox_default": [157, 197, 1514, 1633]}, {"paper_id": "2018_Spomladanski_Pola1_VR", "paper_prob_n": 11, "season": "Spomladanski rok", "pola": "Izpitna pola 1", "level": "VR", "section": "", "points": "8 točk", "page": null, "page_image": "pages/2018_Spomladanski_Pola1_VR_page-14.png", "page_size": [1654, 2339], "bbox_default": [157, 197, 1514, 1633]}], "body_image": "matura_refined/2018_Spomladanski_Pola1_OR/prob_11.png?v=e3b534", "is_textbook": false};
   initProblemPage(PROBLEM);

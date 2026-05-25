@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Naloga 625 — Matura 2013</title>
-<link rel="stylesheet" href="styles.css?v=bb89e9">
+<link rel="stylesheet" href="styles.css?v=b0b4d1e">
 
 <script>
   // Prevent orphaned commas/periods/semicolons/colons at the start of a
@@ -143,15 +143,25 @@
         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/>
         <circle cx="12" cy="12" r="3"/>
       </svg>
-      <span class="approval-filter-label">Approved only</span>
+      <span class="approval-filter-label">Vse naloge</span>
     </button>
-    <button id="gh-signin-btn" class="primary">Sign in</button>
+    <button id="gh-signin-btn" class="primary">Prijava</button>
     <div class="gh-dropdown gh-signin-dropdown" id="gh-signin-dropdown" hidden>
-      <p class="gh-hint">Paste a fine-grained PAT for <code>DanielVitas/mat-naloge</code> with <strong>Contents: write</strong>.</p>
-      <input id="gh-token-input" type="password" autocomplete="off" placeholder="github_pat_…">
+      <div class="gh-signin-tabs" role="tablist">
+        <button type="button" class="gh-signin-tab active"
+                data-signin-tab="name" role="tab" aria-selected="true">Ime</button>
+        <button type="button" class="gh-signin-tab"
+                data-signin-tab="key" role="tab" aria-selected="false">Ključ</button>
+      </div>
+      <div class="gh-signin-tab-panel" data-signin-panel="name">
+        <input id="gh-name-input" type="text" autocomplete="off" placeholder="ime...">
+      </div>
+      <div class="gh-signin-tab-panel" data-signin-panel="key" hidden>
+        <input id="gh-token-input" type="password" autocomplete="off" placeholder="ključ...">
+      </div>
       <div class="gh-actions">
-        <button id="gh-set-token" class="primary">Sign in</button>
-        <button id="gh-cancel-signin">Cancel</button>
+        <button id="gh-set-token" class="primary">Prijava</button>
+        <button id="gh-cancel-signin">Prekliči</button>
       </div>
     </div>
   </div>
@@ -180,7 +190,7 @@
         <div class="gh-row gh-login-row"><span class="gh-muted" id="gh-login-row">@<span id="gh-username">…</span></span></div>
         <hr>
         <button id="gh-display-edit" class="dropdown-item">Display name</button>
-        <button id="gh-clear-token" class="dropdown-item">Sign out</button>
+        <button id="gh-clear-token" class="dropdown-item">Odjava</button>
       </div>
       <div class="gh-display-form" id="gh-display-form" hidden>
         <p class="gh-hint">Shown on approvals. Linked to your GitHub account, not the token.</p>
@@ -216,7 +226,7 @@
 
   <div class="compact-grid"><div class="problem-body">  <div class="pane">    <div class="pane-header"><h3>Preview</h3></div>    <div class="preview-box" id="preview"></div>  </div>  <div class="pane latex-pane">    <div class="pane-header"><h3>LaTeX</h3></div>    <textarea id="latex-source" spellcheck="false"></textarea>  </div></div><div class="problem-crops"><div class="instance-block" data-instance="0">  <div class="crop-view" id="crop-view-0">    <div class="pane-header">      <select class="instance-picker title-picker" id="instance-picker" title="Select Matura instance"><option value="0" selected>2013 · Jesenski rok · Pola 1 · OR</option><option value="1">2013 · Jesenski rok · Pola 1 · VR</option>      </select>      <span style="flex:1"></span>      <button class="full-page-btn" data-instance="0" type="button">📄 Cela stran</button><button class="edit-crop-btn" data-instance="0">✎ Uredi izrez</button><button class="edit-latex-btn" type="button" aria-pressed="false">✎ Uredi LaTeX</button>    </div>    <canvas class="crop-display" id="crop-canvas-0"></canvas>  </div>  <div class="crop-editor" id="crop-editor-0" hidden>    <div class="pane-header">      <h3>Določi izrez</h3>      <span style="flex:1"></span>      <button class="save-crop-btn primary" data-instance="0">Shrani</button>      <button class="cancel-crop-btn" data-instance="0">Prekliči</button>    </div>    <div class="canvas-wrap">      <canvas id="full-page-canvas-0"></canvas>      <div id="selection-box-0" class="selection-box"></div>    </div>  </div></div></div></div>
 <script>window.META_URL = "data/meta.dee8d0fa79.json"; window.BODIES_URL = "data/bodies.7f44b11a0a.json";</script>
-<script src="app.js?v=bb89e9"></script>
+<script src="app.js?v=b0b4d1e"></script>
 <script>
   const PROBLEM = {"n": 625, "latex": "V dani koordinatni sistem narišite elipso $4x^{2}+9y^{2}+8x+36y+4=0$. Zapišite središče in temena elipse.\n\n\\begin{center}\n\\begin{tikzpicture}[>=latex, scale=0.5]\n  \\draw[gray!40, very thin] (-4,-4) grid (5,4);\n  \\draw[->] (-4.4, 0) -- (5.4, 0) node[right] {$x$};\n  \\draw[->] (0, -4.4) -- (0, 4.4) node[above] {$y$};\n  \\node[below left] at (0, 0) {$0$};\n  \\node[below] at (1, -0.05) {$1$};\n  \\node[left] at (-0.05, 1) {$1$};\n\\end{tikzpicture}\n\\end{center}", "topics": ["4.11 Stožnice", "4.11.1 Elipsa"], "tikz_count": 1, "tikz_originals": ["matura_figs/2013_Jesenski_Pola1_OR_prob_625_fig1.png?v=52557e"], "instances": [{"paper_id": "2013_Jesenski_Pola1_OR", "paper_prob_n": 6, "season": "Jesenski rok", "pola": "Izpitna pola 1", "level": "OR", "section": "", "points": "8 točk", "page": 9, "page_image": "pages/2013_Jesenski_Pola1_OR_page-09.png", "page_size": [1654, 2339], "bbox_default": [157, 134, 1514, 1021]}, {"paper_id": "2013_Jesenski_Pola1_VR", "paper_prob_n": 6, "season": "Jesenski rok", "pola": "Izpitna pola 1", "level": "VR", "section": "", "points": "8 točk", "page": 9, "page_image": "pages/2013_Jesenski_Pola1_VR_page-09.png", "page_size": [1654, 2339], "bbox_default": [157, 134, 1514, 1021]}], "body_image": "matura_refined/2013_Jesenski_Pola1_OR/prob_06.png?v=3e5a84", "is_textbook": false};
   initProblemPage(PROBLEM);

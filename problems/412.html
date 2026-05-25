@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Naloga 412 — Matura 2025</title>
-<link rel="stylesheet" href="styles.css?v=bb89e9">
+<link rel="stylesheet" href="styles.css?v=b0b4d1e">
 
 <script>
   // Prevent orphaned commas/periods/semicolons/colons at the start of a
@@ -143,15 +143,25 @@
         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/>
         <circle cx="12" cy="12" r="3"/>
       </svg>
-      <span class="approval-filter-label">Approved only</span>
+      <span class="approval-filter-label">Vse naloge</span>
     </button>
-    <button id="gh-signin-btn" class="primary">Sign in</button>
+    <button id="gh-signin-btn" class="primary">Prijava</button>
     <div class="gh-dropdown gh-signin-dropdown" id="gh-signin-dropdown" hidden>
-      <p class="gh-hint">Paste a fine-grained PAT for <code>DanielVitas/mat-naloge</code> with <strong>Contents: write</strong>.</p>
-      <input id="gh-token-input" type="password" autocomplete="off" placeholder="github_pat_…">
+      <div class="gh-signin-tabs" role="tablist">
+        <button type="button" class="gh-signin-tab active"
+                data-signin-tab="name" role="tab" aria-selected="true">Ime</button>
+        <button type="button" class="gh-signin-tab"
+                data-signin-tab="key" role="tab" aria-selected="false">Ključ</button>
+      </div>
+      <div class="gh-signin-tab-panel" data-signin-panel="name">
+        <input id="gh-name-input" type="text" autocomplete="off" placeholder="ime...">
+      </div>
+      <div class="gh-signin-tab-panel" data-signin-panel="key" hidden>
+        <input id="gh-token-input" type="password" autocomplete="off" placeholder="ključ...">
+      </div>
       <div class="gh-actions">
-        <button id="gh-set-token" class="primary">Sign in</button>
-        <button id="gh-cancel-signin">Cancel</button>
+        <button id="gh-set-token" class="primary">Prijava</button>
+        <button id="gh-cancel-signin">Prekliči</button>
       </div>
     </div>
   </div>
@@ -180,7 +190,7 @@
         <div class="gh-row gh-login-row"><span class="gh-muted" id="gh-login-row">@<span id="gh-username">…</span></span></div>
         <hr>
         <button id="gh-display-edit" class="dropdown-item">Display name</button>
-        <button id="gh-clear-token" class="dropdown-item">Sign out</button>
+        <button id="gh-clear-token" class="dropdown-item">Odjava</button>
       </div>
       <div class="gh-display-form" id="gh-display-form" hidden>
         <p class="gh-hint">Shown on approvals. Linked to your GitHub account, not the token.</p>
@@ -216,7 +226,7 @@
 
   <div class="compact-grid"><div class="problem-body">  <div class="pane">    <div class="pane-header"><h3>Preview</h3></div>    <div class="preview-box" id="preview"></div>  </div>  <div class="pane latex-pane">    <div class="pane-header"><h3>LaTeX</h3></div>    <textarea id="latex-source" spellcheck="false"></textarea>  </div></div><div class="problem-crops"><div class="instance-block" data-instance="0">  <div class="crop-view" id="crop-view-0">    <div class="pane-header">      <select class="instance-picker title-picker"               id="instance-picker"               title="Select Matura instance"><option value="0" selected>2019 · Spomladanski rok · Pola 1 · OR</option><option value="1">2019 · Spomladanski rok · Pola 1 · VR</option>      </select>      <span style="flex:1"></span>      <button class="full-page-btn" data-instance="0" type="button">📄 Cela stran</button><button class="edit-crop-btn" data-instance="0">✎ Uredi izrez</button><button class="edit-latex-btn" type="button" aria-pressed="false">✎ Uredi LaTeX</button>    </div>    <canvas class="crop-display" id="crop-canvas-0"></canvas>  </div>  <div class="crop-editor" id="crop-editor-0" hidden>    <div class="pane-header">      <h3>Določi izrez</h3>      <span style="flex:1"></span>      <button class="save-crop-btn primary" data-instance="0">Shrani</button>      <button class="cancel-crop-btn" data-instance="0">Prekliči</button>    </div>    <div class="canvas-wrap">      <canvas id="full-page-canvas-0"></canvas>      <div id="selection-box-0" class="selection-box"></div>    </div>  </div></div></div></div>
 <script>window.META_URL = "data/meta.dee8d0fa79.json"; window.BODIES_URL = "data/bodies.7f44b11a0a.json";</script>
-<script src="app.js?v=bb89e9"></script>
+<script src="app.js?v=b0b4d1e"></script>
 <script>
   const PROBLEM = {"n": 412, "latex": "Na sliki, na kateri so točke $A(-1,\\,1)$, $B(1,\\,1)$ in $C(0,\\,-3)$, narišite vektorja $\\vec{a}=\\overrightarrow{CA}$ in $\\vec{b}=\\overrightarrow{CB}$. Vektorja $\\vec{a}$ in $\\vec{b}$ zapišite s koordinatami (komponentami) in izračunajte skalarni produkt $\\vec{a}\\cdot\\vec{b}$. Kot $\\alpha$, ki ga oklepata vektorja $\\vec{a}$ in $\\vec{b}$, zaokrožite v stopinjah na dve decimalki. Rezultate zapišite v spodnjo preglednico.\n\n\\begin{center}\n\\begin{tikzpicture}[scale=0.85,>=latex]\n  \\draw[->] (-2.5,0) -- (2.5,0) node[right] {$x$};\n  \\draw[->] (0,-3.5) -- (0,2.5) node[above] {$y$};\n  \\node[below left] at (0,0) {$0$};\n  \\node[below] at (1,0) {$1$};\n  \\node[left] at (0,1) {$1$};\n  \\draw (1,-0.07) -- (1,0.07);\n  \\fill (-1,1) circle (1.5pt) node[left] {$A$};\n  \\fill (1,1)  circle (1.5pt) node[right] {$B$};\n  \\fill (0,-3) circle (1.5pt) node[right] {$C$};\n\\end{tikzpicture}\n\\end{center}\n\n\\begin{center}\n\\renewcommand{\\arraystretch}{1.6}\n\\begin{tabular}{|p{6cm}|p{5cm}|}\n\\hline\n\\textbf{Naloga} & \\textbf{Rešitev}\\\\\n\\hline\nS koordinatami zapisan vektor $\\vec{a}$ & $\\vec{a}=(\\rule{1.2cm}{0.4pt},\\,\\rule{1.2cm}{0.4pt})$\\\\\n\\hline\nS koordinatami zapisan vektor $\\vec{b}$ & $\\vec{b}=(\\rule{1.2cm}{0.4pt},\\,\\rule{1.2cm}{0.4pt})$\\\\\n\\hline\nSkalarni produkt $\\vec{a}\\cdot\\vec{b}$ & $\\vec{a}\\cdot\\vec{b}=\\rule{2cm}{0.4pt}$\\\\\n\\hline\nIzračunan približek za kot $\\alpha$ & $\\alpha\\doteq\\rule{2cm}{0.4pt}$\\\\\n\\hline\n\\end{tabular}\n\\end{center}", "topics": ["4.8 Vektorji", "4.8.1 Ravninski vektorji", "4.9 Koordinatni sistem"], "tikz_count": 1, "tikz_originals": ["matura_figs/2019_Spomladanski_Pola1_OR_prob_4_fig1.png?v=9de354"], "instances": [{"paper_id": "2019_Spomladanski_Pola1_OR", "paper_prob_n": 4, "season": "Spomladanski rok", "pola": "Izpitna pola 1", "level": "OR", "section": "", "points": "8 točk", "page": null, "page_image": "pages/2019_Spomladanski_Pola1_OR_page-07.png", "page_size": [1654, 2339], "bbox_default": [157, 196, 1514, 1569]}, {"paper_id": "2019_Spomladanski_Pola1_VR", "paper_prob_n": 4, "season": "Spomladanski rok", "pola": "Izpitna pola 1", "level": "VR", "section": "", "points": "8 točk", "page": null, "page_image": "pages/2019_Spomladanski_Pola1_VR_page-07.png", "page_size": [1654, 2339], "bbox_default": [157, 196, 1514, 1569]}], "body_image": "matura_refined/2019_Spomladanski_Pola1_OR/prob_04.png?v=f3c037", "is_textbook": false};
   initProblemPage(PROBLEM);

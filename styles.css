@@ -1073,18 +1073,48 @@ body.full-page-on .crop-view { display: none; }
   overflow: hidden;
   max-width: 100%;
   min-width: 200px; min-height: 100px;
-  /* Hover-enlarge: scale the figure up smoothly so it can be inspected
-     in place. Returns to natural size on mouse-leave. The z-index lift
-     and shadow make the scaled figure float cleanly above neighbouring
-     prose; the transform-origin keeps it growing from its centre. */
-  transition: transform 180ms ease, box-shadow 180ms ease;
-  transform-origin: center center;
+  /* Click-to-enlarge: a click on the figure opens a fixed-position
+     lightbox (built by JS) — see .figure-lightbox below. The figure
+     itself stays in place; we just give the user a cursor hint that
+     it's clickable. */
   position: relative;
+  cursor: zoom-in;
 }
-.preview-box .tex-tikz:hover {
-  transform: scale(1.7);
-  z-index: 10;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+
+/* Lightbox overlay for an enlarged figure. The cloned SVG/img inside
+   has its width/height attributes stripped so the browser re-renders
+   it at the overlay's larger intrinsic size — for SVG sources this
+   yields a crisp render (no transform-based pixelation). Click anywhere
+   to dismiss. */
+.figure-lightbox {
+  position: fixed; inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999;
+  cursor: zoom-out;
+  padding: 2rem;
+  animation: figure-lightbox-in 140ms ease;
+}
+@keyframes figure-lightbox-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.figure-lightbox .figure-lightbox-content {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+  max-width: 92vw;
+  max-height: 92vh;
+  display: flex; align-items: center; justify-content: center;
+  cursor: default;
+}
+.figure-lightbox .figure-lightbox-content > svg,
+.figure-lightbox .figure-lightbox-content > img {
+  width: auto; height: auto;
+  max-width:  calc(92vw - 3rem);
+  max-height: calc(92vh - 3rem);
+  display: block;
 }
 .preview-box .tex-tikz img,
 .preview-box .tex-tikz svg {

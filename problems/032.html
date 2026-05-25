@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Naloga 32 — Matura 2025</title>
-<link rel="stylesheet" href="styles.css?v=bb89e9">
+<link rel="stylesheet" href="styles.css?v=b0b4d1e">
 
 <script>
   // Prevent orphaned commas/periods/semicolons/colons at the start of a
@@ -143,15 +143,25 @@
         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/>
         <circle cx="12" cy="12" r="3"/>
       </svg>
-      <span class="approval-filter-label">Approved only</span>
+      <span class="approval-filter-label">Vse naloge</span>
     </button>
-    <button id="gh-signin-btn" class="primary">Sign in</button>
+    <button id="gh-signin-btn" class="primary">Prijava</button>
     <div class="gh-dropdown gh-signin-dropdown" id="gh-signin-dropdown" hidden>
-      <p class="gh-hint">Paste a fine-grained PAT for <code>DanielVitas/mat-naloge</code> with <strong>Contents: write</strong>.</p>
-      <input id="gh-token-input" type="password" autocomplete="off" placeholder="github_pat_…">
+      <div class="gh-signin-tabs" role="tablist">
+        <button type="button" class="gh-signin-tab active"
+                data-signin-tab="name" role="tab" aria-selected="true">Ime</button>
+        <button type="button" class="gh-signin-tab"
+                data-signin-tab="key" role="tab" aria-selected="false">Ključ</button>
+      </div>
+      <div class="gh-signin-tab-panel" data-signin-panel="name">
+        <input id="gh-name-input" type="text" autocomplete="off" placeholder="ime...">
+      </div>
+      <div class="gh-signin-tab-panel" data-signin-panel="key" hidden>
+        <input id="gh-token-input" type="password" autocomplete="off" placeholder="ključ...">
+      </div>
       <div class="gh-actions">
-        <button id="gh-set-token" class="primary">Sign in</button>
-        <button id="gh-cancel-signin">Cancel</button>
+        <button id="gh-set-token" class="primary">Prijava</button>
+        <button id="gh-cancel-signin">Prekliči</button>
       </div>
     </div>
   </div>
@@ -180,7 +190,7 @@
         <div class="gh-row gh-login-row"><span class="gh-muted" id="gh-login-row">@<span id="gh-username">…</span></span></div>
         <hr>
         <button id="gh-display-edit" class="dropdown-item">Display name</button>
-        <button id="gh-clear-token" class="dropdown-item">Sign out</button>
+        <button id="gh-clear-token" class="dropdown-item">Odjava</button>
       </div>
       <div class="gh-display-form" id="gh-display-form" hidden>
         <p class="gh-hint">Shown on approvals. Linked to your GitHub account, not the token.</p>
@@ -216,7 +226,7 @@
 
   <div class="compact-grid"><div class="problem-body">  <div class="pane">    <div class="pane-header"><h3>Preview</h3></div>    <div class="preview-box" id="preview"></div>  </div>  <div class="pane latex-pane">    <div class="pane-header"><h3>LaTeX</h3></div>    <textarea id="latex-source" spellcheck="false"></textarea>  </div></div><div class="problem-crops"><div class="instance-block" data-instance="0">  <div class="crop-view" id="crop-view-0">    <div class="pane-header">      <h3 id="instance-label">2025 · Spomladanski rok · Pola 2 · VR</h3>      <span style="flex:1"></span>      <button class="full-page-btn" data-instance="0" type="button">📄 Cela stran</button><button class="edit-crop-btn" data-instance="0">✎ Uredi izrez</button><button class="edit-latex-btn" type="button" aria-pressed="false">✎ Uredi LaTeX</button>    </div>    <canvas class="crop-display" id="crop-canvas-0"></canvas>  </div>  <div class="crop-editor" id="crop-editor-0" hidden>    <div class="pane-header">      <h3>Določi izrez</h3>      <span style="flex:1"></span>      <button class="save-crop-btn primary" data-instance="0">Shrani</button>      <button class="cancel-crop-btn" data-instance="0">Prekliči</button>    </div>    <div class="canvas-wrap">      <canvas id="full-page-canvas-0"></canvas>      <div id="selection-box-0" class="selection-box"></div>    </div>  </div></div></div></div>
 <script>window.META_URL = "data/meta.dee8d0fa79.json"; window.BODIES_URL = "data/bodies.7f44b11a0a.json";</script>
-<script src="app.js?v=bb89e9"></script>
+<script src="app.js?v=b0b4d1e"></script>
 <script>
   const PROBLEM = {"n": 32, "latex": "\\textit{1.}\\quad Na igrišču z obsegom $400\\,\\mathrm{m}$ začneta tekača hkrati teči iz iste točke ob zunanjem robu igrišča. Prvi teče v pozitivno smer s konstantno hitrostjo $v_{1}=2\\,\\mathrm{m\\,s^{-1}}$, drugi pa v negativno smer s konstantno hitrostjo $v_{2}=3\\,\\mathrm{m\\,s^{-1}}$. Kolikokrat se bosta srečala tekača, če tečeta $10$ minut?\n\n\\textit{2.}\\quad Načrtujemo gradnjo športnega igrišča, ki ima obliko, kot je prikazana na sliki. Ploščina osrednjega dela igrišča, pravokotnika $ABCD$, meri $6000\\,\\mathrm{m^{2}}$, krajši stranici pravokotnika pa zaključujeta polkroga. Kolikšna mora biti dolžina ravnega dela igrišča $x=|AB|$, da bo tekač, ko preteče en krog ob zunanjem robu igrišča, pretekel najkrajšo možno razdaljo?\n\n\\begin{center}\n\\begin{tikzpicture}[scale=0.8,>=latex]\n  % pravokotnik ABCD: A=(0,0), B=(6,0), C=(6,3), D=(0,3)\n  \\fill[gray!55] (0,0) rectangle (6,3);\n  \\draw[thick] (0,0) -- (6,0);\n  \\draw[thick] (0,0) -- (0,3);\n  \\draw[thick] (6,0) -- (6,3);\n  \\draw[thick] (0,3) -- (6,3);\n  % left semicircle\n  \\draw[thick] (0,3) arc (90:270:1.5);\n  % right semicircle\n  \\draw[thick] (6,0) arc (-90:90:1.5);\n  \\fill (0,0) circle (1.6pt) node[below left] {$A$};\n  \\fill (6,0) circle (1.6pt) node[below right] {$B$};\n  \\fill (6,3) circle (1.6pt) node[above right] {$C$};\n  \\fill (0,3) circle (1.6pt) node[above left] {$D$};\n\\end{tikzpicture}\n\\end{center}", "topics": ["4.6 Geometrija", "4.6.1 Razdalja", "4.11 Stožnice"], "tikz_count": 1, "tikz_originals": ["matura_figures/2025_Spomladanski_Pola2_VR_prob11_fig1.png"], "instances": [{"paper_id": "2025_Spomladanski_Pola2_VR", "paper_prob_n": 10, "season": "Spomladanski rok", "pola": "Izpitna pola 2", "level": "VR", "section": "C strukturirana naloga", "points": "10 točk", "page": 18, "page_image": "pages/2025_Spomladanski_Pola2_VR_page-18.png", "page_size": [1654, 2339], "bbox_default": [185, 217, 1470, 1143]}], "body_image": "", "is_textbook": false};
   initProblemPage(PROBLEM);
