@@ -3202,25 +3202,33 @@ async function initProblemPage(meta) {
   // status-badge toggle (Matura only — Textbook problems aren't outdate-able)
   // and the per-problem JSON export button.
   function wireExportAndBadge() {
-    badge.addEventListener('click', () => {
-      const s = loadState(id);
-      s.outdated = !s.outdated;
-      saveState(id, s);
-      updateBadge(s.outdated);
-      const bar = document.getElementById('gh-sync');
-      if (bar && typeof bar._refresh === 'function') bar._refresh();
-    });
-    exportBtn.addEventListener('click', () => {
-      const s = loadState(id);
-      const blob = new Blob([JSON.stringify({id, ...s}, null, 2)],
-        { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `prob-${String(id).padStart(3,'0')}-changes.json`;
-      document.body.appendChild(a); a.click(); a.remove();
-      URL.revokeObjectURL(url);
-    });
+    if (badge) {
+      badge.addEventListener('click', () => {
+        const s = loadState(id);
+        s.outdated = !s.outdated;
+        saveState(id, s);
+        updateBadge(s.outdated);
+        const bar = document.getElementById('gh-sync');
+        if (bar && typeof bar._refresh === 'function') bar._refresh();
+      });
+    }
+    // exportBtn is the per-problem #export-changes button. It was removed
+    // from the per-problem HTML in a recent edit, so this element will be
+    // null on shipped pages — guard against the null reference so the
+    // whole init() doesn't blow up (which would leave Preview + Crop blank).
+    if (exportBtn) {
+      exportBtn.addEventListener('click', () => {
+        const s = loadState(id);
+        const blob = new Blob([JSON.stringify({id, ...s}, null, 2)],
+          { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `prob-${String(id).padStart(3,'0')}-changes.json`;
+        document.body.appendChild(a); a.click(); a.remove();
+        URL.revokeObjectURL(url);
+      });
+    }
   }
 
   function updateBadge(outdated) {
