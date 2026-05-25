@@ -70,6 +70,21 @@ async function spaNavigate(url, push = true) {
       window.location.href = target.href;
       return true;
     }
+    // CRITICAL: snapshot the parsed doc's inline scripts BEFORE the
+    // replaceWith. The new container's `<script>initIndexPage();</script>`
+    // is implicitly INSIDE .container (no explicit </div> closes the
+    // container — the browser auto-closes at </body>). replaceWith() moves
+    // newContainer (and its child scripts) out of `doc` into the live
+    // document, so by the time we'd query `doc.querySelectorAll(...)`
+    // afterward, the body scripts are gone — only the <head> ones remain,
+    // and those are all SKIP_PATTERNS-matched. Result: initIndexPage()
+    // never executes, leaving the new page completely un-initialised
+    // (cards blank, clicks dead). Grabbing the script text first and
+    // re-executing it via document.createElement('script') is the only
+    // way to make body-positioned init code run on SPA-swap.
+    const scriptTexts = Array.from(
+      doc.querySelectorAll('script:not([src])')
+    ).map(s => (s.textContent || '').trim()).filter(Boolean);
     curContainer.replaceWith(newContainer);
     if (doc.title) document.title = doc.title;
     // ── Purge body-level overlays that the previous page may have appended
@@ -111,10 +126,7 @@ async function spaNavigate(url, push = true) {
       /window\s*\.\s*PROBLEMS_LATEX\s*=/,    // would clobber merged map
       /window\s*\.\s*glueOrphanPunctuation/, // defined globally already
     ];
-    const newScripts = doc.querySelectorAll('script:not([src])');
-    for (const s of newScripts) {
-      const txt = (s.textContent || '').trim();
-      if (!txt) continue;
+    for (const txt of scriptTexts) {
       if (SKIP_PATTERNS.some(re => re.test(txt))) continue;
       // IIFE-wrap so `const`/`let` identifiers stay scoped.
       const exec = document.createElement('script');
