@@ -3295,10 +3295,16 @@ button.status-badge:hover { filter: brightness(0.97); }
    and the summary text color.
    ─────────────────────────────────────────────────────────────────── */
 :root {
-  --palette-1-bg: #fadcd6;  --palette-1-fg: #c44a3e;  /* coral red */
-  --palette-2-bg: #fbe4b3;  --palette-2-fg: #b07a16;  /* warm yellow */
-  --palette-3-bg: #cfe8e9;  --palette-3-fg: #2f7174;  /* teal */
-  --palette-4-bg: #ddd3ee;  --palette-4-fg: #6a559c;  /* lavender */
+  /* Rectangular tetrad on the colour wheel — two complementary pairs
+     60° apart (15°/195° and 75°/255°). Pastel saturation + L≈86% on
+     backgrounds and L≈42% on text/borders keeps the soft, calm feel
+     while the underlying hue math makes the four colours feel related
+     rather than ad-hoc. See https://www.canva.com/colors/color-wheel/
+     for the layout. */
+  --palette-1-bg: #f8d5c5;  --palette-1-fg: #ad5d36;  /* coral red    (15°) */
+  --palette-2-bg: #e2ecc6;  --palette-2-fg: #7a8939;  /* lime yellow  (75°) */
+  --palette-3-bg: #c7dee9;  --palette-3-fg: #307991;  /* teal blue   (195°) */
+  --palette-4-bg: #d9d1f0;  --palette-4-fg: #6350a9;  /* lavender    (255°) */
 }
 
 /* ----- By-topic grid: 3 boxes per row, colored cycling backgrounds ---- */
