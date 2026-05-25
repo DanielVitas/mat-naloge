@@ -87,6 +87,25 @@ async function spaNavigate(url, push = true) {
     ).map(s => (s.textContent || '').trim()).filter(Boolean);
     curContainer.replaceWith(newContainer);
     if (doc.title) document.title = doc.title;
+    // ── Sync body classes from the new page. Page-scoped classes
+    // (`page-exam`, `page-problem`, etc.) live on the static <body> of
+    // each HTML file, and CSS rules like
+    //     body.page-exam .finishing-right { display: none; }
+    // depend on them. Without this sync, navigating away from a problem
+    // page (body had `show-latex`) to Izpit leaves the live body without
+    // `page-exam` (so the default-hide rule for the LaTeX pane doesn't
+    // apply) AND with the stale `show-latex` — both add up to the LaTeX
+    // pane showing on Izpit even though the user toggled it off.
+    //
+    // We preserve auth/state classes that are JS-managed (set by
+    // applySigninState, not by the static HTML), so signing-in survives
+    // an SPA swap. Everything else comes from the new doc's <body>.
+    const PRESERVE_CLASSES = ['signed-in', 'export-only'];
+    const preserved = PRESERVE_CLASSES.filter(c => document.body.classList.contains(c));
+    const newBodyClasses = Array.from((doc.body && doc.body.classList) || []);
+    document.body.className = '';
+    newBodyClasses.forEach(c => document.body.classList.add(c));
+    preserved.forEach(c => document.body.classList.add(c));
     // ── Purge body-level overlays that the previous page may have appended
     // ── outside .container. The search/exam pages create a #add-problem-modal
     // ── element (and topic-picker pop-ups) directly on document.body. After
@@ -5343,10 +5362,18 @@ ${itemsTex}
   // "Edit LaTeX" in the toolbar to open it side-by-side with Preview).
   const toggleLatexBtn = document.getElementById('toggle-latex-btn');
   if (toggleLatexBtn) {
-    toggleLatexBtn.addEventListener('click', () => {
-      const open = document.body.classList.toggle('latex-open');
+    // Sync the label with the current `body.latex-open` state on init so
+    // we don't ship the static-HTML label (which could be a stale English
+    // version or out of sync after an SPA navigation).
+    const syncLabel = () => {
+      const open = document.body.classList.contains('latex-open');
       toggleLatexBtn.setAttribute('aria-pressed', open ? 'true' : 'false');
       toggleLatexBtn.textContent = open ? '✎ Skrij LaTeX' : '✎ Uredi LaTeX';
+    };
+    syncLabel();
+    toggleLatexBtn.addEventListener('click', () => {
+      document.body.classList.toggle('latex-open');
+      syncLabel();
     });
   }
 
