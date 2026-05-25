@@ -2683,6 +2683,18 @@ async function initProblemPage(meta) {
   window.refreshApprovalChip = renderApprovers;
   wireExportAndBadge();
 
+  // Reparent the "Uredi LaTeX" toggle button so it overlays the preview
+  // pane's top-right corner instead of living in the crop-view's header.
+  // The HTML across all 665 per-problem pages still has the button inside
+  // the crop pane, so we move it here at runtime. CSS in styles.css
+  // positions it absolutely once it lives inside .pane.
+  const editLatexBtn = document.querySelector('.edit-latex-btn');
+  const previewPane  = document.querySelector('.problem-body .pane:not(.latex-pane)');
+  if (editLatexBtn && previewPane && !previewPane.contains(editLatexBtn)) {
+    previewPane.appendChild(editLatexBtn);
+    previewPane.classList.add('has-edit-latex-overlay');
+  }
+
   // -------- LaTeX --------
   // Textbook problems (and any Matura problem that hasn't been transcribed
   // yet) start with empty LaTeX. We still render the same Preview / LaTeX
@@ -4070,14 +4082,29 @@ const LEVEL_ORDER_JS = { OR: 0, VR: 1 };
 async function initExamPage() {
   await bootstrapData();
   await fetchRemoteData();
+  // Phase 2 split (meta vs bodies): make sure bodies have arrived
+  // before we build byN, otherwise body fields (latex, body_image,
+  // tikz_count, tikz_originals) are missing and added problems
+  // render with an empty preview box. The Search page handles this
+  // by re-querying PROBLEMS_LATEX at render-time; Finishing builds
+  // byN once at init, so we must merge bodies in up-front.
+  await bootstrapBodies();
   initMenuBar();
   initSyncBar();
   initCollectionBar();
   await ensureNameFromToken();
 
   const PROBLEMS = (window.PROBLEMS || []).slice();
+  const BODIES   = window.PROBLEMS_LATEX || {};
   const byN = {};
-  for (const p of PROBLEMS) byN[p.n] = p;
+  for (const p of PROBLEMS) {
+    // Merge meta + body. Body fields (latex, tikz_count, body_image,
+    // tikz_originals) override meta in case both carry the same
+    // key, but for Phase 2 builds only meta has metadata and only
+    // bodies has body content, so the union covers all reads.
+    const bd = BODIES[String(p.n)] || {};
+    byN[p.n] = Object.assign({}, p, bd);
+  }
 
   // The Exam page used to have Selection + Finishing tabs; the
   // Selection tab is gone. The page is now a single Finishing view.

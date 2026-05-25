@@ -849,6 +849,20 @@ body:not(.show-latex) .compact-grid > .problem-crops {
 body.signed-in .edit-latex-btn { display: inline-block; }
 .edit-latex-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
 
+/* When the per-problem page reparents the Edit LaTeX button into the
+   preview pane (initProblemPage), pin it to the top-right corner so it
+   floats over the preview-box without altering the box itself. The
+   parent .pane needs position:relative for absolute positioning to
+   anchor against it. z-index keeps it above MathJax/TikZ content. */
+.problem-body .pane.has-edit-latex-overlay { position: relative; }
+.problem-body .pane.has-edit-latex-overlay > .edit-latex-btn {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  margin-left: 0;
+  z-index: 5;
+}
+
 /* "Full page" button — shown when signed-out (instead of Edit), shows the
    page image without selection UI */
 .full-page-btn {
