@@ -3282,7 +3282,7 @@ button.status-badge:hover { filter: brightness(0.97); }
   --palette-1-bg: #fadcd6;  --palette-1-fg: #c44a3e;  /* coral red */
   --palette-2-bg: #fbe4b3;  --palette-2-fg: #b07a16;  /* warm yellow */
   --palette-3-bg: #cfe8e9;  --palette-3-fg: #2f7174;  /* teal */
-  --palette-4-bg: #dbeaee;  --palette-4-fg: #3a6f7d;  /* sky blue */
+  --palette-4-bg: #ddd3ee;  --palette-4-fg: #6a559c;  /* lavender */
 }
 
 /* ----- By-topic grid: 3 boxes per row, colored cycling backgrounds ---- */

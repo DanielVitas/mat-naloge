@@ -2520,8 +2520,66 @@ async function primeTikzCacheFromBuildTime(target) {
 // top-right of the figure. Clicking it flips state.tikz_orig[idx] for
 // the given problem and calls refreshFn (typically the preview's own
 // updatePreview) so the figure re-renders in the new mode.
+// Wire click-to-enlarge on every .tex-tikz figure inside the preview.
+// First call attaches a single document-level click listener; subsequent
+// calls (after preview re-renders) are no-ops. Clicking a figure opens a
+// fixed-position lightbox with a clone of the figure's content rendered
+// at viewport-scale for max sharpness (SVG re-rasterised at the new
+// size). Click anywhere — even the overlay's content area — to dismiss.
+function installFigureLightbox() {
+  if (window.__figLightboxWired) return;
+  window.__figLightboxWired = true;
+
+  function closeLightbox() {
+    document.querySelectorAll('.figure-lightbox').forEach(el => el.remove());
+  }
+
+  document.addEventListener('click', (e) => {
+    // Already-open lightbox? Any click dismisses it.
+    if (document.querySelector('.figure-lightbox')) {
+      closeLightbox();
+      e.preventDefault();
+      return;
+    }
+    // Click landed on the per-figure original/tikz toggle — let that
+    // button handle its own work; do NOT enlarge.
+    if (e.target.closest('.tikz-toggle')) return;
+    // Find a tex-tikz figure inside a preview-box that was clicked.
+    const fig = e.target.closest('.preview-box .tex-tikz');
+    if (!fig) return;
+    const inner = fig.querySelector('svg, img');
+    if (!inner) return;
+    // Clone deeply so the original keeps its locked layout. Strip the
+    // fixed width/height so the browser is free to scale up — for SVG
+    // this re-renders cleanly; for raster .tikz-orig-img it'll upscale
+    // to its natural max.
+    const clone = inner.cloneNode(true);
+    clone.removeAttribute('width');
+    clone.removeAttribute('height');
+    clone.style.width = '';
+    clone.style.height = '';
+    clone.style.maxWidth = '';
+    clone.style.maxHeight = '';
+    const overlay = document.createElement('div');
+    overlay.className = 'figure-lightbox';
+    const content = document.createElement('div');
+    content.className = 'figure-lightbox-content';
+    content.appendChild(clone);
+    overlay.appendChild(content);
+    document.body.appendChild(overlay);
+  });
+
+  // Pressing Escape also dismisses, even if focus is on a control.
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeLightbox();
+  });
+}
+
 function installTikzOrigToggles(target, problemId, refreshFn) {
   if (!target || problemId == null) return;
+  // Side-channel: ensure the click-lightbox wiring is in place. Cheap
+  // and idempotent; called every preview render alongside the toggles.
+  installFigureLightbox();
   const wraps = target.querySelectorAll('.tex-tikz[data-tikz-orig]');
   // Re-apply any captured TikZ-size lock to .using-orig wrappers so the
   // original image gets the same on-screen footprint as the compiled
