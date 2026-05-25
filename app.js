@@ -1890,6 +1890,11 @@ function latexToHtml(src, problemId, tikzCount, hydrateTikz, tikzOriginals) {
   src = src.replace(/\\rule\{[^{}]+\}\{[^{}]+\}/g, '<span class="tex-rule">_____</span>');
   src = src.replace(/\\renewcommand\{[^{}]+\}\{[^{}]+\}/g, '');
   src = src.replace(/\\hfill/g, ' ');
+  // \qquad MUST be replaced BEFORE \quad, otherwise the \quad rule
+  // doesn't actually match (since \qquad starts with \q not \quad — the
+  // regex can't tell — but order keeps intent clear and is fail-safe).
+  // Both are text-mode horizontal spaces; \qquad is 2em, \quad is 1em.
+  src = src.replace(/\\qquad/g, '&emsp;&emsp;');
   src = src.replace(/\\quad/g, '&nbsp;&nbsp;');
   src = src.replace(/\\,/g, '&nbsp;');
   src = src.replace(/~/g, '&nbsp;');
