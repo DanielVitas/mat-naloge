@@ -2070,11 +2070,17 @@ function buildSignedOutSidebar(meta) {
   if (!polasN.length) polasN = uniq(insts.map(i => polaNum(i.pola)));
   polasN.forEach(p => chip('pola', p + '. pola'));
 
-  // Section letter(s) — prefix with "Del". Skip empty strings.
+  // Section letter(s) — prefix with "Del" ONLY for matura-style single-letter
+  // sections (A/B/C/D/Č/E/F). Textbook entries store chapter names here
+  // ("Kotne funkcije poljubnih kotov"), and "Del Kotne funkcije…" reads
+  // weird — render those as-is.
   let sections = (Array.isArray(M.section_letters) && M.section_letters.length)
     ? M.section_letters.slice() : [];
   if (!sections.length) sections = uniq(insts.map(i => i.section).filter(Boolean));
-  sections.forEach(s => chip('section', 'Del ' + s));
+  sections.forEach(s => {
+    const isLetterSection = typeof s === 'string' && /^[A-Ža-ž]$/.test(s);
+    chip('section', isLetterSection ? ('Del ' + s) : s);
+  });
 
   // Levels (OR / VR) with explanatory title attribute.
   const levelTitle = { 'OR': 'Osnovna raven', 'VR': 'Višja raven' };
