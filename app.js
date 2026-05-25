@@ -72,6 +72,37 @@ async function spaNavigate(url, push = true) {
     }
     curContainer.replaceWith(newContainer);
     if (doc.title) document.title = doc.title;
+    // ── Purge body-level overlays that the previous page may have appended
+    // ── outside .container. The search/exam pages create a #add-problem-modal
+    // ── element (and topic-picker pop-ups) directly on document.body. After
+    // ── an SPA swap those DOM nodes persist, and if one is left visible (or
+    // ── has stale event listeners that swallow clicks) the new page becomes
+    // ── unclickable end-to-end. Just nuke them — the next page will
+    // ── recreate whatever it needs lazily.
+    document.querySelectorAll(
+      'body > #add-problem-modal,' +
+      'body > .topic-picker,' +
+      'body > .exam-modal,' +
+      'body > .crop-modal-backdrop,' +
+      'body > [data-spa-overlay]'
+    ).forEach(el => el.remove());
+    // Also clear any `.modal-open` / `.no-scroll` body classes that a
+    // dismissed modal may have left behind.
+    document.body.classList.remove('modal-open', 'no-scroll');
+    document.body.style.overflow = '';
+    // ── MathJax: clear its internal document state so subsequent
+    // ── typesetPromise calls on the freshly-swapped container actually
+    // ── render math. Without this MathJax keeps a reference to the
+    // ── pre-swap document tree and silently no-ops on the new bodies,
+    // ── leaving raw `$...$` text in every card.
+    try {
+      if (window.MathJax && MathJax.startup && MathJax.startup.document) {
+        if (typeof MathJax.typesetClear === 'function') MathJax.typesetClear();
+        if (typeof MathJax.startup.document.state === 'function') {
+          MathJax.startup.document.state(0);
+        }
+      }
+    } catch (_e) { /* best-effort reset, swallow */ }
     // Re-run page-specific inline scripts. Skip anything that's
     // already-running infrastructure on the parent shell.
     const SKIP_PATTERNS = [
@@ -2204,7 +2235,22 @@ function hydrateIndexCards() {
       }
     }
     if (ready.length && window.MathJax && window.MathJax.typesetPromise) {
-      window.MathJax.typesetPromise(ready).catch(() => {});
+      window._hydrateInfo.typesetAttempts = (window._hydrateInfo.typesetAttempts || 0) + 1;
+      window.MathJax.typesetPromise(ready).then(() => {
+        window._hydrateInfo.typesetOK = (window._hydrateInfo.typesetOK || 0) + 1;
+        // Sample the first typeset body to see what MathJax produced.
+        if (!window._hydrateInfo.afterTypesetHTML) {
+          const sample = ready[0];
+          window._hydrateInfo.afterTypesetHTML =
+            'n=' + sample.dataset.id + ' → ' + (sample.innerHTML || '').slice(0, 300);
+        }
+      }).catch((err) => {
+        window._hydrateInfo.typesetErr = String(err && (err.message || err));
+      });
+    } else {
+      window._hydrateInfo.noMathJax =
+        'MathJax=' + (window.MathJax ? 'present' : 'missing') +
+        ' typesetPromise=' + (window.MathJax && window.MathJax.typesetPromise ? 'yes' : 'no');
     }
     window._hydrateInfo.processed += batch.length;
     window._hydrateInfo.latexKeys = Object.keys(window.PROBLEMS_LATEX || {}).length;
