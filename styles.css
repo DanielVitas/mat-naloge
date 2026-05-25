@@ -3431,3 +3431,15 @@ button.status-badge:hover { filter: brightness(0.97); }
   background: transparent;
   border-color: transparent;
 }
+/* Re-declare the open-state white background AFTER the nth-child colour
+   rules so [open] wins on tie-break (both selectors have equal CSS
+   specificity, so order decides). Without this duplicate, opened year
+   boxes stay tinted; with it they revert to a white card and keep only
+   the coloured top border, matching the Po temah behaviour. */
+.page-panel[data-panel="matura"] > .collection-l1[open] {
+  background: var(--card-bg);
+  border-top-width: 6px;
+}
+.page-panel[data-panel="matura"] > .collection-l1[open] > summary {
+  background: transparent;
+}
