@@ -142,8 +142,18 @@
     </button>
     <button id="gh-signin-btn" class="primary">Sign in</button>
     <div class="gh-dropdown gh-signin-dropdown" id="gh-signin-dropdown" hidden>
-      <p class="gh-hint">Paste a fine-grained PAT for <code>DanielVitas/mat-naloge</code> with <strong>Contents: write</strong>.</p>
-      <input id="gh-token-input" type="password" autocomplete="off" placeholder="github_pat_…">
+      <div class="gh-signin-tabs" role="tablist">
+        <button type="button" class="gh-signin-tab active"
+                data-signin-tab="name" role="tab" aria-selected="true">Name</button>
+        <button type="button" class="gh-signin-tab"
+                data-signin-tab="key" role="tab" aria-selected="false">Key</button>
+      </div>
+      <div class="gh-signin-tab-panel" data-signin-panel="name">
+        <input id="gh-name-input" type="text" autocomplete="off" placeholder="name...">
+      </div>
+      <div class="gh-signin-tab-panel" data-signin-panel="key" hidden>
+        <input id="gh-token-input" type="password" autocomplete="off" placeholder="key...">
+      </div>
       <div class="gh-actions">
         <button id="gh-set-token" class="primary">Sign in</button>
         <button id="gh-cancel-signin">Cancel</button>
@@ -199,7 +209,7 @@
 </div>
 <script>window.META_URL = "data/meta.640f7419f3.json"; window.BODIES_URL = "data/bodies.0f3749552c.json";</script>
 
-<script src="app.js?v=64b9a3"></script>
+<script src="app.js?v=dab89e"></script>
 <script>initSearchPage();</script>
 </body>
 </html>

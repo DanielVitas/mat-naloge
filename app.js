@@ -1133,6 +1133,28 @@ function initMenuBar() {
   if (signinItem) {
     signinItem.addEventListener('click', (e) => {
       e.stopPropagation();
+      // Anchor the sign-in dropdown to THIS menu item, not its default
+      // top-right position. Compute the position from the menu item's
+      // bounding rect before we close the menu (otherwise the item is
+      // detached from layout and its rect goes to 0,0).
+      const rect = signinItem.getBoundingClientRect();
+      const dropdown = document.getElementById('gh-signin-dropdown');
+      if (dropdown) {
+        // Use position: fixed so the dropdown is viewport-anchored and
+        // doesn't get clipped by any positioned ancestor. We position
+        // it to the right of the menu item, vertically aligned with it.
+        // If it would overflow past the viewport's right edge, clamp
+        // back so it stays fully on-screen.
+        const W = 300;
+        let left = rect.right + 8;
+        if (left + W + 8 > window.innerWidth) {
+          left = Math.max(8, window.innerWidth - W - 8);
+        }
+        dropdown.style.position = 'fixed';
+        dropdown.style.left = left + 'px';
+        dropdown.style.top  = rect.top + 'px';
+        dropdown.style.right = 'auto';
+      }
       dd.hidden = true;
       const syncBtn = document.getElementById('gh-signin-btn');
       if (syncBtn) syncBtn.click();
