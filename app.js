@@ -2160,9 +2160,15 @@ function hydrateIndexCards() {
   const CHUNK = 8;
   const CHUNK_DELAY_MS = 16;
   // Diagnostic so we can verify from devtools whether this code is even
-  // running: window._hydrateInfo.gen bumps on every init; .processed
-  // increments per chunk; .done flips true when the loop finishes.
-  window._hydrateInfo = { gen: myGen, processed: 0, done: false };
+  // running and producing visible content. .gen bumps on every init,
+  // .processed/.rendered/.noData track per-card outcomes, .done flips
+  // true when the loop finishes, .latexKeys reports how many PROBLEMS_LATEX
+  // entries are loaded, and .sampleHTML grabs the innerHTML of the first
+  // hydrated body so we can see what the renderer actually emitted.
+  window._hydrateInfo = {
+    gen: myGen, processed: 0, rendered: 0, noData: 0,
+    done: false, latexKeys: 0, sampleHTML: ''
+  };
   function bgStep() {
     if (myGen !== _indexIdleGen) return;                  // superseded
     if (!window.PROBLEMS_LATEX) {                          // bodies still loading
@@ -2180,17 +2186,28 @@ function hydrateIndexCards() {
     }
     if (batch.length === 0) {                              // done
       window._hydrateInfo.done = true;
+      window._hydrateInfo.latexKeys = Object.keys(window.PROBLEMS_LATEX || {}).length;
       return;
     }
     const ready = [];
     for (const body of batch) {
       const ok = _hydrateOneIndexCard(body);
-      if (ok) ready.push(ok);
+      if (ok) {
+        ready.push(ok);
+        window._hydrateInfo.rendered += 1;
+        if (!window._hydrateInfo.sampleHTML) {
+          window._hydrateInfo.sampleHTML =
+            'n=' + body.dataset.id + ' → ' + (body.innerHTML || '').slice(0, 200);
+        }
+      } else {
+        window._hydrateInfo.noData += 1;
+      }
     }
     if (ready.length && window.MathJax && window.MathJax.typesetPromise) {
       window.MathJax.typesetPromise(ready).catch(() => {});
     }
     window._hydrateInfo.processed += batch.length;
+    window._hydrateInfo.latexKeys = Object.keys(window.PROBLEMS_LATEX || {}).length;
     setTimeout(bgStep, CHUNK_DELAY_MS);
   }
   // Start immediately after the bodies fetch resolves. No initial delay —
