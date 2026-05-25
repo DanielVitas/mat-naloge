@@ -1955,10 +1955,26 @@ function renderTopicsEditor(meta) {
 // see in place of the matura-crop element. CSS hides it for signed-in
 // users so we can build it once unconditionally and let presence flip
 // with the body.signed-in class.
+//
+// IMPORTANT: the inline PROBLEM constant passed to initProblemPage is a
+// SLIM record — it carries n, latex, topics, instances, tikz_*, body_image —
+// but NOT the rich metadata (year, polas_n, section_letters, levels,
+// points_list, source) that the .meta-row up top is built from at build
+// time. To get the same tags here we either look them up in window.PROBLEMS
+// (the full meta array, populated by bootstrapData) or derive them from
+// `meta.instances` as a fallback.
 function buildSignedOutSidebar(meta) {
   const grid = document.querySelector('.compact-grid');
   if (!grid) return;
   if (grid.querySelector('.problem-sidebar')) return;          // idempotent
+
+  // Resolve the full meta entry so we have the rich tag fields. PROBLEMS
+  // is populated by bootstrapData(), which is awaited before this call.
+  let fullMeta = null;
+  if (Array.isArray(window.PROBLEMS)) {
+    fullMeta = window.PROBLEMS.find(p => p && p.n === meta.n) || null;
+  }
+  const M = Object.assign({}, meta, fullMeta || {});
 
   const sidebar = document.createElement('aside');
   sidebar.className = 'problem-sidebar';
@@ -1972,8 +1988,8 @@ function buildSignedOutSidebar(meta) {
   const topicsTags = document.createElement('div');
   topicsTags.className = 'tags';
   const currentTopics = (typeof effectiveTopics === 'function')
-    ? effectiveTopics(meta.n, meta.topics)
-    : (meta.topics || []);
+    ? effectiveTopics(M.n, M.topics)
+    : (M.topics || []);
   renderTopicChipGroups(topicsTags, currentTopics, /*editable*/ false);
   topicsBox.appendChild(topicsTags);
   sidebar.appendChild(topicsBox);
@@ -1995,35 +2011,56 @@ function buildSignedOutSidebar(meta) {
     tags.appendChild(t);
   }
 
-  // Year(s) — prefix with "Leto" so it reads as a year tag.
-  const years = (Array.isArray(meta.years) && meta.years.length)
-    ? meta.years
-    : (meta.year ? [meta.year] : []);
+  // Fallback: derive multi-valued tag arrays from `instances` when the
+  // rich meta isn't available (e.g. PROBLEMS hasn't loaded yet for some
+  // reason). `instances` is always present on the inline PROBLEM.
+  function uniq(arr) {
+    const seen = new Set(); const out = [];
+    for (const x of arr) {
+      if (x == null || x === '') continue;
+      const k = String(x);
+      if (seen.has(k)) continue;
+      seen.add(k); out.push(x);
+    }
+    return out;
+  }
+  const insts = Array.isArray(M.instances) ? M.instances : [];
+  const polaNum = (p) => {
+    const m = String(p || '').match(/(\d+)/);
+    return m ? m[1] : null;
+  };
+  const yearOf = (inst) => {
+    const m = String(inst.paper_id || '').match(/^(\d{4})/);
+    return m ? m[1] : null;
+  };
+
+  // Year(s) — prefer multi-valued meta.years (merged problems), else single
+  // year, else derive from each instance's paper_id.
+  let years = (Array.isArray(M.years) && M.years.length) ? M.years.slice()
+            : (M.year ? [M.year] : []);
+  if (!years.length) years = uniq(insts.map(yearOf));
   years.forEach(y => chip('year', 'Leto ' + y));
 
   // Pola number(s).
-  const polasN = (Array.isArray(meta.polas_n) && meta.polas_n.length)
-    ? meta.polas_n
-    : [];
+  let polasN = (Array.isArray(M.polas_n) && M.polas_n.length) ? M.polas_n.slice() : [];
+  if (!polasN.length) polasN = uniq(insts.map(i => polaNum(i.pola)));
   polasN.forEach(p => chip('pola', p + '. pola'));
 
-  // Section letter(s) — prefix with "Del".
-  const sections = (Array.isArray(meta.section_letters) && meta.section_letters.length)
-    ? meta.section_letters
-    : [];
+  // Section letter(s) — prefix with "Del". Skip empty strings.
+  let sections = (Array.isArray(M.section_letters) && M.section_letters.length)
+    ? M.section_letters.slice() : [];
+  if (!sections.length) sections = uniq(insts.map(i => i.section).filter(Boolean));
   sections.forEach(s => chip('section', 'Del ' + s));
 
   // Levels (OR / VR) with explanatory title attribute.
   const levelTitle = { 'OR': 'Osnovna raven', 'VR': 'Višja raven' };
-  const levels = (Array.isArray(meta.levels) && meta.levels.length)
-    ? meta.levels
-    : [];
+  let levels = (Array.isArray(M.levels) && M.levels.length) ? M.levels.slice() : [];
+  if (!levels.length) levels = uniq(insts.map(i => i.level).filter(Boolean));
   levels.forEach(l => chip('level', l, levelTitle[l] || ''));
 
   // Points (e.g. "6 točk").
-  const pts = (Array.isArray(meta.points_list) && meta.points_list.length)
-    ? meta.points_list
-    : [];
+  let pts = (Array.isArray(M.points_list) && M.points_list.length) ? M.points_list.slice() : [];
+  if (!pts.length) pts = uniq(insts.map(i => i.points).filter(Boolean));
   pts.forEach(p => chip('points', p));
 
   tagsBox.appendChild(tags);
