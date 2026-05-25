@@ -2117,10 +2117,6 @@ function adjustHoverOverflowGuard(wrap, isHovered) {
 // the Problems page block the main thread for several seconds. Now
 // only the visible window pays the MathJax cost.
 let _indexHydrateObserver = null;
-// Idle-loop generation token: each call to hydrateIndexCards bumps this
-// and the currently-scheduled idle slice checks it on each iteration so a
-// re-init (e.g. via SPA navigation) cleanly cancels any prior idle work.
-let _indexIdleGen = 0;
 function _hydrateOneIndexCard(body) {
   const data = window.PROBLEMS_LATEX || {};
   const n = body.dataset.id;
@@ -2195,94 +2191,6 @@ function hydrateIndexCards() {
       if (hot.dataset.href) window.location.href = hot.dataset.href;
     });
   });
-  // ── Background hydration ──────────────────────────────────────────────
-  // The IntersectionObserver above handles eager hydration as cards scroll
-  // into view. BUT after an SPA-swap (Search/Exam → Problems), the
-  // observer's first intersection cycle can fail to fire for already-
-  // visible targets — a known quirk when targets are inserted via
-  // replaceWith() with no rendering update in between. Cards then stay
-  // blank until the user scrolls. Backstop: hydrate everything in
-  // one-frame slices via a setTimeout chain — 8 cards every 16 ms, so a
-  // full ~600-card list fills in inside ~1.2 s. We deliberately don't
-  // use requestIdleCallback because some browsers throttle it heavily
-  // (and may never fire it on a quiet tab), which would leave cards
-  // blank indefinitely.
-  //
-  // Bound to a generation token so re-running hydrateIndexCards cancels
-  // any in-flight loop cleanly.
-  _indexIdleGen += 1;
-  const myGen = _indexIdleGen;
-  const CHUNK = 8;
-  const CHUNK_DELAY_MS = 16;
-  // Diagnostic so we can verify from devtools whether this code is even
-  // running and producing visible content. .gen bumps on every init,
-  // .processed/.rendered/.noData track per-card outcomes, .done flips
-  // true when the loop finishes, .latexKeys reports how many PROBLEMS_LATEX
-  // entries are loaded, and .sampleHTML grabs the innerHTML of the first
-  // hydrated body so we can see what the renderer actually emitted.
-  window._hydrateInfo = {
-    gen: myGen, processed: 0, rendered: 0, noData: 0,
-    done: false, latexKeys: 0, sampleHTML: ''
-  };
-  function bgStep() {
-    if (myGen !== _indexIdleGen) return;                  // superseded
-    if (!window.PROBLEMS_LATEX) {                          // bodies still loading
-      setTimeout(bgStep, CHUNK_DELAY_MS);
-      return;
-    }
-    const batch = [];
-    const all = document.querySelectorAll('.search-result-wrap[data-id] .result-body');
-    for (const body of all) {
-      if (body.dataset.hydrated === '1') continue;
-      body.dataset.hydrated = '1';
-      if (_indexHydrateObserver) _indexHydrateObserver.unobserve(body);
-      batch.push(body);
-      if (batch.length >= CHUNK) break;
-    }
-    if (batch.length === 0) {                              // done
-      window._hydrateInfo.done = true;
-      window._hydrateInfo.latexKeys = Object.keys(window.PROBLEMS_LATEX || {}).length;
-      return;
-    }
-    const ready = [];
-    for (const body of batch) {
-      const ok = _hydrateOneIndexCard(body);
-      if (ok) {
-        ready.push(ok);
-        window._hydrateInfo.rendered += 1;
-        if (!window._hydrateInfo.sampleHTML) {
-          window._hydrateInfo.sampleHTML =
-            'n=' + body.dataset.id + ' → ' + (body.innerHTML || '').slice(0, 200);
-        }
-      } else {
-        window._hydrateInfo.noData += 1;
-      }
-    }
-    if (ready.length && window.MathJax && window.MathJax.typesetPromise) {
-      window._hydrateInfo.typesetAttempts = (window._hydrateInfo.typesetAttempts || 0) + 1;
-      window.MathJax.typesetPromise(ready).then(() => {
-        window._hydrateInfo.typesetOK = (window._hydrateInfo.typesetOK || 0) + 1;
-        // Sample the first typeset body to see what MathJax produced.
-        if (!window._hydrateInfo.afterTypesetHTML) {
-          const sample = ready[0];
-          window._hydrateInfo.afterTypesetHTML =
-            'n=' + sample.dataset.id + ' → ' + (sample.innerHTML || '').slice(0, 300);
-        }
-      }).catch((err) => {
-        window._hydrateInfo.typesetErr = String(err && (err.message || err));
-      });
-    } else {
-      window._hydrateInfo.noMathJax =
-        'MathJax=' + (window.MathJax ? 'present' : 'missing') +
-        ' typesetPromise=' + (window.MathJax && window.MathJax.typesetPromise ? 'yes' : 'no');
-    }
-    window._hydrateInfo.processed += batch.length;
-    window._hydrateInfo.latexKeys = Object.keys(window.PROBLEMS_LATEX || {}).length;
-    setTimeout(bgStep, CHUNK_DELAY_MS);
-  }
-  // Start immediately after the bodies fetch resolves. No initial delay —
-  // we want the visible cards to fill in as fast as possible.
-  bootstrapBodies().then(() => setTimeout(bgStep, 0));
 }
 
 // Pick between the body-image fallback (used when no LaTeX is available)
@@ -6034,14 +5942,6 @@ function toggleTopicReorderPillVisibility() {
 }
 
 async function initIndexPage() {
-  // Diagnostic: bump a counter every time this function is entered so we
-  // can verify from devtools that the SPA-swap re-execution is firing.
-  // Inspect window._initIndexInfo in the console — if `entered` is 1 on
-  // a Search→Problems navigation, the function ran. If `reachedHydrate`
-  // is 0, something between the entry and hydrateIndexCards is throwing.
-  window._initIndexInfo = window._initIndexInfo || { entered: 0, reachedHydrate: 0, errored: null };
-  window._initIndexInfo.entered += 1;
-  try {
   await bootstrapData();
   await fetchRemoteData();
   migrateLocalTopics();
@@ -6058,7 +5958,6 @@ async function initIndexPage() {
   window.addEventListener('hashchange', handleSectionHash);
   // Make sure we have the latest reviewer name from /user before colouring.
   await ensureNameFromToken();
-  window._initIndexInfo.reachedHydrate += 1;
   hydrateIndexCards();
   applyIndexStatuses();
   // Hide unapproved cards for signed-out viewers (default) and refresh
@@ -6101,12 +6000,5 @@ async function initIndexPage() {
       document.body.appendChild(a); a.click(); a.remove();
       URL.revokeObjectURL(url);
     });
-  }
-  } catch (err) {
-    // Surface any silently-eaten async errors via the diagnostic global
-    // so we can see them with a peek at devtools instead of trawling
-    // unhandled rejection logs.
-    window._initIndexInfo.errored = err && (err.stack || err.message || String(err));
-    throw err;
   }
 }
