@@ -1591,26 +1591,49 @@ canvas.crop-display {
 }
 .gh-signin-tab-panel { margin-bottom: 0.5rem; }
 .gh-signin-tab-panel[hidden] { display: none; }
-.gh-signin-tab-panel input[type="text"],
-.gh-signin-tab-panel input[type="password"] {
+/* Pin BOTH inputs to a complete, identical visual spec — covering the
+   subtle defaults browsers apply differently to type="text" vs
+   type="password" (Safari uses a smaller, sometimes monospaced font
+   for password fields; Chrome adds a slightly different baseline;
+   autofill backgrounds also differ). Targeting the input element
+   itself (not just the two specific types) makes sure no rule sneaks
+   in via attribute selector ordering. */
+.gh-signin-tab-panel input {
+  display: block;
   width: 100%;
   box-sizing: border-box;
-  /* Pin the same padding / font / border / radius for both inputs so
-     they render identically regardless of type="text" vs "password"
-     browser defaults. */
+  margin: 0;
   padding: 0.5rem 0.7rem;
-  font: inherit;
+  font-family: inherit;
   font-size: 0.95rem;
+  font-weight: 400;
   line-height: 1.3;
+  letter-spacing: normal;
   border: 1px solid var(--card-border);
   border-radius: 8px;
   background: white;
   color: var(--fg);
   outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
 }
 .gh-signin-tab-panel input:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+/* Browsers sometimes render password placeholders in a monospaced
+   font; force the same family as the text input. */
+.gh-signin-tab-panel input::placeholder {
+  font-family: inherit;
+  letter-spacing: normal;
+  color: var(--muted);
+  opacity: 1;
+}
+/* Kill autofill yellow on Chrome/Safari so both fields stay white. */
+.gh-signin-tab-panel input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px white inset;
+  -webkit-text-fill-color: var(--fg);
 }
 .gh-sync .gh-dropdown[hidden] { display: none; }
 /* On narrow viewports the .gh-sync button can sit near the left side
