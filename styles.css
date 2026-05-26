@@ -1946,6 +1946,15 @@ canvas.crop-display {
   border-bottom: 1px dashed color-mix(in srgb, var(--fg) 35%, transparent);
 }
 .gh-sync .gh-display-clickable:hover { color: var(--accent); border-bottom-color: var(--accent); }
+/* While the user is renaming inline: solid underline + outline so it
+   reads as an active text field, and a text caret cursor. */
+.gh-sync .gh-display-clickable.is-editing {
+  cursor: text;
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 3px;
+  border-bottom-color: transparent;
+}
 .gh-sync .gh-login-row { padding-top: 0; padding-bottom: 0.4rem; font-size: 0.78rem; }
 .gh-sync .gh-display-form { padding: 0.2rem 0.2rem 0; }
 .gh-sync .gh-display-form input[type=text] {

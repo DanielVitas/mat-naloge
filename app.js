@@ -1620,6 +1620,17 @@ function initSyncBar() {
     closeDropdownsAndMenu();
     refresh();
   });
+  // Pressing Enter inside either sign-in input submits the form,
+  // same as clicking the Prijava button. Escape closes the dropdown.
+  function wireSigninEnter(inputEl) {
+    if (!inputEl) return;
+    inputEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter')  { e.preventDefault(); setBtn.click(); }
+      if (e.key === 'Escape') { e.preventDefault(); cancelSigninBtn.click(); }
+    });
+  }
+  wireSigninEnter(nameInput);
+  wireSigninEnter(tokenInput);
 
   // ----- Signed-in menu -----
   menuBtn.addEventListener('click', (e) => {
@@ -1637,14 +1648,59 @@ function initSyncBar() {
       showDisplayForm();
     });
   }
-  // The dedicated "Display name" button was removed — clicking the
-  // bold name itself (rendered with .gh-display-clickable) opens the
-  // rename form. Same behaviour, fewer affordances on screen.
+  // Click the displayed name to rename inline — the bold text turns
+  // contenteditable, the user types, Enter or blur commits, Escape
+  // cancels. No popover, no separate form. (The legacy gh-display-form
+  // is still in the DOM as a fallback but is no longer exposed
+  // anywhere.)
   if (displayNameEl && displayNameEl.classList.contains('gh-display-clickable')) {
+    let editingOriginal = null;
+    function commitInlineEdit() {
+      if (editingOriginal === null) return;
+      const v = (displayNameEl.textContent || '').trim();
+      displayNameEl.contentEditable = 'false';
+      displayNameEl.classList.remove('is-editing');
+      const before = editingOriginal;
+      editingOriginal = null;
+      if (v && v !== before) {
+        setMyDisplayName(v);
+        refresh();
+        if (typeof window.refreshApprovalChip === 'function') {
+          window.refreshApprovalChip();
+        }
+        if (typeof applyIndexStatuses === 'function') applyIndexStatuses();
+      } else {
+        // Empty or unchanged → restore prior text so we don't
+        // accidentally persist a blank name.
+        displayNameEl.textContent = before;
+      }
+    }
+    function cancelInlineEdit() {
+      if (editingOriginal === null) return;
+      displayNameEl.textContent = editingOriginal;
+      displayNameEl.contentEditable = 'false';
+      displayNameEl.classList.remove('is-editing');
+      editingOriginal = null;
+    }
     displayNameEl.addEventListener('click', (e) => {
       e.stopPropagation();
-      showDisplayForm();
+      if (editingOriginal !== null) return;       // already editing
+      editingOriginal = displayNameEl.textContent || '';
+      displayNameEl.contentEditable = 'true';
+      displayNameEl.classList.add('is-editing');
+      displayNameEl.focus();
+      // Select all so typing immediately replaces the current name.
+      const range = document.createRange();
+      range.selectNodeContents(displayNameEl);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
     });
+    displayNameEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter')  { e.preventDefault(); commitInlineEdit(); displayNameEl.blur(); }
+      if (e.key === 'Escape') { e.preventDefault(); cancelInlineEdit(); displayNameEl.blur(); }
+    });
+    displayNameEl.addEventListener('blur', commitInlineEdit);
   }
   if (displaySaveBtn) {
     displaySaveBtn.addEventListener('click', (e) => {
