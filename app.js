@@ -3400,10 +3400,14 @@ async function initProblemPage(meta) {
     });
   }
   // Click anywhere outside the dropdown (or press Escape) closes it.
+  // The badge ⚠/✓ is the *entry point* — clicking it auto-opens the
+  // dropdown via the wireExportAndBadge handler. So we must NOT count
+  // a badge click as "outside" or we'd close what we just opened.
   document.addEventListener('click', (e) => {
     if (!commentsDropdownOpen) return;
     if (commentsRoot && commentsRoot.contains(e.target)) return;
     if (commentsToggle && commentsToggle.contains(e.target)) return;
+    if (badge && badge.contains(e.target)) return;
     closeCommentsDropdown();
   });
   document.addEventListener('keydown', (e) => {
@@ -3422,9 +3426,11 @@ async function initProblemPage(meta) {
     // comments — so they have an affordance to add one.
     commentsToggle.hidden = !signedIn;
     commentsToggle.classList.toggle('has-comments', list.length > 0);
+    // Match the chevron style used by the source-arrow on the Search
+    // page: literal ▾ that rotates 180° via CSS when aria-expanded.
     commentsToggle.innerHTML =
-      `<span class="comments-toggle-icon">💬</span>` +
-      (list.length ? `<span class="comments-toggle-count">${list.length}</span>` : '');
+      (list.length ? `<span class="comments-toggle-count">${list.length}</span>` : '') +
+      `<span class="comments-toggle-arrow">▾</span>`;
   }
 
   updateBadge(state.outdated);

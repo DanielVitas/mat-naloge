@@ -990,31 +990,42 @@ body:not(.signed-in) .edit-crop-btn { display: none; }
    comments-toggle button next to the status badge. It overlays
    surrounding content via position:absolute + a high z-index. ─── */
 .meta-row .status-row { position: relative; }
+/* Chevron-style trigger that mirrors the search-page Source arrow:
+   a small ▾ that rotates 180° when expanded. Sits flush next to the
+   status badge. */
 .comments-toggle {
+  appearance: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 0.25rem;
+  padding: 0 0.55rem;
   border: 1px solid var(--card-border);
-  background: white;
-  border-radius: 6px;
-  padding: 0.15rem 0.45rem;
+  background: var(--card-bg);
+  color: var(--muted);
+  border-radius: 999px;
+  font-size: 0.78rem; line-height: 1;
+  height: 1.55rem;
   cursor: pointer;
-  font-size: 0.95rem;
-  line-height: 1.2;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  color: var(--fg);
+  transition: border-color 120ms ease, color 120ms ease;
 }
 .comments-toggle[hidden] { display: none; }
-.comments-toggle:hover { border-color: var(--accent); color: var(--accent); }
-.comments-toggle.has-comments { border-color: #d4a843; }
+.comments-toggle:hover,
+.comments-toggle[aria-expanded="true"] { color: var(--accent); border-color: var(--accent); }
+.comments-toggle.has-comments { border-color: #d4a843; color: #b08323; }
+.comments-toggle-arrow {
+  display: inline-block;
+  transition: transform 140ms ease;
+}
+.comments-toggle[aria-expanded="true"] .comments-toggle-arrow { transform: rotate(180deg); }
 .comments-toggle-count {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
   background: #d4a843;
   color: white;
   border-radius: 999px;
-  padding: 0 0.4rem;
-  min-width: 1rem;
+  padding: 0 0.35rem;
+  min-width: 0.95rem;
   text-align: center;
+  line-height: 1.2;
 }
 .comments-thread {
   position: absolute;
