@@ -1446,12 +1446,17 @@ function initSyncBar() {
   function closeDropdowns() {
     signinDropdown.hidden = true;
     userDropdown.hidden = true;
-    // Also close the hamburger menu — if the user opened it to click
-    // Prijava (which anchors the sign-in dropdown to that menu item),
-    // it should disappear after sign-in completes alongside the dropdown.
+    showMenu();
+  }
+  // Variant that ALSO closes the hamburger menu. Use this only after a
+  // successful sign-in (the menu's Prijava is what got the user here, so
+  // dismissing the menu alongside the dropdown is the natural finish).
+  // Don't use it when the user is just opening/toggling the dropdown
+  // FROM the menu — leaving the menu visible keeps a clear anchor.
+  function closeDropdownsAndMenu() {
+    closeDropdowns();
     const menuDd = document.getElementById('menu-dropdown');
     if (menuDd) menuDd.hidden = true;
-    showMenu();
   }
   function refresh() {
     const hasToken = !!getToken();
@@ -1572,7 +1577,7 @@ function initSyncBar() {
       setName(nm);
       if (nameInput) nameInput.value = '';
       tokenInput.value = '';
-      closeDropdowns();
+      closeDropdownsAndMenu();
       refresh();
       return;
     }
@@ -1592,7 +1597,7 @@ function initSyncBar() {
     setToken(v);
     setName(login);
     tokenInput.value = '';
-    closeDropdowns();
+    closeDropdownsAndMenu();
     refresh();
   });
 
