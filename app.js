@@ -3355,20 +3355,20 @@ async function initProblemPage(meta) {
   let composerOpen  = false;
   let composerDraft = '';
 
-  // Build a dropdown that lives inside .status-row, anchored to a new
-  // toggle button placed next to the ✓/⚠ status badge. The dropdown
-  // panel itself is position:absolute so it overlays adjacent content
-  // when expanded; closed it occupies zero space.
+  // Build the split-pill control that replaces the standalone ✓/⚠
+  // status badge AND houses the comments-dropdown trigger. Both halves
+  // are independently clickable:
+  //   • left half  (status chip)  → flips outdated state, same
+  //                                  behaviour as the legacy badge
+  //   • right half (▾ arrow)      → toggles the comments dropdown
+  // Lives inside .status-row alongside the (now-hidden) #status-badge.
   let commentsToggle = document.getElementById('comments-toggle');
   let commentsRoot   = document.getElementById('comments-thread');
   const statusRow    = document.querySelector('.meta-row .status-row');
   if (statusRow && !commentsToggle) {
-    commentsToggle = document.createElement('button');
-    commentsToggle.type = 'button';
+    commentsToggle = document.createElement('span');
     commentsToggle.id   = 'comments-toggle';
     commentsToggle.className = 'comments-toggle';
-    commentsToggle.title = 'Komentarji';
-    commentsToggle.setAttribute('aria-expanded', 'false');
     statusRow.appendChild(commentsToggle);
   }
   if (statusRow && !commentsRoot) {
@@ -3400,15 +3400,53 @@ async function initProblemPage(meta) {
     renderComments();
     if (commentsToggle) commentsToggle.setAttribute('aria-expanded', 'false');
   }
+  // Flip outdated state, mirroring the (now-deprecated) status-badge
+  // click behaviour. Used by the left half of the comments-toggle and
+  // — for backwards compatibility — the legacy #status-badge if it
+  // was somehow left visible.
+  function flipOutdated() {
+    const eff = effectiveState(id);
+    const wasOutdated = !!eff.outdated;
+    const hasOpenComments = getEffectiveComments(id).length > 0;
+    if (wasOutdated && hasOpenComments) {
+      alert('Nalogo lahko označiš kot posodobljeno šele, ko so vsi komentarji odstranjeni.');
+      return;
+    }
+    const s = loadState(id);
+    s.outdated = !wasOutdated;
+    saveState(id, s);
+    if (badge) updateBadge(s.outdated);
+    refreshCommentsToggle();
+    const bar = document.getElementById('gh-sync');
+    if (bar && typeof bar._refresh === 'function') bar._refresh();
+    const signedIn_ = (typeof isSignedIn === 'function')
+      ? isSignedIn() : !!getToken();
+    if (!wasOutdated) {
+      // ✓ → ⚠: auto-open the composer for the explanation.
+      if (signedIn_ && typeof openComposer === 'function') {
+        openComposer('');
+      }
+    } else {
+      // ⚠ → ✓: dismiss any open panel/composer.
+      closeCommentsDropdown();
+    }
+  }
+
+  // Delegate clicks within the split-pill toggle: clicking the
+  // status chip (data-role="status") flips outdated; clicking the
+  // arrow chip (data-role="arrow") toggles the comments dropdown.
   if (commentsToggle) {
     commentsToggle.addEventListener('click', (e) => {
       e.stopPropagation();
+      const role = e.target && e.target.closest
+        ? (e.target.closest('[data-role]') || {}).dataset?.role
+        : null;
+      if (role === 'status') {
+        flipOutdated();
+        return;
+      }
+      // Arrow (or any other inner element) → dropdown toggle.
       if (commentsDropdownOpen) { closeCommentsDropdown(); return; }
-      // If there are no comments yet, opening the dropdown should
-      // immediately show the composer — otherwise the panel would be
-      // empty and the user wouldn't see what to do next. With existing
-      // comments, show the thread (the user can still hit "+ Komentar"
-      // to add a new one).
       if (getEffectiveComments(id).length === 0) {
         openComposer('');
       } else {
@@ -3439,26 +3477,35 @@ async function initProblemPage(meta) {
     const eff  = effectiveState(id);
     const signedIn = (typeof isSignedIn === 'function')
       ? isSignedIn() : !!getToken();
-    // The toggle only makes sense when the problem is flagged as
-    // outdated (⚠) OR there are already comments. An up-to-date
-    // problem with zero comments shows no toggle — there's nothing to
-    // discuss. Signed-out viewers never see the toggle.
-    const relevant = signedIn && (eff.outdated || list.length > 0);
-    commentsToggle.hidden = !relevant;
+    // Toggle is the sole status/comments control now — show it
+    // whenever the viewer is signed in (replaces the standalone
+    // status badge). Signed-out viewers never see it.
+    commentsToggle.hidden = !signedIn;
     commentsToggle.classList.toggle('has-comments', list.length > 0);
-    commentsToggle.classList.toggle('needs-redo', eff.outdated && list.length === 0);
-    // Left chip of the split pill: shows the comment count when
-    // comments exist, otherwise (problem is outdated but unresolved
-    // with zero comments) shows the ⚠ alert glyph so users still see
-    // why the toggle is here. Right chip is the rotating ▾ arrow.
-    let leftHtml = '';
+    commentsToggle.classList.toggle('outdated',
+      !!eff.outdated && list.length === 0);
+    // Status chip content (left half):
+    //   • N if there are comments (count overrides everything else)
+    //   • ⚠ if outdated, no comments
+    //   • ✓ if up-to-date, no comments
+    let statusContent;
+    let statusTitle;
     if (list.length) {
-      leftHtml = `<span class="comments-toggle-count">${list.length}</span>`;
+      statusContent = String(list.length);
+      statusTitle   = eff.outdated
+        ? 'Naloga potrebuje popravek — klikni za označitev kot posodobljeno (potrebno je najprej odstraniti komentarje)'
+        : 'Klikni za označitev kot potrebno popraviti';
     } else if (eff.outdated) {
-      leftHtml = `<span class="comments-toggle-count comments-toggle-alert" aria-label="Naloga potrebuje popravek">⚠</span>`;
+      statusContent = '⚠';
+      statusTitle   = 'Naloga potrebuje popravek — klikni za označitev kot posodobljeno';
+    } else {
+      statusContent = '✓';
+      statusTitle   = 'Posodobljeno — klikni za označitev kot potrebno popraviti';
     }
-    commentsToggle.innerHTML = leftHtml +
-      `<span class="comments-toggle-arrow">▾</span>`;
+    const arrowExpanded = commentsDropdownOpen ? 'true' : 'false';
+    commentsToggle.innerHTML =
+      `<button type="button" class="comments-toggle-status" data-role="status" title="${statusTitle}">${statusContent}</button>` +
+      `<button type="button" class="comments-toggle-arrow"  data-role="arrow" aria-label="Komentarji" aria-expanded="${arrowExpanded}">▾</button>`;
   }
 
   updateBadge(state.outdated);
@@ -4292,43 +4339,13 @@ async function initProblemPage(meta) {
   // and the per-problem JSON export button.
   function wireExportAndBadge() {
     if (badge) {
-      badge.addEventListener('click', () => {
-        const eff = effectiveState(id);
-        const wasOutdated = !!eff.outdated;
-        const hasOpenComments = getEffectiveComments(id).length > 0;
-        // ⚠ → ✓ requires no open comments.
-        if (wasOutdated && hasOpenComments) {
-          alert('Nalogo lahko označiš kot posodobljeno šele, ko so vsi komentarji odstranjeni.');
-          return;
-        }
-        const s = loadState(id);
-        s.outdated = !wasOutdated;
-        saveState(id, s);
-        updateBadge(s.outdated);
-        // Toggle visibility depends on outdated — refresh after flip
-        // so ⚠ → ✓ hides the toggle and ✓ → ⚠ reveals it.
-        refreshCommentsToggle();
-        const bar = document.getElementById('gh-sync');
-        if (bar && typeof bar._refresh === 'function') bar._refresh();
-        if (!wasOutdated) {
-          // ✓ → ⚠: auto-open the composer so the user can explain
-          // why the problem needs redoing. If they don't submit, no
-          // comment is added; the outdated flag still flips.
-          if ((typeof isSignedIn === 'function') && isSignedIn()
-              && typeof openComposer === 'function') {
-            openComposer('');
-          }
-        } else {
-          // ⚠ → ✓: problem is now up-to-date, so the dropdown is
-          // also no longer relevant. Close it if open — most common
-          // path is "user opened it to type, changed their mind,
-          // clicked the badge back to ✓" — leaving an empty
-          // composer hanging there would be confusing.
-          if (typeof closeCommentsDropdown === 'function') {
-            closeCommentsDropdown();
-          }
-        }
-      });
+      // The legacy standalone ✓/⚠ button has been replaced by the
+      // status half of the split-pill comments toggle. Hide it from
+      // view, but keep the listener wired (delegating to flipOutdated)
+      // so any old code that still triggers the badge click — e.g.
+      // tests, automation, embedded shells — continues to work.
+      badge.hidden = true;
+      badge.addEventListener('click', flipOutdated);
     }
     // exportBtn is the per-problem #export-changes button. It was removed
     // from the per-problem HTML in a recent edit, so this element will be

@@ -990,26 +990,27 @@ body:not(.signed-in) .edit-crop-btn { display: none; }
    comments-toggle button next to the status badge. It overlays
    surrounding content via position:absolute + a high z-index. ─── */
 .meta-row .status-row { position: relative; }
-/* Comments trigger — mirrors the Matura "source-chip + arrow combo"
-   on the Search page. The whole button is borderless / transparent;
-   the visual is the two inner spans (.comments-toggle-count and
-   .comments-toggle-arrow) which render as a split pill thanks to
-   matching borders + a 1px gap between them. */
+/* Hide the legacy standalone status badge — its role has moved into
+   the left half of the comments-toggle split pill. */
+.meta-row .status-row > #status-badge { display: none; }
+
+/* Comments trigger — split-pill that mirrors the Matura "source-chip
+   + arrow combo" on the Search page. The wrapper is a borderless
+   span; the two inner BUTTONS render as a pill split in two thanks
+   to matching borders, rounded outside corners, and a 1-pixel gap.
+   Each half handles its own click: left = flip outdated state,
+   right = toggle dropdown. */
 .comments-toggle {
-  appearance: none;
   display: inline-flex;
   align-items: stretch;
   gap: 1px;
-  padding: 0;
-  border: none;
-  background: transparent;
-  cursor: pointer;
   font-size: 0.78rem;
   line-height: 1;
 }
 .comments-toggle[hidden] { display: none; }
-.comments-toggle-count,
+.comments-toggle-status,
 .comments-toggle-arrow {
+  appearance: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1018,60 +1019,49 @@ body:not(.signed-in) .edit-crop-btn { display: none; }
   border: 1px solid var(--card-border);
   background: var(--card-bg);
   color: var(--muted);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  line-height: 1;
   transition: border-color 120ms ease, color 120ms ease, background 120ms ease;
 }
-/* Count chip — left half of the pill. Holds the unresolved comment
-   count and reads as the matura-style label. */
-.comments-toggle-count {
+/* Status chip — left half. Shows ✓ / ⚠ / N. */
+.comments-toggle-status {
   border-top-left-radius: 999px;
   border-bottom-left-radius: 999px;
   font-weight: 600;
+  min-width: 1.6rem;
 }
-/* Arrow chip — right half. Rotates 180° when the dropdown is open. */
+/* Arrow chip — right half. ▾ rotates 180° when dropdown is open. */
 .comments-toggle-arrow {
   border-top-right-radius: 999px;
   border-bottom-right-radius: 999px;
   transition: transform 140ms ease, border-color 120ms ease, color 120ms ease;
 }
-/* When no comments exist, the count chip isn't rendered — make the
-   arrow fully rounded so it stands alone as a single pill. */
-.comments-toggle-arrow:first-child {
-  border-top-left-radius: 999px;
-  border-bottom-left-radius: 999px;
-}
-.comments-toggle:hover .comments-toggle-count,
-.comments-toggle:hover .comments-toggle-arrow,
-.comments-toggle[aria-expanded="true"] .comments-toggle-count,
-.comments-toggle[aria-expanded="true"] .comments-toggle-arrow {
+.comments-toggle-status:hover,
+.comments-toggle-arrow:hover {
   color: var(--accent);
   border-color: var(--accent);
 }
-.comments-toggle[aria-expanded="true"] .comments-toggle-arrow {
+.comments-toggle-arrow[aria-expanded="true"] {
+  color: var(--accent);
+  border-color: var(--accent);
   transform: rotate(180deg);
 }
-/* Unresolved-comments amber accent applies to the count chip only. */
-.comments-toggle.has-comments .comments-toggle-count {
+/* Has-comments: the count chip glows amber to flag unresolved
+   feedback. Same palette for the ⚠ alert variant (outdated, no
+   comments). */
+.comments-toggle.has-comments .comments-toggle-status,
+.comments-toggle.outdated     .comments-toggle-status {
   background: #d4a843;
   color: white;
   border-color: #d4a843;
 }
-.comments-toggle.has-comments:hover .comments-toggle-count {
+.comments-toggle.has-comments .comments-toggle-status:hover,
+.comments-toggle.outdated     .comments-toggle-status:hover {
   background: #b08323;
   border-color: #b08323;
   color: white;
-}
-/* No-comments-but-outdated: the chip slot shows a ⚠ alert glyph in
-   the same amber palette as the count, signaling the unresolved
-   state without doubling up with the (also-amber) standalone badge. */
-.comments-toggle.needs-redo .comments-toggle-count.comments-toggle-alert {
-  background: #d4a843;
-  color: white;
-  border-color: #d4a843;
-  font-weight: 600;
-}
-.comments-toggle.needs-redo:hover .comments-toggle-count.comments-toggle-alert {
-  background: #b08323;
-  border-color: #b08323;
 }
 .comments-thread {
   position: absolute;
