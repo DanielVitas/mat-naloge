@@ -3348,24 +3348,81 @@ async function initProblemPage(meta) {
   const approversEl   = $('approvers');
   const exportBtn     = $('export-changes');
 
-  // Build the comments thread container — injected once into the DOM
-  // below the .meta-row so it sits right under the approvers/status
-  // controls. Hidden by default; render() shows it if there are
-  // comments OR the composer is open.
-  let commentsRoot = document.getElementById('comments-thread');
-  if (!commentsRoot) {
+  // Build a dropdown that lives inside .status-row, anchored to a new
+  // toggle button placed next to the ✓/⚠ status badge. The dropdown
+  // panel itself is position:absolute so it overlays adjacent content
+  // when expanded; closed it occupies zero space.
+  let commentsToggle = document.getElementById('comments-toggle');
+  let commentsRoot   = document.getElementById('comments-thread');
+  const statusRow    = document.querySelector('.meta-row .status-row');
+  if (statusRow && !commentsToggle) {
+    commentsToggle = document.createElement('button');
+    commentsToggle.type = 'button';
+    commentsToggle.id   = 'comments-toggle';
+    commentsToggle.className = 'comments-toggle';
+    commentsToggle.title = 'Komentarji';
+    commentsToggle.setAttribute('aria-expanded', 'false');
+    statusRow.appendChild(commentsToggle);
+  }
+  if (statusRow && !commentsRoot) {
     commentsRoot = document.createElement('div');
     commentsRoot.id = 'comments-thread';
     commentsRoot.className = 'comments-thread';
     commentsRoot.hidden = true;
-    const metaRow = document.querySelector('.meta-row');
-    if (metaRow && metaRow.parentNode) {
-      metaRow.parentNode.insertBefore(commentsRoot, metaRow.nextSibling);
-    }
+    statusRow.appendChild(commentsRoot);
+  }
+  // Internal flag — true when the dropdown is currently expanded.
+  let commentsDropdownOpen = false;
+  function openCommentsDropdown() {
+    commentsDropdownOpen = true;
+    renderComments();
+    if (commentsToggle) commentsToggle.setAttribute('aria-expanded', 'true');
+  }
+  function closeCommentsDropdown() {
+    commentsDropdownOpen = false;
+    composerOpen = false;
+    composerDraft = '';
+    renderComments();
+    if (commentsToggle) commentsToggle.setAttribute('aria-expanded', 'false');
+  }
+  if (commentsToggle) {
+    commentsToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (commentsDropdownOpen) closeCommentsDropdown();
+      else openCommentsDropdown();
+    });
+  }
+  // Click anywhere outside the dropdown (or press Escape) closes it.
+  document.addEventListener('click', (e) => {
+    if (!commentsDropdownOpen) return;
+    if (commentsRoot && commentsRoot.contains(e.target)) return;
+    if (commentsToggle && commentsToggle.contains(e.target)) return;
+    closeCommentsDropdown();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && commentsDropdownOpen) closeCommentsDropdown();
+  });
+
+  // Expose so the badge click + delete handlers can refresh the toggle
+  // count + dropdown state from outside their direct scope.
+  function refreshCommentsToggle() {
+    if (!commentsToggle) return;
+    const list = getEffectiveComments(id);
+    const signedIn = (typeof isSignedIn === 'function')
+      ? isSignedIn() : !!getToken();
+    // Hide toggle entirely for signed-out viewers (they shouldn't see
+    // comments anyway). Show for signed-in users always — even when 0
+    // comments — so they have an affordance to add one.
+    commentsToggle.hidden = !signedIn;
+    commentsToggle.classList.toggle('has-comments', list.length > 0);
+    commentsToggle.innerHTML =
+      `<span class="comments-toggle-icon">💬</span>` +
+      (list.length ? `<span class="comments-toggle-count">${list.length}</span>` : '');
   }
 
   updateBadge(state.outdated);
   renderApprovers();
+  refreshCommentsToggle();
   renderComments();
   renderTopicsEditor(meta);
   // Expose a refresh hook so changes to display names elsewhere (e.g. from
@@ -3982,6 +4039,10 @@ async function initProblemPage(meta) {
   function openComposer(draft) {
     composerOpen = true;
     composerDraft = draft || '';
+    // The composer lives inside the dropdown — opening the composer
+    // forces the dropdown open so the textarea is visible.
+    commentsDropdownOpen = true;
+    if (commentsToggle) commentsToggle.setAttribute('aria-expanded', 'true');
     renderComments();
     // Focus + place caret at end after the textarea is in the DOM.
     setTimeout(() => {
@@ -4019,11 +4080,17 @@ async function initProblemPage(meta) {
   }
 
   function renderComments() {
+    refreshCommentsToggle();
     if (!commentsRoot) return;
     const list = getEffectiveComments(id);
     const signedIn = (typeof isSignedIn === 'function')
       ? isSignedIn() : !!getToken();
-    const show = list.length > 0 || (signedIn && composerOpen);
+    // The thread is now a dropdown panel — it's only visible when the
+    // user has explicitly opened it (toggle click) AND has anything to
+    // see (either existing comments or the composer for signed-in
+    // users). Signed-out users never see the panel.
+    const haveContent = list.length > 0 || (signedIn && composerOpen);
+    const show = commentsDropdownOpen && signedIn && haveContent;
     commentsRoot.hidden = !show;
     commentsRoot.innerHTML = '';
     if (!show) return;
