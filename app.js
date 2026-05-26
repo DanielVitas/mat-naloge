@@ -3348,6 +3348,13 @@ async function initProblemPage(meta) {
   const approversEl   = $('approvers');
   const exportBtn     = $('export-changes');
 
+  // Comment dropdown + composer state, declared up-front so the
+  // dropdown handlers below don't hit the temporal dead zone when they
+  // reference `composerOpen` / `composerDraft` from inside their bodies.
+  // (Function declarations are hoisted, but `let` bindings are NOT.)
+  let composerOpen  = false;
+  let composerDraft = '';
+
   // Build a dropdown that lives inside .status-row, anchored to a new
   // toggle button placed next to the ✓/⚠ status badge. The dropdown
   // panel itself is position:absolute so it overlays adjacent content
@@ -4030,12 +4037,9 @@ async function initProblemPage(meta) {
   }
 
   // -------- Comments thread --------
-  // State: composer can be open with prefilled text (when triggered
-  // from the badge ⚠ click) or closed. We track open-state in a
-  // closure variable rather than the DOM so the open/closed state
-  // survives re-renders.
-  let composerOpen = false;
-  let composerDraft = '';
+  // composerOpen / composerDraft are declared at the top of
+  // initProblemPage so that the dropdown handlers above (which run
+  // during initial render) can safely reference them.
   function openComposer(draft) {
     composerOpen = true;
     composerDraft = draft || '';
