@@ -1032,6 +1032,11 @@ body:not(.signed-in) .edit-crop-btn { display: none; }
   font-weight: 600;
   min-width: 1.6rem;
 }
+/* When the arrow is hidden (problem up-to-date with no comments),
+   the chip stands alone as a single fully-rounded pill. */
+.comments-toggle.chip-only .comments-toggle-status {
+  border-radius: 999px;
+}
 /* Arrow chip — right half. ▾ rotates 180° when dropdown is open. */
 .comments-toggle-arrow {
   border-top-right-radius: 999px;

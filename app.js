@@ -3502,10 +3502,18 @@ async function initProblemPage(meta) {
       statusContent = '✓';
       statusTitle   = 'Posodobljeno — klikni za označitev kot potrebno popraviti';
     }
+    // Arrow is only relevant when there's something to drop down to —
+    // i.e. the problem is outdated OR has comments. When up-to-date
+    // with no comments, the chip alone is enough (an up-to-date
+    // problem isn't supposed to have a comment thread).
+    const showArrow = !!eff.outdated || list.length > 0;
+    commentsToggle.classList.toggle('chip-only', !showArrow);
     const arrowExpanded = commentsDropdownOpen ? 'true' : 'false';
     commentsToggle.innerHTML =
       `<button type="button" class="comments-toggle-status" data-role="status" title="${statusTitle}">${statusContent}</button>` +
-      `<button type="button" class="comments-toggle-arrow"  data-role="arrow" aria-label="Komentarji" aria-expanded="${arrowExpanded}">▾</button>`;
+      (showArrow
+        ? `<button type="button" class="comments-toggle-arrow"  data-role="arrow" aria-label="Komentarji" aria-expanded="${arrowExpanded}">▾</button>`
+        : '');
   }
 
   updateBadge(state.outdated);
