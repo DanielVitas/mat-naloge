@@ -4310,12 +4310,23 @@ async function initProblemPage(meta) {
         refreshCommentsToggle();
         const bar = document.getElementById('gh-sync');
         if (bar && typeof bar._refresh === 'function') bar._refresh();
-        // When flipping ✓ → ⚠, automatically open the composer so the
-        // user can explain WHY the problem needs redoing. If they don't
-        // submit, no comment is added; the outdated flag still flips.
-        if (!wasOutdated && (typeof isSignedIn === 'function')
-            && isSignedIn() && typeof openComposer === 'function') {
-          openComposer('');
+        if (!wasOutdated) {
+          // ✓ → ⚠: auto-open the composer so the user can explain
+          // why the problem needs redoing. If they don't submit, no
+          // comment is added; the outdated flag still flips.
+          if ((typeof isSignedIn === 'function') && isSignedIn()
+              && typeof openComposer === 'function') {
+            openComposer('');
+          }
+        } else {
+          // ⚠ → ✓: problem is now up-to-date, so the dropdown is
+          // also no longer relevant. Close it if open — most common
+          // path is "user opened it to type, changed their mind,
+          // clicked the badge back to ✓" — leaving an empty
+          // composer hanging there would be confusing.
+          if (typeof closeCommentsDropdown === 'function') {
+            closeCommentsDropdown();
+          }
         }
       });
     }
