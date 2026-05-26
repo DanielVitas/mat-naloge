@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Naloga 41 — Matura 2025</title>
-<link rel="stylesheet" href="styles.css?v=601850">
+<link rel="stylesheet" href="styles.css?v=601851">
 
 <script>
   // Prevent orphaned commas/periods/semicolons/colons at the start of a
@@ -154,7 +154,7 @@
                 data-signin-tab="key" role="tab" aria-selected="false">Ključ</button>
       </div>
       <div class="gh-signin-tab-panel" data-signin-panel="name">
-        <input id="gh-name-input" type="text" autocomplete="off" placeholder="ime...">
+        <input id="gh-name-input" type="password" autocomplete="off" placeholder="ime...">
       </div>
       <div class="gh-signin-tab-panel" data-signin-panel="key" hidden>
         <input id="gh-token-input" type="password" autocomplete="off" placeholder="ključ...">
@@ -186,10 +186,9 @@
     <button id="gh-menu-btn" class="dropdown-toggle" aria-label="Account menu">▾</button>
     <div class="gh-dropdown gh-user-dropdown" id="gh-user-dropdown" hidden>
       <div class="gh-menu-view" id="gh-menu-view">
-        <div class="gh-row">Signed in as <strong id="gh-display-name">…</strong></div>
+        <div class="gh-row">Prijavljen-a kot <strong id="gh-display-name" class="gh-display-clickable" title="Spremeni prikazano ime">…</strong></div>
         <div class="gh-row gh-login-row"><span class="gh-muted" id="gh-login-row">@<span id="gh-username">…</span></span></div>
         <hr>
-        <button id="gh-display-edit" class="dropdown-item">Display name</button>
         <button id="gh-clear-token" class="dropdown-item">Odjava</button>
       </div>
       <div class="gh-display-form" id="gh-display-form" hidden>
@@ -226,7 +225,7 @@
 
   <div class="compact-grid"><div class="problem-body">  <div class="pane">    <div class="pane-header"><h3>Preview</h3></div>    <div class="preview-box" id="preview"></div>  </div>  <div class="pane latex-pane">    <div class="pane-header"><h3>LaTeX</h3></div>    <textarea id="latex-source" spellcheck="false"></textarea>  </div></div><div class="problem-crops"><div class="instance-block" data-instance="0">  <div class="crop-view" id="crop-view-0">    <div class="pane-header">      <select class="instance-picker title-picker"               id="instance-picker"               title="Select Matura instance"><option value="0" selected>2025 · Jesenski rok · Pola 1 · OR</option><option value="1">2025 · Jesenski rok · Pola 1 · VR</option>      </select>      <span style="flex:1"></span>      <button class="full-page-btn" data-instance="0" type="button">📄 Cela stran</button><button class="edit-crop-btn" data-instance="0">✎ Uredi izrez</button><button class="edit-latex-btn" type="button" aria-pressed="false">✎ Uredi LaTeX</button>    </div>    <canvas class="crop-display" id="crop-canvas-0"></canvas>  </div>  <div class="crop-editor" id="crop-editor-0" hidden>    <div class="pane-header">      <h3>Določi izrez</h3>      <span style="flex:1"></span>      <button class="save-crop-btn primary" data-instance="0">Shrani</button>      <button class="cancel-crop-btn" data-instance="0">Prekliči</button>    </div>    <div class="canvas-wrap">      <canvas id="full-page-canvas-0"></canvas>      <div id="selection-box-0" class="selection-box"></div>    </div>  </div></div></div></div>
 <script>window.META_URL = "data/meta.dee8d0fa79.json"; window.BODIES_URL = "data/bodies.7298745f90.json";</script>
-<script src="app.js?v=601850"></script>
+<script src="app.js?v=601851"></script>
 <script>
   const PROBLEM = {"n": 41, "latex": "Linearna funkcija $f$ je dana s predpisom $f(x)=-\\dfrac{1}{2}x+4$.\n\nIzračunajte začetno vrednost funkcije $f$ in ničlo funkcije $f$. Narišite graf funkcije $f$.\\\\\nZapišite enačbo premice, ki je pravokotna na graf dane funkcije $f$ in gre skozi točko $A(1,\\,-4)$.", "topics": ["4.4 Algebra", "4.4.2 Enačbe", "4.10 Funkcije", "4.10.1 Linearna funkcija"], "tikz_count": 0, "tikz_originals": [], "instances": [{"paper_id": "2025_Jesenski_Pola1_OR", "paper_prob_n": 9, "season": "Jesenski rok", "pola": "Izpitna pola 1", "level": "OR", "section": "B kratka strukturirana naloga", "points": "8 točk", "page": 14, "page_image": "pages/2025_Jesenski_Pola1_OR_page-14.png", "page_size": [1654, 2339], "bbox_default": [185, 292, 1470, 1114]}, {"paper_id": "2025_Jesenski_Pola1_VR", "paper_prob_n": 1, "season": "Jesenski rok", "pola": "Izpitna pola 1", "level": "VR", "section": "B kratka strukturirana naloga", "points": "8 točk", "page": 9, "page_image": "pages/2025_Jesenski_Pola1_VR_page-09.png", "page_size": [1654, 2339], "bbox_default": [185, 292, 1470, 1114]}], "body_image": "", "is_textbook": false};
   initProblemPage(PROBLEM);

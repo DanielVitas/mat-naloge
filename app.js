@@ -1637,6 +1637,15 @@ function initSyncBar() {
       showDisplayForm();
     });
   }
+  // The dedicated "Display name" button was removed — clicking the
+  // bold name itself (rendered with .gh-display-clickable) opens the
+  // rename form. Same behaviour, fewer affordances on screen.
+  if (displayNameEl && displayNameEl.classList.contains('gh-display-clickable')) {
+    displayNameEl.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showDisplayForm();
+    });
+  }
   if (displaySaveBtn) {
     displaySaveBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1665,7 +1674,7 @@ function initSyncBar() {
   }
   clearBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    if (!confirm('Sign out?')) return;
+    if (!confirm('Odjavi se?')) return;
     setToken(''); setName(''); setExportOnlyMode(false);
     closeDropdowns();
     refresh();

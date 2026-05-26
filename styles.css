@@ -1938,6 +1938,14 @@ canvas.crop-display {
 .gh-sync .dropdown-item:hover { background: #f3f4f6; color: var(--accent); }
 .gh-sync .gh-muted { color: var(--muted); }
 .gh-sync .gh-row strong { color: var(--fg); }
+/* Clicking the displayed name opens the rename form — give it the
+   affordances of a link so users discover it. (The dedicated
+   "Display name" button it replaced is no longer rendered.) */
+.gh-sync .gh-display-clickable {
+  cursor: pointer;
+  border-bottom: 1px dashed color-mix(in srgb, var(--fg) 35%, transparent);
+}
+.gh-sync .gh-display-clickable:hover { color: var(--accent); border-bottom-color: var(--accent); }
 .gh-sync .gh-login-row { padding-top: 0; padding-bottom: 0.4rem; font-size: 0.78rem; }
 .gh-sync .gh-display-form { padding: 0.2rem 0.2rem 0; }
 .gh-sync .gh-display-form input[type=text] {

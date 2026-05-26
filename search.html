@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Iskalnik</title>
-<link rel="stylesheet" href="styles.css?v=601850">
+<link rel="stylesheet" href="styles.css?v=601851">
 
 <script>
   // Prevent orphaned commas/periods/semicolons/colons at the start of a
@@ -149,7 +149,7 @@
                 data-signin-tab="key" role="tab" aria-selected="false">Ključ</button>
       </div>
       <div class="gh-signin-tab-panel" data-signin-panel="name">
-        <input id="gh-name-input" type="text" autocomplete="off" placeholder="ime...">
+        <input id="gh-name-input" type="password" autocomplete="off" placeholder="ime...">
       </div>
       <div class="gh-signin-tab-panel" data-signin-panel="key" hidden>
         <input id="gh-token-input" type="password" autocomplete="off" placeholder="ključ...">
@@ -181,10 +181,9 @@
     <button id="gh-menu-btn" class="dropdown-toggle" aria-label="Account menu">▾</button>
     <div class="gh-dropdown gh-user-dropdown" id="gh-user-dropdown" hidden>
       <div class="gh-menu-view" id="gh-menu-view">
-        <div class="gh-row">Signed in as <strong id="gh-display-name">…</strong></div>
+        <div class="gh-row">Prijavljen-a kot <strong id="gh-display-name" class="gh-display-clickable" title="Spremeni prikazano ime">…</strong></div>
         <div class="gh-row gh-login-row"><span class="gh-muted" id="gh-login-row">@<span id="gh-username">…</span></span></div>
         <hr>
-        <button id="gh-display-edit" class="dropdown-item">Display name</button>
         <button id="gh-clear-token" class="dropdown-item">Odjava</button>
       </div>
       <div class="gh-display-form" id="gh-display-form" hidden>
@@ -215,7 +214,7 @@
 </div>
 <script>window.META_URL = "data/meta.dee8d0fa79.json"; window.BODIES_URL = "data/bodies.7298745f90.json";</script>
 
-<script src="app.js?v=601850"></script>
+<script src="app.js?v=601851"></script>
 <script>initSearchPage();</script>
 </body>
 </html>
