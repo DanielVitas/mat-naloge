@@ -1146,6 +1146,20 @@ function initMenuBar() {
   const btn = bar.querySelector('#menu-btn');
   const dd  = bar.querySelector('#menu-dropdown');
   if (!btn || !dd) return;
+  // Mark the menu link that matches the current page so CSS can gray
+  // it out + disable pointer events. Per-problem pages (.../problems/N.html)
+  // are children of the Naloge tree → mark the Naloge link.
+  (function markCurrent() {
+    const path = location.pathname.split('/').pop() || 'index.html';
+    const isProblemPage = location.pathname.includes('/problems/');
+    bar.querySelectorAll('.menu-link.l1').forEach(a => {
+      const href = a.getAttribute('href') || '';
+      a.classList.remove('is-current');
+      if (a.id === 'menu-signin') return;
+      if (href === path) a.classList.add('is-current');
+      else if (isProblemPage && /index\.html$/.test(href)) a.classList.add('is-current');
+    });
+  })();
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
     dd.hidden = !dd.hidden;
@@ -1263,6 +1277,12 @@ function handleSectionHash() {
   const hash = (location.hash || '').replace('#', '').trim();
   if (!hash) return;
   const parts = hash.split('/');
+  // First segment also selects the BROWSE MODE so a deep link from a
+  // problem page lands the user in the right tab on the Naloge index.
+  // `#topic/...`  → by-topic
+  // `#matura/...` → by-source (Po letih)
+  if (parts[0] === 'topic')  switchBrowseMode('by-topic');
+  if (parts[0] === 'matura') switchBrowseMode('by-source');
   // First segment selects the tab.
   switchTab(parts[0]);
   // Walk deeper segments to open nested details (year/season/level).
@@ -1997,6 +2017,81 @@ function renderTopicsEditor(meta) {
   });
 }
 
+// Add tooltips + click-to-jump behaviour to the meta-row on a problem
+// page. Year chip → index.html#matura/YYYY (Po letih + that year open).
+// Topic chip → index.html#topic/<main-slug> (Po temah + that topic
+// expanded). Sub-topic chips resolve to their main parent via
+// TOPIC_PARENT. OR / VR level chips get full Slovenian tooltips.
+function wireMetaRowInteractivity(meta) {
+  // Both the (signed-in) top meta-row AND the (signed-out) sidebar
+  // boxes are wired — they show the same chips and should behave the
+  // same way.
+  const roots = Array.from(document.querySelectorAll('.meta-row, .problem-sidebar'));
+  if (!roots.length) return;
+  // ---- Level tooltips
+  const levelText = { 'OR': 'Osnovna raven', 'VR': 'Višja raven' };
+  roots.forEach(root => root.querySelectorAll('.tag.level').forEach(el => {
+    const t = (el.textContent || '').trim();
+    if (levelText[t]) el.title = levelText[t];
+  }));
+  // ---- Year tag → #matura/YYYY. Sidebar tags carry "Leto 2011"; meta
+  // row carries just "2011". Extract the year either way.
+  roots.forEach(root => root.querySelectorAll('.tag.year').forEach(el => {
+    const m = (el.textContent || '').match(/(\d{4})/);
+    if (!m) return;
+    const y = m[1];
+    el.classList.add('is-clickable');
+    el.addEventListener('click', () => {
+      location.href = `index.html#matura/${y}`;
+    });
+  }));
+  // ---- Topic chips → #topic/<slug>. Sub-topics resolve to their main.
+  function slug(name) {
+    // "4.10 Funkcije" → "4-10-funkcije"
+    return name.toLowerCase()
+      .replace(/[\.\s]+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+  }
+  const topicsArr = (meta && meta.topics) || [];
+  // Resolve a displayed chip text to the original topic id (with "4.x"
+  // prefix) using meta.topics. Display strips the prefix; we recover it
+  // by matching the post-prefix portion.
+  function findOriginal(displayText) {
+    const clean = displayText.replace(/[×:]/g, '').trim();
+    for (const t of topicsArr) {
+      const display = t.replace(/^4\.\d+(?:\.\d+)?\s+/, '').trim();
+      if (display === clean) return t;
+    }
+    return null;
+  }
+  function resolveMain(original) {
+    if (typeof TOPIC_PARENT !== 'undefined' && TOPIC_PARENT[original]) {
+      return TOPIC_PARENT[original];
+    }
+    return original;
+  }
+  roots.forEach(root => root.querySelectorAll(
+      '.topic-group-main, .tag.topic.topic-sub')
+    .forEach(el => {
+      // Skip the "× remove" button text by reading textContent EXCLUDING
+      // child buttons. Clone, drop buttons, read text.
+      const clone = el.cloneNode(true);
+      clone.querySelectorAll('button').forEach(b => b.remove());
+      const txt = clone.textContent || '';
+      const original = findOriginal(txt);
+      if (!original) return;
+      const main = resolveMain(original);
+      el.classList.add('is-clickable');
+      el.style.cursor = 'pointer';
+      el.addEventListener('click', (e) => {
+        // Ignore clicks on the ×-remove button inside.
+        if (e.target.closest('button')) return;
+        location.href = `index.html#topic/${slug(main)}`;
+      });
+    }));
+}
+
 // Build the stacked sidebar (topics box + tags box) that signed-out users
 // see in place of the matura-crop element. CSS hides it for signed-in
 // users so we can build it once unconditionally and let presence flip
@@ -2637,6 +2732,167 @@ async function primeTikzCacheFromBuildTime(target) {
 // top-right of the figure. Clicking it flips state.tikz_orig[idx] for
 // the given problem and calls refreshFn (typically the preview's own
 // updatePreview) so the figure re-renders in the new mode.
+// Lightweight regex-based LaTeX syntax highlighter overlay. The
+// textarea is made transparent and absolutely-positioned over a <pre>
+// that holds the same content with coloured <span>s wrapping math
+// regions, environments, commands, and comments. As long as the two
+// elements share font / size / padding / line-height, the spans align
+// pixel-perfectly with the live cursor underneath.
+function installLatexHighlighter(ta) {
+  if (!ta || ta.dataset.hlWired === '1') return;
+  ta.dataset.hlWired = '1';
+  // Wrap.
+  const wrap = document.createElement('div');
+  wrap.className = 'tex-editor-wrap';
+  const pre = document.createElement('pre');
+  pre.className = 'tex-highlight';
+  pre.setAttribute('aria-hidden', 'true');
+  ta.parentNode.insertBefore(wrap, ta);
+  wrap.appendChild(pre);
+  wrap.appendChild(ta);
+  function update() {
+    pre.innerHTML = highlightTex(ta.value || '') + '\n';
+  }
+  function syncScroll() {
+    pre.scrollTop  = ta.scrollTop;
+    pre.scrollLeft = ta.scrollLeft;
+  }
+  ta.addEventListener('input',  () => { update(); syncScroll(); });
+  ta.addEventListener('scroll', syncScroll);
+  // Refresh on every external setter (initial load, SPA navigation),
+  // not just user input. A MutationObserver on `value` isn't a thing,
+  // so we poll on the next animation frame after each render hook.
+  const valGetter = Object.getOwnPropertyDescriptor(
+    HTMLTextAreaElement.prototype, 'value').get;
+  let last = '';
+  function poll() {
+    const v = valGetter.call(ta);
+    if (v !== last) { last = v; update(); syncScroll(); }
+    requestAnimationFrame(poll);
+  }
+  update();
+  requestAnimationFrame(poll);
+}
+
+function highlightTex(src) {
+  // Escape HTML.
+  let s = src.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  // Sentinel-stash approach: each pass replaces matches with sentinels
+  // (`\x00ID\x00`) that won't match later passes, so we don't double-
+  // wrap and don't have to worry about ordering interactions.
+  const stash = [];
+  const stashIt = (tok, cls) => {
+    const id = stash.length;
+    stash.push(`<span class="${cls}">${tok}</span>`);
+    return '\x00' + id + '\x00';
+  };
+  // Order matters here — comments must come first so % inside a $...$
+  // doesn't get treated as a comment, but math must come after to
+  // capture the % case where we don't want to (rare).
+  s = s.replace(/%[^\n]*/g, m => stashIt(m, 'tex-cmt'));
+  s = s.replace(/\$\$[\s\S]+?\$\$/g,    m => stashIt(m, 'tex-math'));
+  s = s.replace(/\\\[[\s\S]+?\\\]/g,    m => stashIt(m, 'tex-math'));
+  s = s.replace(/\$[^$\n]+?\$/g,        m => stashIt(m, 'tex-math'));
+  s = s.replace(/\\(?:begin|end)\{[^}]+\}/g, m => stashIt(m, 'tex-env'));
+  s = s.replace(/\\[a-zA-Z@]+\*?/g,     m => stashIt(m, 'tex-cmd'));
+  // Unstash.
+  s = s.replace(/\x00(\d+)\x00/g, (_, id) => stash[parseInt(id, 10)]);
+  return s;
+}
+
+// When the user copies text from a problem preview that contains
+// typeset math, MathJax's rendered DOM (mjx-container) doesn't
+// flatten back to readable text — by default the clipboard captures
+// something like "x 2 + y 2" with mangled spacing. Intercept `copy`
+// events and replace every selected mjx-container with its original
+// LaTeX source (stored in `data-original-src` or recoverable via the
+// internal MathJax getJaxFor API). The result: copying gives the user
+// the source TeX they expect (e.g. "$x^2 + y^2$").
+function installMathCopyHandler() {
+  if (window.__mathCopyWired) return;
+  window.__mathCopyWired = true;
+  document.addEventListener('copy', (e) => {
+    const sel = window.getSelection && window.getSelection();
+    if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return;
+    const range = sel.getRangeAt(0);
+    const frag = range.cloneContents();
+    // Replace every mjx-container clone with a text node holding the
+    // original TeX. MathJax keeps the source on a child
+    // `<mjx-assistive-mml>` is not the source; instead, the original
+    // TeX is on the container itself as the `data-tex` attribute when
+    // set, otherwise we look for a `<script type="math/tex">` sibling.
+    let touched = false;
+    frag.querySelectorAll('mjx-container').forEach(mjx => {
+      // Try several known locations for the source:
+      let tex = mjx.getAttribute('data-original-src')
+             || mjx.getAttribute('data-tex')
+             || (mjx.querySelector('script[type^="math/tex"]')
+                  ? mjx.querySelector('script[type^="math/tex"]').textContent
+                  : null);
+      if (!tex) {
+        // Fall back to MathJax's API on the LIVE node (not the cloned
+        // one). Find the matching live container by index among all.
+        // Cheap heuristic: match by rendered text content.
+        const txt = (mjx.textContent || '').trim();
+        const live = Array.from(document.querySelectorAll('mjx-container'))
+          .find(n => (n.textContent || '').trim() === txt);
+        if (live && window.MathJax && MathJax.startup &&
+            typeof MathJax.startup.document.getMathItemsWithin === 'function') {
+          try {
+            const items = MathJax.startup.document.getMathItemsWithin(live);
+            if (items && items.length) tex = items[0].math;
+          } catch (_e) {}
+        }
+      }
+      if (!tex) return;
+      const isDisplay = mjx.getAttribute('display') === 'true';
+      const wrapped = isDisplay ? `$$${tex}$$` : `$${tex}$`;
+      mjx.replaceWith(document.createTextNode(wrapped));
+      touched = true;
+    });
+    if (!touched) return;
+    const container = document.createElement('div');
+    container.appendChild(frag);
+    const text = container.textContent || '';
+    e.preventDefault();
+    e.clipboardData.setData('text/plain', text);
+  });
+}
+
+// Stash the source TeX onto each mjx-container right after MathJax
+// typesets so the copy handler can recover it. Patched into the
+// existing typesetPromise wrapper via a MutationObserver instead of
+// modifying the inline MathJax startup config (which lives in every
+// per-problem HTML and would require a bulk edit).
+function installMathSourceStash() {
+  if (window.__mathSourceStashWired) return;
+  window.__mathSourceStashWired = true;
+  const tagContainer = (container) => {
+    if (!container || container.dataset.originalSrc) return;
+    if (!window.MathJax || !MathJax.startup) return;
+    try {
+      const items = MathJax.startup.document.getMathItemsWithin(container);
+      if (items && items.length) {
+        container.dataset.originalSrc = items[0].math;
+      }
+    } catch (_e) {}
+  };
+  // Tag everything already typeset.
+  document.querySelectorAll('mjx-container').forEach(tagContainer);
+  // Watch for newly-added containers (the preview re-renders on LaTeX
+  // edits / SPA navigation) and tag them too.
+  const mo = new MutationObserver((muts) => {
+    muts.forEach(m => {
+      m.addedNodes && m.addedNodes.forEach(n => {
+        if (n.nodeType !== 1) return;
+        if (n.tagName === 'MJX-CONTAINER') tagContainer(n);
+        n.querySelectorAll && n.querySelectorAll('mjx-container').forEach(tagContainer);
+      });
+    });
+  });
+  mo.observe(document.body, { childList: true, subtree: true });
+}
+
 // Wire click-to-enlarge on every .tex-tikz figure inside the preview.
 // First call attaches a single document-level click listener; subsequent
 // calls (after preview re-renders) are no-ops. Clicking a figure opens a
@@ -2994,6 +3250,14 @@ async function initProblemPage(meta) {
   const isTextbook = !!meta.is_textbook || (!inst0.page_image && !inst0.paper_id);
   document.body.classList.toggle('textbook-problem', isTextbook);
 
+  // Make the year tag and topic chips in the .meta-row clickable, and
+  // give OR / VR tags their full Slovenian tooltip.
+  wireMetaRowInteractivity(meta);
+  // Replace MathJax-rendered DOM with the original LaTeX source on
+  // `copy` so the user gets a usable TeX string in their clipboard.
+  installMathCopyHandler();
+  installMathSourceStash();
+
   // Rewire the prev/next arrows according to navigation context (saved
   // in sessionStorage by the card click handlers). Context kinds:
   //  • search → cycle within search hits
@@ -3090,6 +3354,10 @@ async function initProblemPage(meta) {
   } else {
     ta.value = state.latex !== undefined ? state.latex : meta.latex;
   }
+  // Attach the lightweight LaTeX colour-highlighter overlay so the
+  // editor is more readable. The textarea content is the source of
+  // truth; the highlighter mirrors it onto an aria-hidden <pre>.
+  installLatexHighlighter(ta);
 
   // Render the preview. Two cases:
   //   • No LaTeX yet            → body crop image (textbook fallback).
@@ -3906,8 +4174,8 @@ async function initSearchPage(opts) {
       <div class="filter-label-row">
         <label class="filter-label">Teme</label>
         <div class="topics-actions">
-          <button type="button" class="link-btn" id="topics-all">Select all</button>
-          <button type="button" class="link-btn" id="topics-none">Select none</button>
+          <button type="button" class="link-btn" id="topics-all">Izberi vse</button>
+          <button type="button" class="link-btn" id="topics-none">Izberi nič</button>
         </div>
       </div>
       <div class="filter-topic-chips" id="f-topics"></div>
@@ -4365,14 +4633,13 @@ async function initSearchPage(opts) {
         btn.disabled = lastMatches.length === 0;
       }
     }
-    // Random-add button: label includes the configured N. Keep it
-    // enabled whenever at least one eligible candidate exists.
+    // Random-add button: the "→" label is static; only its enabled
+    // state changes based on whether there's at least one eligible
+    // candidate. The N comes from the input embedded in the same
+    // control (inline-X style).
     const randBtn = document.getElementById('add-random-btn');
-    const randIn  = document.getElementById('add-random-n');
-    if (randBtn && randIn) {
+    if (randBtn) {
       const eligible = lastMatches.filter(p => !isMarked(p.n)).length;
-      const n = Math.max(1, parseInt(randIn.value, 10) || 1);
-      randBtn.textContent = `+ Dodaj ${n} naključnih`;
       randBtn.disabled = eligible === 0;
     }
   }
@@ -5090,7 +5357,7 @@ ${itemsTex}
         row.className = 'finishing-controls-row';
         const ctrl = document.createElement('span');
         ctrl.className = 'finishing-space-control';
-        ctrl.innerHTML = `Space: <input type="number" min="0" step="1" value="${g.space || 0}" class="space-input"> pt`;
+        ctrl.innerHTML = `Odmik: <input type="number" min="0" step="1" value="${g.space || 0}" class="space-input"> pt`;
         const inp = ctrl.querySelector('input');
         inp.addEventListener('input', (e) => {
           const v = Math.max(0, parseInt(e.target.value || '0', 10) || 0);
@@ -5100,7 +5367,7 @@ ${itemsTex}
           if (v > 0 && gaps[idx].pageBreak) {
             gaps[idx].pageBreak = false;
             pb.classList.remove('is-active');
-            pb.textContent = '↪ Page break';
+            pb.textContent = '↪ Prelom strani';
             const line = sep.querySelector('.finishing-page-break-line');
             if (line) line.remove();
             const nextBlock = preview.querySelector(
@@ -5114,7 +5381,7 @@ ${itemsTex}
         const pb = document.createElement('button');
         pb.type = 'button';
         pb.className = 'page-break-toggle' + (g.pageBreak ? ' is-active' : '');
-        pb.textContent = g.pageBreak ? '↪ Page break ✓' : '↪ Page break';
+        pb.textContent = g.pageBreak ? '↪ Prelom strani ✓' : '↪ Prelom strani';
         pb.addEventListener('click', (e) => {
           e.preventDefault();
           const turningOn = !gaps[idx].pageBreak;
@@ -5348,9 +5615,11 @@ ${itemsTex}
         '<div class="filters-panel" id="filters"></div>' +
         '<div class="search-results-bar">' +
           '<div class="search-summary" id="result-count">Loading…</div>' +
-          '<span class="add-random-wrap">' +
+          '<span class="add-random-control">' +
+            '<span class="add-random-prefix">+ Dodaj</span>' +
             '<input type="number" id="add-random-n" value="5" min="1" max="999" aria-label="N naključnih">' +
-            '<button type="button" id="add-random-btn">+ Dodaj 5 naključnih</button>' +
+            '<span class="add-random-suffix">naključnih</span>' +
+            '<button type="button" id="add-random-btn" aria-label="Dodaj N naključnih">→</button>' +
           '</span>' +
           '<button type="button" id="add-all-btn" class="add-all-btn">+ Dodaj vse</button>' +
         '</div>' +

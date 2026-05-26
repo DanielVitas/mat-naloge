@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Iskalnik</title>
-<link rel="stylesheet" href="styles.css?v=41ecc4">
+<link rel="stylesheet" href="styles.css?v=601848">
 
 <script>
   // Prevent orphaned commas/periods/semicolons/colons at the start of a
@@ -203,10 +203,11 @@
   <div class="filters-panel" id="filters"></div>
   <div class="search-results-bar">
     <div class="search-summary" id="result-count">Loading…</div>
-    <span class="add-random-wrap">
-      <input type="number" id="add-random-n" min="1" value="5"
-             aria-label="N naključnih">
-      <button type="button" id="add-random-btn">+ Dodaj 5 naključnih</button>
+    <span class="add-random-control">
+      <span class="add-random-prefix">+ Dodaj</span>
+      <input type="number" id="add-random-n" min="1" value="5" aria-label="N naključnih">
+      <span class="add-random-suffix">naključnih</span>
+      <button type="button" id="add-random-btn" aria-label="Dodaj N naključnih">→</button>
     </span>
     <button type="button" id="add-all-btn" class="add-all-btn">+ Dodaj vse</button>
   </div>
@@ -214,7 +215,7 @@
 </div>
 <script>window.META_URL = "data/meta.dee8d0fa79.json"; window.BODIES_URL = "data/bodies.7298745f90.json";</script>
 
-<script src="app.js?v=41ecc4"></script>
+<script src="app.js?v=601848"></script>
 <script>initSearchPage();</script>
 </body>
 </html>

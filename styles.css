@@ -703,13 +703,24 @@ button:disabled { opacity: 0.5; cursor: default; }
   color: var(--card-border); cursor: default; pointer-events: none;
 }
 .title-row {
-  display: flex; align-items: baseline; gap: 0.9rem;
+  display: flex; align-items: baseline; gap: 0.4rem;
   flex-wrap: wrap; margin: 0;
+}
+/* Pin the arrows to fixed positions by giving the title number a
+   fixed-width container; this keeps ← and → from shifting depending on
+   whether the page is "8." or "868.". The h1 is centred inside. */
+.title-row .nav-arrow {
+  flex: 0 0 auto;
+  min-width: 1.5em;
+  text-align: center;
 }
 .title-row h1 {
   margin: 0;
   font-size: 1.4rem; font-weight: 600;
   color: var(--fg); line-height: 1;
+  flex: 0 0 auto;
+  width: 3.5em;
+  text-align: center;
 }
 .title-row .tags { margin: 0; }
 /* When the title-row sits inside the .top-bar, override its default size
@@ -799,6 +810,51 @@ textarea#latex-source {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.9rem;
   border: 1px solid var(--card-border); border-radius: 6px; padding: 0.7rem; resize: vertical;
 }
+
+/* LaTeX editor syntax-highlight overlay. The textarea sits on top with
+   transparent text; a synchronised <pre> beneath holds the coloured
+   spans. Both elements MUST share font/size/padding/line-height so the
+   spans align with the live cursor. */
+.tex-editor-wrap {
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  min-height: 280px;
+}
+.tex-editor-wrap > textarea#latex-source {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  background: transparent;
+  color: transparent;
+  caret-color: var(--fg);
+  resize: vertical;
+}
+.tex-editor-wrap > .tex-highlight {
+  position: absolute; inset: 0;
+  margin: 0;
+  width: 100%; height: 100%;
+  overflow: auto;
+  pointer-events: none;
+  /* Match the textarea exactly so wrapping behaviour is identical. */
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  padding: 0.7rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: white;
+  box-sizing: border-box;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--fg);
+}
+.tex-editor-wrap > textarea#latex-source {
+  line-height: 1.4;
+}
+.tex-highlight .tex-cmd  { color: #7c5e9a; font-weight: 600; }
+.tex-highlight .tex-env  { color: #2a6cb0; font-weight: 600; }
+.tex-highlight .tex-math { color: #b85a4b; background: #fdf3ee; border-radius: 2px; }
+.tex-highlight .tex-cmt  { color: var(--muted); font-style: italic; }
 .problem-body .preview-box {
   flex: 1 1 auto;
   /* Drop the default top margin — there's no header above it on the
@@ -1958,8 +2014,22 @@ canvas.crop-display {
   font: inherit; text-align: left; width: 100%;
 }
 .menu-bar button.menu-link:hover { background: #f3f4f6; }
-.menu-bar button.menu-link.menu-signin { color: var(--accent); font-weight: 600; }
+/* The menu's Prijava item used to read in the bright accent red — that
+   pulled the eye even when the user wasn't trying to sign in. Pull it
+   back to a neutral muted look (it's still a button; hover gives the
+   visual cue that it's clickable). */
+.menu-bar button.menu-link.menu-signin { color: var(--muted); font-weight: 500; }
+.menu-bar button.menu-link.menu-signin:hover { color: var(--accent); }
 .menu-bar button.menu-link.menu-signin[hidden] { display: none !important; }
+
+/* Current-page menu link: grayed-out + non-interactive so it reads as
+   "you are here". Added by initMenuBar() based on location.pathname. */
+.menu-bar .menu-link.is-current {
+  color: var(--muted) !important;
+  cursor: default;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.04);
+}
 .menu-bar .menu-current {
   display: flex; align-items: center; gap: 0.4rem;
   padding: 0.22rem 0.55rem 0.22rem 1.9rem;
@@ -2901,32 +2971,51 @@ body.page-exam.latex-open .finishing-right { display: flex; }
   display: none;
 }
 
-/* "Dodaj N naključnih" control on the search-results toolbar. The
-   number input sits flush against the button; the button label updates
-   reactively to the input's value (see refreshAddAll in app.js). */
-.add-random-wrap {
+/* "Dodaj N naključnih" control on the search-results toolbar.
+   Inline-X layout: "+ Dodaj [N] naključnih →" — the number input sits
+   embedded between two text spans, with a small arrow button as the
+   action. The whole thing reads like one continuous control. */
+.add-random-control {
   display: inline-flex; align-items: center; gap: 0.3rem;
-}
-.add-random-wrap input[type=number] {
-  width: 3.5em;
-  padding: 0.28rem 0.4rem;
+  padding: 0.18rem 0.5rem;
+  background: white;
   border: 1px solid var(--card-border);
   border-radius: 5px;
+  font-size: 0.85rem;
+  color: var(--accent);
+}
+.add-random-control .add-random-prefix,
+.add-random-control .add-random-suffix {
+  white-space: nowrap;
+}
+.add-random-control input[type=number] {
+  width: 3em;
+  padding: 0.1rem 0.3rem;
+  border: 1px solid var(--card-border);
+  border-radius: 4px;
   background: white;
   font: inherit; font-size: 0.85rem;
   text-align: right;
+  color: var(--fg);
+  /* Hide spinner arrows in WebKit/Firefox so the number reads cleanly. */
+  -moz-appearance: textfield;
 }
-.add-random-wrap button {
-  font: inherit; font-size: 0.85rem;
-  padding: 0.32rem 0.7rem;
-  background: white;
-  border: 1px solid var(--card-border);
-  border-radius: 5px;
-  color: var(--accent);
+.add-random-control input[type=number]::-webkit-outer-spin-button,
+.add-random-control input[type=number]::-webkit-inner-spin-button {
+  -webkit-appearance: none; margin: 0;
+}
+.add-random-control button {
+  font: inherit; font-size: 0.9rem;
+  padding: 0.05rem 0.45rem;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  color: white;
   cursor: pointer;
+  line-height: 1.2;
 }
-.add-random-wrap button:hover { background: rgba(200, 74, 74, 0.06); }
-.add-random-wrap button:disabled {
+.add-random-control button:hover { background: var(--accent-hover); }
+.add-random-control button:disabled {
   opacity: 0.5; cursor: default;
 }
 .finishing-add-from-coll,
@@ -3380,6 +3469,20 @@ body.print-finishing .finishing-block-body .result-num {
    button still exists in the static HTML across all 670+ pages, so we
    nuke it via CSS rather than edit every file. */
 #collection-bar { display: none !important; }
+
+/* Clickable meta-row tag (year/topic) on the problem page — hover
+   underline + pointer cursor so the affordance reads. */
+.tag.is-clickable,
+.topic-group-main.is-clickable,
+.tag.topic.is-clickable {
+  cursor: pointer;
+}
+.tag.is-clickable:hover,
+.topic-group-main.is-clickable:hover,
+.tag.topic.is-clickable:hover {
+  filter: brightness(0.92);
+  text-decoration: underline;
+}
 
 /* The status badge is now a clickable toggle */
 button.status-badge {
