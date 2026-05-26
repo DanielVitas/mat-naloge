@@ -3830,7 +3830,11 @@ async function initProblemPage(meta) {
     const eff       = effectiveState(id);
     const list      = approverList(eff.approved_by);
     const me        = getName();
-    const signedIn  = !!getToken() && !!me;
+    // Approval requires a name, but not a GitHub token — name-only
+    // (export-only) signed-in users can mark themselves as approvers
+    // just like token users. Their approvals land in the local pending
+    // changes blob that gets serialized by the Export button.
+    const signedIn  = (typeof isSignedIn === 'function' ? isSignedIn() : !!getToken()) && !!me;
     const others    = signedIn ? list.filter(x => x !== me) : list.slice();
     const meIn      = signedIn && list.includes(me);
 
