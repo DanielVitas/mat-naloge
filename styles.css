@@ -2014,12 +2014,11 @@ canvas.crop-display {
   font: inherit; text-align: left; width: 100%;
 }
 .menu-bar button.menu-link:hover { background: #f3f4f6; }
-/* The menu's Prijava item used to read in the bright accent red — that
-   pulled the eye even when the user wasn't trying to sign in. Pull it
-   back to a neutral muted look (it's still a button; hover gives the
-   visual cue that it's clickable). */
-.menu-bar button.menu-link.menu-signin { color: var(--muted); font-weight: 500; }
-.menu-bar button.menu-link.menu-signin:hover { color: var(--accent); }
+/* Prijava reads in a soft pastel red — enough to flag it as the
+   sign-in affordance without the eye-magnet pull of the bright accent
+   red the menu used originally. */
+.menu-bar button.menu-link.menu-signin { color: #c96666; font-weight: 500; }
+.menu-bar button.menu-link.menu-signin:hover { color: #b14e4e; }
 .menu-bar button.menu-link.menu-signin[hidden] { display: none !important; }
 
 /* Current-page menu link: grayed-out + non-interactive so it reads as
