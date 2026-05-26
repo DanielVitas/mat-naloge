@@ -986,6 +986,90 @@ body.signed-in .add-to-exam-btn { display: none; }
 body.signed-in .full-page-btn { display: none; }
 body:not(.signed-in) .edit-crop-btn { display: none; }
 
+/* ─── Comments thread (sits below .meta-row on problem pages) ─── */
+.comments-thread {
+  margin: 0.4rem 0 0.6rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  background: #fbfbfd;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.comments-thread[hidden] { display: none; }
+.comments-header { font-size: 0.85rem; color: var(--fg); }
+.comments-header .comments-count { color: var(--muted); font-weight: 400; }
+.comments-list { display: flex; flex-direction: column; gap: 0.4rem; }
+.comment-bubble {
+  background: white;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+}
+.comment-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.comment-author { font-weight: 600; color: var(--fg); }
+.comment-ts    { font-size: 0.72rem; }
+.comment-delete {
+  margin-left: auto;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 0.2rem;
+}
+.comment-delete:hover { color: #c25555; }
+.comment-body {
+  margin-top: 0.2rem;
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--fg);
+}
+.comment-composer { display: flex; flex-direction: column; gap: 0.4rem; }
+.comment-composer textarea {
+  width: 100%;
+  min-height: 4.2rem;
+  resize: vertical;
+  padding: 0.45rem 0.6rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  background: white;
+  color: var(--fg);
+  outline: none;
+  box-sizing: border-box;
+}
+.comment-composer textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+.comment-composer-actions { display: flex; gap: 0.4rem; }
+.comment-add-btn {
+  align-self: flex-start;
+  border: 1px dashed var(--card-border);
+  background: transparent;
+  color: var(--muted);
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.comment-add-btn:hover { color: var(--accent); border-color: var(--accent); }
+/* Hide the comments thread for signed-out viewers: only signed-in
+   users participate in the feedback loop. */
+body:not(.signed-in) .comments-thread { display: none !important; }
+
 /* ─── Signed-out problem page: hide matura crop + figure toggle, show
    a sidebar with stacked topics + tags boxes in its place. ─── */
 body:not(.signed-in) .meta-row { display: none; }

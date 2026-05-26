@@ -1007,6 +1007,7 @@ function pendingChanges() {
       approved_by: v => JSON.stringify(v || null),
       topics:      v => JSON.stringify(v || null),
       tikz_orig:   v => JSON.stringify(v || null),
+      comments:    v => JSON.stringify(v || null),
     };
     let differs = false;
     for (const f of Object.keys(norm)) {
@@ -3278,6 +3279,58 @@ function drawCropFromImage(canvas, img, bbox, pageSize) {
   ctx.drawImage(img, x1, y1, w, h, 0, 0, w, h);
 }
 
+// ---------- Comments (chat thread per problem) ---------------------------
+// Each comment: {id, author, text, ts}. `author` is the login the
+// commenter signed in with (GitHub login for token users, the typed
+// name for name-only users). `id` is a stable string so we can target
+// individual comments for deletion without indices shifting.
+function getEffectiveComments(id) {
+  const eff = effectiveState(id);
+  const arr = Array.isArray(eff.comments) ? eff.comments : [];
+  return arr;
+}
+// Privileged roles that may delete any comment, not just their own.
+const COMMENT_ADMINS = new Set(['DanielVitas', 'Claude']);
+function canDeleteComment(comment) {
+  const me = getName();
+  if (!me) return false;
+  if (comment && comment.author === me) return true;
+  return COMMENT_ADMINS.has(me);
+}
+// Comments live in state.comments alongside other per-problem fields.
+// Adding/removing rewrites the array as a whole — same merge semantics
+// as `approved_by` (last write wins on push).
+function addCommentTo(probId, text) {
+  const me = getName();
+  if (!me) throw new Error('Sign in to comment.');
+  const trimmed = (text || '').trim();
+  if (!trimmed) return null;
+  const s = loadState(probId);
+  const list = Array.isArray(s.comments) ? s.comments.slice()
+             : (Array.isArray(effectiveState(probId).comments)
+                ? effectiveState(probId).comments.slice()
+                : []);
+  const c = {
+    id: `${Date.now()}-${Math.floor(Math.random() * 1e6)}`,
+    author: me,
+    text:   trimmed,
+    ts:     new Date().toISOString(),
+  };
+  list.push(c);
+  s.comments = list;
+  saveState(probId, s);
+  return c;
+}
+function removeCommentFrom(probId, commentId) {
+  const s = loadState(probId);
+  const eff = effectiveState(probId);
+  const base = Array.isArray(s.comments) ? s.comments
+             : (Array.isArray(eff.comments) ? eff.comments : []);
+  const list = base.filter(c => c.id !== commentId);
+  s.comments = list;
+  saveState(probId, s);
+}
+
 async function initProblemPage(meta) {
   await bootstrapData();
   await fetchRemoteData();
@@ -3295,8 +3348,25 @@ async function initProblemPage(meta) {
   const approversEl   = $('approvers');
   const exportBtn     = $('export-changes');
 
+  // Build the comments thread container — injected once into the DOM
+  // below the .meta-row so it sits right under the approvers/status
+  // controls. Hidden by default; render() shows it if there are
+  // comments OR the composer is open.
+  let commentsRoot = document.getElementById('comments-thread');
+  if (!commentsRoot) {
+    commentsRoot = document.createElement('div');
+    commentsRoot.id = 'comments-thread';
+    commentsRoot.className = 'comments-thread';
+    commentsRoot.hidden = true;
+    const metaRow = document.querySelector('.meta-row');
+    if (metaRow && metaRow.parentNode) {
+      metaRow.parentNode.insertBefore(commentsRoot, metaRow.nextSibling);
+    }
+  }
+
   updateBadge(state.outdated);
   renderApprovers();
+  renderComments();
   renderTopicsEditor(meta);
   // Expose a refresh hook so changes to display names elsewhere (e.g. from
   // the dropdown) update the chip text without a reload.
@@ -3871,6 +3941,8 @@ async function initProblemPage(meta) {
   // -------- Approve --------
   // Click the self chip to toggle whether MY login is in approved_by.
   // Other approvers are rendered as read-only chips to the left.
+  // Blocked while open comments exist — outstanding feedback must be
+  // resolved before anyone can approve.
   async function toggleSelfApproval() {
     let myName = getName();
     if (!myName) {
@@ -3878,23 +3950,191 @@ async function initProblemPage(meta) {
       myName = getName();
     }
     if (!myName) {
-      alert('Please sign in to GitHub first (Sign in button in the top-right).');
+      alert('Prijavi se za odobritev (gumb Prijava).');
+      return;
+    }
+    const eff = effectiveState(id);
+    // Allow REMOVING own approval even with open comments — useful if
+    // the approver retracted because of the comment thread.
+    const cur = approverList(eff.approved_by);
+    const meIn = cur.includes(myName);
+    if (!meIn && getEffectiveComments(id).length > 0) {
+      alert('Nalogo lahko odobriš šele, ko so vsi komentarji odstranjeni.');
       return;
     }
     const s = loadState(id);
-    // Start from the merged effective list so we don't accidentally drop
-    // approvers who exist on remote but haven't been written to local yet.
-    const eff = effectiveState(id);
-    const cur = approverList(eff.approved_by);
-    const next = cur.includes(myName)
-      ? cur.filter(x => x !== myName)
-      : cur.concat(myName);
+    const next = meIn ? cur.filter(x => x !== myName) : cur.concat(myName);
     next.sort();
     s.approved_by = next.length > 0 ? next : null;
     saveState(id, s);
     renderApprovers();
     const bar = document.getElementById('gh-sync');
     if (bar && typeof bar._refresh === 'function') bar._refresh();
+  }
+
+  // -------- Comments thread --------
+  // State: composer can be open with prefilled text (when triggered
+  // from the badge ⚠ click) or closed. We track open-state in a
+  // closure variable rather than the DOM so the open/closed state
+  // survives re-renders.
+  let composerOpen = false;
+  let composerDraft = '';
+  function openComposer(draft) {
+    composerOpen = true;
+    composerDraft = draft || '';
+    renderComments();
+    // Focus + place caret at end after the textarea is in the DOM.
+    setTimeout(() => {
+      const ta = commentsRoot.querySelector('.comment-composer textarea');
+      if (ta) {
+        ta.focus();
+        ta.setSelectionRange(ta.value.length, ta.value.length);
+      }
+    }, 0);
+  }
+  function closeComposer() {
+    composerOpen = false;
+    composerDraft = '';
+    renderComments();
+  }
+  function submitComposer() {
+    const text = composerDraft.trim();
+    if (!text) { closeComposer(); return; }
+    addCommentTo(id, text);
+    composerOpen = false;
+    composerDraft = '';
+    renderComments();
+    renderApprovers();           // re-render so the chip reflects gated state
+    if (badge) updateBadge(effectiveState(id).outdated);
+    const bar = document.getElementById('gh-sync');
+    if (bar && typeof bar._refresh === 'function') bar._refresh();
+  }
+  function deleteCommentById(commentId) {
+    removeCommentFrom(id, commentId);
+    renderComments();
+    renderApprovers();           // gating may have lifted
+    if (badge) updateBadge(effectiveState(id).outdated);
+    const bar = document.getElementById('gh-sync');
+    if (bar && typeof bar._refresh === 'function') bar._refresh();
+  }
+
+  function renderComments() {
+    if (!commentsRoot) return;
+    const list = getEffectiveComments(id);
+    const signedIn = (typeof isSignedIn === 'function')
+      ? isSignedIn() : !!getToken();
+    const show = list.length > 0 || (signedIn && composerOpen);
+    commentsRoot.hidden = !show;
+    commentsRoot.innerHTML = '';
+    if (!show) return;
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'comments-header';
+    header.innerHTML = `<strong>Komentarji</strong>` +
+      (list.length ? ` <span class="comments-count">(${list.length})</span>` : '');
+    commentsRoot.appendChild(header);
+
+    // Existing comments
+    if (list.length) {
+      const thread = document.createElement('div');
+      thread.className = 'comments-list';
+      // Stable chronological order (oldest first, newest at bottom).
+      const sorted = list.slice().sort((a, b) =>
+        String(a.ts || '').localeCompare(String(b.ts || '')));
+      for (const c of sorted) {
+        const bubble = document.createElement('div');
+        bubble.className = 'comment-bubble';
+        const author = (c.author || 'neznan');
+        const dn = displayNameFor(author);
+        const tsStr = c.ts ? formatRelative(c.ts) : '';
+        const head = document.createElement('div');
+        head.className = 'comment-head';
+        head.innerHTML =
+          `<span class="comment-author">${escapeHtml(dn)}</span>` +
+          (tsStr ? `<span class="comment-ts">${escapeHtml(tsStr)}</span>` : '');
+        if (canDeleteComment(c)) {
+          const del = document.createElement('button');
+          del.type = 'button';
+          del.className = 'comment-delete';
+          del.title = 'Odstrani komentar';
+          del.textContent = '×';
+          del.addEventListener('click', () => deleteCommentById(c.id));
+          head.appendChild(del);
+        }
+        const body = document.createElement('div');
+        body.className = 'comment-body';
+        body.textContent = c.text || '';
+        bubble.appendChild(head);
+        bubble.appendChild(body);
+        thread.appendChild(bubble);
+      }
+      commentsRoot.appendChild(thread);
+    }
+
+    // Composer / add-button
+    if (signedIn) {
+      if (composerOpen) {
+        const composer = document.createElement('div');
+        composer.className = 'comment-composer';
+        const ta = document.createElement('textarea');
+        ta.placeholder = 'Tvoj komentar…';
+        ta.value = composerDraft;
+        ta.addEventListener('input', () => { composerDraft = ta.value; });
+        ta.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+            e.preventDefault();
+            submitComposer();
+          }
+          if (e.key === 'Escape') {
+            e.preventDefault();
+            closeComposer();
+          }
+        });
+        const actions = document.createElement('div');
+        actions.className = 'comment-composer-actions';
+        const submit = document.createElement('button');
+        submit.type = 'button';
+        submit.className = 'primary';
+        submit.textContent = 'Objavi';
+        submit.addEventListener('click', submitComposer);
+        const cancel = document.createElement('button');
+        cancel.type = 'button';
+        cancel.textContent = 'Prekliči';
+        cancel.addEventListener('click', closeComposer);
+        actions.appendChild(submit);
+        actions.appendChild(cancel);
+        composer.appendChild(ta);
+        composer.appendChild(actions);
+        commentsRoot.appendChild(composer);
+      } else {
+        const add = document.createElement('button');
+        add.type = 'button';
+        add.className = 'comment-add-btn';
+        add.textContent = '+ Komentar';
+        add.addEventListener('click', () => openComposer(''));
+        commentsRoot.appendChild(add);
+      }
+    }
+  }
+
+  // Quick & locale-friendly relative timestamp ("pred 3 min", "danes
+  // 14:32"). Falls back to ISO if Intl is unavailable.
+  function formatRelative(iso) {
+    try {
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return '';
+      const now = new Date();
+      const diffMs = now - d;
+      const mins = Math.round(diffMs / 60000);
+      if (mins < 1)  return 'pravkar';
+      if (mins < 60) return `pred ${mins} min`;
+      const hrs = Math.round(mins / 60);
+      if (hrs < 24)  return `pred ${hrs} h`;
+      const days = Math.round(hrs / 24);
+      if (days < 7)  return `pred ${days} d`;
+      return d.toLocaleDateString('sl-SI', { day: 'numeric', month: 'short', year: 'numeric' });
+    } catch { return ''; }
   }
 
   function renderApprovers() {
@@ -3948,12 +4188,27 @@ async function initProblemPage(meta) {
   function wireExportAndBadge() {
     if (badge) {
       badge.addEventListener('click', () => {
+        const eff = effectiveState(id);
+        const wasOutdated = !!eff.outdated;
+        const hasOpenComments = getEffectiveComments(id).length > 0;
+        // ⚠ → ✓ requires no open comments.
+        if (wasOutdated && hasOpenComments) {
+          alert('Nalogo lahko označiš kot ažurno šele, ko so vsi komentarji odstranjeni.');
+          return;
+        }
         const s = loadState(id);
-        s.outdated = !s.outdated;
+        s.outdated = !wasOutdated;
         saveState(id, s);
         updateBadge(s.outdated);
         const bar = document.getElementById('gh-sync');
         if (bar && typeof bar._refresh === 'function') bar._refresh();
+        // When flipping ✓ → ⚠, automatically open the composer so the
+        // user can explain WHY the problem needs redoing. If they don't
+        // submit, no comment is added; the outdated flag still flips.
+        if (!wasOutdated && (typeof isSignedIn === 'function')
+            && isSignedIn() && typeof openComposer === 'function') {
+          openComposer('');
+        }
       });
     }
     // exportBtn is the per-problem #export-changes button. It was removed
