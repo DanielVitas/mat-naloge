@@ -1171,10 +1171,18 @@ function initMenuBar() {
   const signinItem = bar.querySelector('#menu-signin');
   function refreshMenuSignin() {
     if (!signinItem) return;
-    signinItem.hidden = !!getToken();
+    // Hide the Prijava menu item when the user is signed in via EITHER
+    // a token OR export-only (name) — not just token presence, otherwise
+    // the menu still advertises Prijava after a name-only sign-in.
+    signinItem.hidden = (typeof isSignedIn === 'function')
+      ? isSignedIn()
+      : !!getToken();
   }
   refreshMenuSignin();
   window.addEventListener('storage', refreshMenuSignin);
+  // Other parts of the app (the sign-in flow in initSyncBar) trigger
+  // 'signin-changed' after applying state — keep this menu item in sync.
+  window.addEventListener('signin-changed', refreshMenuSignin);
   if (signinItem) {
     signinItem.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1438,6 +1446,11 @@ function initSyncBar() {
   function closeDropdowns() {
     signinDropdown.hidden = true;
     userDropdown.hidden = true;
+    // Also close the hamburger menu — if the user opened it to click
+    // Prijava (which anchors the sign-in dropdown to that menu item),
+    // it should disappear after sign-in completes alongside the dropdown.
+    const menuDd = document.getElementById('menu-dropdown');
+    if (menuDd) menuDd.hidden = true;
     showMenu();
   }
   function refresh() {
@@ -1450,6 +1463,10 @@ function initSyncBar() {
     document.body.classList.toggle('signed-in', signedIn_);
     document.body.classList.toggle('export-only', exportOnly);
     if (!signedIn_) document.body.classList.remove('show-latex');
+    // Broadcast so the hamburger menu's Prijava item can update its
+    // hidden state. (`storage` events only fire across tabs, not within
+    // the same tab after a programmatic setName.)
+    window.dispatchEvent(new CustomEvent('signin-changed'));
     if (signedIn_) {
       const login = getName();
       const dn = login ? displayNameFor(login) : '…';
@@ -2408,9 +2425,67 @@ function hydrateIndexCards() {
     hot.addEventListener('mouseenter', enter);
     hot.addEventListener('mouseleave', leave);
     hot.addEventListener('click', () => {
+      // Before navigating, capture the navigation context so the per-
+      // problem page can wire its prev/next arrows to cycle within the
+      // same list (topic / year-rok-level / search results) instead of
+      // by global problem number.
+      captureNavContextFromCard(wrap);
       if (hot.dataset.href) window.location.href = hot.dataset.href;
     });
   });
+}
+
+// Save the ordered list of problem IDs that surround `wrap` in the
+// nearest "context container" — used by the per-problem page to scope
+// its prev/next arrows. We pick the deepest matching container so the
+// list is as tight as possible (e.g. on Po letih, the OR/VR/level group
+// is preferred over the year box).
+function captureNavContextFromCard(wrap) {
+  if (!wrap || !wrap.dataset || !wrap.dataset.id) return;
+  const id = parseInt(wrap.dataset.id, 10);
+  if (!Number.isFinite(id)) return;
+  let container = null;
+  let kind = null;
+  // 1. Po letih → deepest collection-l3 (OR/VR group inside season).
+  //    Falls back to l2 (season) then l1 (year) if for some reason a
+  //    deeper level isn't present.
+  const yearScope = wrap.closest('.browse-mode-panel[data-mode="by-source"]');
+  if (yearScope) {
+    container = wrap.closest('.collection-l3') || wrap.closest('.collection-l2') || wrap.closest('.collection-l1');
+    if (container) kind = 'year';
+  }
+  // 2. Po temah → the main topic collection-l1 within by-topic panel.
+  const topicScope = wrap.closest('.browse-mode-panel[data-mode="by-topic"]');
+  if (!container && topicScope) {
+    container = wrap.closest('.collection-l1');
+    if (container) kind = 'topic';
+  }
+  // 3. Search page → the results list (no .collection wrap).
+  if (!container) {
+    const searchRoot = wrap.closest('#search-results, .search-results-list, body.page-search .search-results, .browse-mode-panel');
+    if (searchRoot) {
+      container = searchRoot;
+      kind = 'search';
+    }
+  }
+  if (!container) return;
+  // Collect ALL data-id cards in DOM order INSIDE this container,
+  // skipping those hidden by the approval filter or subtopic filter.
+  const list = [];
+  container.querySelectorAll('.search-result-wrap[data-id]').forEach(w => {
+    if (w.classList.contains('unapproved-hidden')) return;
+    if (w.classList.contains('subtopic-filter-hidden')) return;
+    const n = parseInt(w.dataset.id, 10);
+    if (Number.isFinite(n) && !list.includes(n)) list.push(n);
+  });
+  if (list.length === 0) return;
+  try {
+    sessionStorage.setItem('prev-next-context', JSON.stringify({
+      kind: kind,
+      key: container.getAttribute('data-target') || container.id || '',
+      list: list,
+    }));
+  } catch (_e) {}
 }
 
 // Pick between the body-image fallback (used when no LaTeX is available)
@@ -2913,6 +2988,45 @@ async function initProblemPage(meta) {
   const inst0 = (meta.instances && meta.instances[0]) || {};
   const isTextbook = !!meta.is_textbook || (!inst0.page_image && !inst0.paper_id);
   document.body.classList.toggle('textbook-problem', isTextbook);
+
+  // Rewire the prev/next arrows according to navigation context (saved
+  // in sessionStorage by the card click handlers). Context kinds:
+  //  • search → cycle within search hits
+  //  • topic  → cycle within the clicked topic group
+  //  • year   → cycle within the same year/season/level group
+  // Falls back to the static N±1 hrefs already in HTML if no context
+  // or if this problem isn't in the context list.
+  try {
+    const raw = sessionStorage.getItem('prev-next-context');
+    if (raw) {
+      const ctx = JSON.parse(raw);
+      if (ctx && Array.isArray(ctx.list) && ctx.list.length) {
+        const idx = ctx.list.indexOf(meta.n);
+        if (idx >= 0) {
+          const prev = idx > 0 ? ctx.list[idx - 1] : null;
+          const next = idx < ctx.list.length - 1 ? ctx.list[idx + 1] : null;
+          const arrows = document.querySelectorAll('.title-row .nav-arrow');
+          // The static HTML has prev arrow first then next; we map by
+          // aria-label so the order doesn't matter.
+          arrows.forEach(a => {
+            const lbl = (a.getAttribute('aria-label') || '').toLowerCase();
+            const target = lbl.includes('previous') ? prev
+                       : lbl.includes('next')     ? next
+                       : null;
+            if (target == null) {
+              // No neighbour in this direction — visually disable.
+              a.classList.add('disabled');
+              a.removeAttribute('href');
+            } else {
+              const padded = String(target).padStart(3, '0');
+              a.setAttribute('href', `problems/${padded}.html`);
+              a.classList.remove('disabled');
+            }
+          });
+        }
+      }
+    }
+  } catch (_e) {}
 
   // Reparent the "Uredi LaTeX" toggle button so it overlays the preview
   // pane's top-right corner instead of living in the crop-view's header.
@@ -3661,7 +3775,7 @@ async function initSearchPage(opts) {
     <div class="filter-cell filter-keyword-cell">
       <label class="filter-label" for="f-keyword">Ključna beseda</label>
       <input type="search" id="f-keyword" class="filter-keyword-input"
-             placeholder="e.g. mediana, integral, …"
+             placeholder="npr. mediana, integral, …"
              autocomplete="off" spellcheck="false">
     </div>
     <div class="filter-cell filter-source-cell">
@@ -4235,6 +4349,21 @@ async function initSearchPage(opts) {
     // modal mode).
     const hot = e.target.closest('.search-result-hot-zone');
     if (hot && hot.dataset.href) {
+      // Save the current search-results list so the per-problem page's
+      // prev/next arrows cycle within the search hits only.
+      try {
+        const list = [];
+        resultsEl.querySelectorAll('.search-result-wrap[data-id]').forEach(w => {
+          if (w.classList.contains('unapproved-hidden')) return;
+          const id = parseInt(w.dataset.id, 10);
+          if (Number.isFinite(id) && !list.includes(id)) list.push(id);
+        });
+        if (list.length) {
+          sessionStorage.setItem('prev-next-context', JSON.stringify({
+            kind: 'search', key: 'search-results', list: list,
+          }));
+        }
+      } catch (_e) {}
       window.location.href = hot.dataset.href;
     }
   });
