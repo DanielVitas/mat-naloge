@@ -2873,22 +2873,61 @@ body.page-exam.latex-open .finishing-right { display: flex; }
   background: white !important;
 }
 
-/* "+ Add a problem" pseudo-block at the end of the preview. */
+/* "+ Dodaj nalogo" tile at the end of the preview — the whole card is
+   the click target (it opens the search modal). No inner buttons. */
 .finishing-add-block {
+  display: block;
+  width: 100%;
   margin-top: 0.6rem;
-  padding: 0.7rem 0.9rem;
+  padding: 1rem 0.9rem;
   border: 1px dashed var(--card-border);
   border-radius: 6px;
   background: rgba(0, 0, 0, 0.015);
+  cursor: pointer;
+  font: inherit;
+  color: var(--accent);
+  text-align: center;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+.finishing-add-block:hover {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: var(--accent);
 }
 .finishing-add-header {
-  font-size: 0.85rem;
-  color: var(--muted);
-  margin-bottom: 0.45rem;
+  font-size: 0.95rem;
+  font-weight: 500;
 }
 .finishing-add-actions {
-  display: flex; gap: 0.5rem; flex-wrap: wrap;
-  align-items: center; justify-content: center;
+  display: none;
+}
+
+/* "Dodaj N naključnih" control on the search-results toolbar. The
+   number input sits flush against the button; the button label updates
+   reactively to the input's value (see refreshAddAll in app.js). */
+.add-random-wrap {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+}
+.add-random-wrap input[type=number] {
+  width: 3.5em;
+  padding: 0.28rem 0.4rem;
+  border: 1px solid var(--card-border);
+  border-radius: 5px;
+  background: white;
+  font: inherit; font-size: 0.85rem;
+  text-align: right;
+}
+.add-random-wrap button {
+  font: inherit; font-size: 0.85rem;
+  padding: 0.32rem 0.7rem;
+  background: white;
+  border: 1px solid var(--card-border);
+  border-radius: 5px;
+  color: var(--accent);
+  cursor: pointer;
+}
+.add-random-wrap button:hover { background: rgba(200, 74, 74, 0.06); }
+.add-random-wrap button:disabled {
+  opacity: 0.5; cursor: default;
 }
 .finishing-add-from-coll,
 .finishing-add-search {
@@ -3335,6 +3374,12 @@ body.print-finishing .finishing-block-body .result-num {
     color: black;
   }
 }
+
+/* Collection bar — removed. The concept is scrapped; everything that
+   used to add to the collection now adds directly to the exam. The
+   button still exists in the static HTML across all 670+ pages, so we
+   nuke it via CSS rather than edit every file. */
+#collection-bar { display: none !important; }
 
 /* The status badge is now a clickable toggle */
 button.status-badge {

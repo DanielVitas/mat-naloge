@@ -3665,17 +3665,27 @@ async function initSearchPage(opts) {
   //   stateEvent  : string            — name of event to listen for to refresh
   //   skipPageInit: bool              — skip the page-level init helpers
   opts = opts || {};
-  const isMarked        = opts.isMarked   || isSelected;
-  const onAdd           = opts.onAdd      || toggleSelected;
+  // Default semantics now target the EXAM directly (the Collection
+  // concept is gone). Add toggles membership; "Add all" appends every
+  // currently-filtered problem to the exam.
+  const isMarked        = opts.isMarked   || ((n) => getExam().includes(Number(n)));
+  const onAdd           = opts.onAdd      || ((n) => {
+    const cur = getExam();
+    const has = cur.includes(Number(n));
+    setExam(has ? cur.filter(x => x !== Number(n)) : [...cur, Number(n)]);
+  });
   const onAddAll        = opts.onAddAll   || ((ns) => {
-    const sel = getSelected(); ns.forEach(n => sel.add(n)); setSelected(sel);
+    const cur = getExam();
+    const set = new Set(cur);
+    const toAdd = ns.filter(n => !set.has(Number(n))).map(Number);
+    if (toAdd.length) setExam([...cur, ...toAdd]);
   });
   const addLabel        = opts.addLabel    || '+';
   const markedLabel     = opts.markedLabel || '×';
   const markedDisabled  = !!opts.markedDisabled;
   const markedClass     = opts.markedClass || '';
   const showEditLink    = opts.showEditLink !== false;
-  const stateEvent      = opts.stateEvent  || 'selection-changed';
+  const stateEvent      = opts.stateEvent  || 'exam-changed';
 
   if (!opts.skipPageInit) {
     await fetchRemoteData();
@@ -4345,14 +4355,25 @@ async function initSearchPage(opts) {
 
   function refreshAddAll() {
     const btn = document.getElementById('add-all-btn');
-    if (!btn) return;
-    const remaining = lastMatches.filter(p => !isMarked(p.n)).length;
-    if (remaining === 0 && lastMatches.length > 0) {
-      btn.textContent = `All ${lastMatches.length} already added`;
-      btn.disabled = true;
-    } else {
-      btn.textContent = `+ Add all (${remaining})`;
-      btn.disabled = lastMatches.length === 0;
+    if (btn) {
+      const remaining = lastMatches.filter(p => !isMarked(p.n)).length;
+      if (remaining === 0 && lastMatches.length > 0) {
+        btn.textContent = `Vse že dodane`;
+        btn.disabled = true;
+      } else {
+        btn.textContent = `+ Dodaj vse (${remaining})`;
+        btn.disabled = lastMatches.length === 0;
+      }
+    }
+    // Random-add button: label includes the configured N. Keep it
+    // enabled whenever at least one eligible candidate exists.
+    const randBtn = document.getElementById('add-random-btn');
+    const randIn  = document.getElementById('add-random-n');
+    if (randBtn && randIn) {
+      const eligible = lastMatches.filter(p => !isMarked(p.n)).length;
+      const n = Math.max(1, parseInt(randIn.value, 10) || 1);
+      randBtn.textContent = `+ Dodaj ${n} naključnih`;
+      randBtn.disabled = eligible === 0;
     }
   }
 
@@ -4408,6 +4429,9 @@ async function initSearchPage(opts) {
   // aren't already in the target state.
   const addRandomBtn = document.getElementById('add-random-btn');
   const addRandomN   = document.getElementById('add-random-n');
+  if (addRandomN) {
+    addRandomN.addEventListener('input', refreshAddAll);
+  }
   if (addRandomBtn && addRandomN) {
     addRandomBtn.addEventListener('click', () => {
       const n = Math.max(1, parseInt(addRandomN.value, 10) || 1);
@@ -5258,18 +5282,13 @@ ${itemsTex}
   // Both actions open a fullscreen modal so the user can browse problems
   // with the same UI as the search page.
   function appendAddBlock() {
-    const addBlock = document.createElement('div');
+    // The whole tile is the click target now — opens the search modal.
+    // No inner buttons (Collection is gone; Poišči is implied).
+    const addBlock = document.createElement('button');
+    addBlock.type = 'button';
     addBlock.className = 'finishing-add-block';
-    addBlock.innerHTML =
-      '<div class="finishing-add-header">+ Dodaj nalogo</div>' +
-      '<div class="finishing-add-actions">' +
-        '<button type="button" class="finishing-add-from-coll">Collection</button>' +
-        '<button type="button" class="finishing-add-search">Poišči</button>' +
-      '</div>';
-    addBlock.querySelector('.finishing-add-from-coll')
-            .addEventListener('click', () => openAddProblemModal('collection'));
-    addBlock.querySelector('.finishing-add-search')
-            .addEventListener('click', () => openAddProblemModal('search'));
+    addBlock.innerHTML = '<span class="finishing-add-header">+ Dodaj nalogo</span>';
+    addBlock.addEventListener('click', () => openAddProblemModal('search'));
     preview.appendChild(addBlock);
   }
 
@@ -5305,7 +5324,9 @@ ${itemsTex}
     const title = modal.querySelector('.exam-modal-title');
     const body  = modal.querySelector('.exam-modal-body');
 
-    if (mode === 'collection') {
+    // Collection mode was scrapped — always use the search UI.
+    if (mode === 'collection') mode = 'search';
+    if (false) {
       title.textContent = 'Add from Collection';
       body.innerHTML =
         '<div class="search-results-bar">' +
@@ -5321,19 +5342,17 @@ ${itemsTex}
         '<div class="search-results" id="search-results"></div>';
       renderCollectionInModal(body);
     } else {
-      title.textContent = 'Search problems';
+      title.textContent = 'Poišči nalogo';
       // The search-page DOM, with the IDs initSearchPage expects.
       body.innerHTML =
         '<div class="filters-panel" id="filters"></div>' +
         '<div class="search-results-bar">' +
           '<div class="search-summary" id="result-count">Loading…</div>' +
-          '<span class="add-random-control">' +
-            '<span class="add-random-prefix">+ Add</span>' +
-            '<input type="number" id="add-random-n" value="1" min="1" max="999">' +
-            '<span class="add-random-suffix">random</span>' +
-            '<button type="button" id="add-random-btn" aria-label="Add N random">→</button>' +
+          '<span class="add-random-wrap">' +
+            '<input type="number" id="add-random-n" value="5" min="1" max="999" aria-label="N naključnih">' +
+            '<button type="button" id="add-random-btn">+ Dodaj 5 naključnih</button>' +
           '</span>' +
-          '<button type="button" id="add-all-btn" class="add-all-btn">+ Add all</button>' +
+          '<button type="button" id="add-all-btn" class="add-all-btn">+ Dodaj vse</button>' +
         '</div>' +
         '<div class="search-results" id="search-results"></div>';
       // Run a configured initSearchPage that wires Add → exam.
@@ -5572,10 +5591,22 @@ ${itemsTex}
     const fp = exam.slice().sort((a, b) => a - b).join(',');
     if (fp === lastExamFingerprint && items.length) {
       // Set unchanged — keep user edits to ordering, content, etc.
-    } else {
-      lastExamFingerprint = fp;
-      // Default ordering: by section letter. Then, if we have a saved
-      // order for this exact exam-set fingerprint, prefer that.
+      renderPreview();
+      return;
+    }
+    const wasFirstLoad = items.length === 0;
+    lastExamFingerprint = fp;
+
+    const itemOf = (n) => {
+      const data = byN[n] || {};
+      const ed = effectiveState(n);
+      const src = (ed.latex !== undefined) ? ed.latex : (data.latex || '');
+      return { n, content: src.trim() };
+    };
+
+    if (wasFirstLoad) {
+      // First load — restore from saved order if we have one, else fall
+      // back to default section-sorted ordering.
       let order = sortBySection(exam);
       let gapsDefaults = order.map(() => ({ space: 0, pageBreak: false }));
       const saved = loadExamState();
@@ -5592,15 +5623,26 @@ ${itemsTex}
           }));
         }
       }
-      items = order.map(n => {
-        const data = byN[n] || {};
-        const ed = effectiveState(n);
-        const src = (ed.latex !== undefined) ? ed.latex : (data.latex || '');
-        return { n, content: src.trim() };
-      });
-      gaps = gapsDefaults;
-      regenerateTex();
+      items = order.map(itemOf);
+      gaps  = gapsDefaults;
+    } else {
+      // Incremental update — preserve current ordering. Drop items that
+      // were removed from the exam (and their leading gaps), and APPEND
+      // any newly-added problems to the END (in localStorage order).
+      const examSet = new Set(exam);
+      const haveSet = new Set(items.map(it => it.n));
+      const keep = items.map((it, i) => examSet.has(it.n) ? i : null)
+                        .filter(i => i !== null);
+      items = keep.map(i => items[i]);
+      gaps  = keep.map(i => gaps[i] || { space: 0, pageBreak: false });
+      for (const n of exam) {
+        if (!haveSet.has(n)) {
+          items.push(itemOf(n));
+          gaps.push({ space: 0, pageBreak: false });
+        }
+      }
     }
+    regenerateTex();
     renderPreview();
   }
   window.addEventListener('exam-changed', refresh);
