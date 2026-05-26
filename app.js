@@ -3395,8 +3395,17 @@ async function initProblemPage(meta) {
   if (commentsToggle) {
     commentsToggle.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (commentsDropdownOpen) closeCommentsDropdown();
-      else openCommentsDropdown();
+      if (commentsDropdownOpen) { closeCommentsDropdown(); return; }
+      // If there are no comments yet, opening the dropdown should
+      // immediately show the composer — otherwise the panel would be
+      // empty and the user wouldn't see what to do next. With existing
+      // comments, show the thread (the user can still hit "+ Komentar"
+      // to add a new one).
+      if (getEffectiveComments(id).length === 0) {
+        openComposer('');
+      } else {
+        openCommentsDropdown();
+      }
     });
   }
   // Click anywhere outside the dropdown (or press Escape) closes it.
@@ -3419,12 +3428,15 @@ async function initProblemPage(meta) {
   function refreshCommentsToggle() {
     if (!commentsToggle) return;
     const list = getEffectiveComments(id);
+    const eff  = effectiveState(id);
     const signedIn = (typeof isSignedIn === 'function')
       ? isSignedIn() : !!getToken();
-    // Hide toggle entirely for signed-out viewers (they shouldn't see
-    // comments anyway). Show for signed-in users always — even when 0
-    // comments — so they have an affordance to add one.
-    commentsToggle.hidden = !signedIn;
+    // The toggle only makes sense when the problem is flagged as
+    // outdated (⚠) OR there are already comments. An up-to-date
+    // problem with zero comments shows no toggle — there's nothing to
+    // discuss. Signed-out viewers never see the toggle.
+    const relevant = signedIn && (eff.outdated || list.length > 0);
+    commentsToggle.hidden = !relevant;
     commentsToggle.classList.toggle('has-comments', list.length > 0);
     // Match the Matura source-chip + arrow combo design from the
     // Search page: a small count "chip" rounded on the left + a ▾
@@ -4276,13 +4288,16 @@ async function initProblemPage(meta) {
         const hasOpenComments = getEffectiveComments(id).length > 0;
         // ⚠ → ✓ requires no open comments.
         if (wasOutdated && hasOpenComments) {
-          alert('Nalogo lahko označiš kot ažurno šele, ko so vsi komentarji odstranjeni.');
+          alert('Nalogo lahko označiš kot posodobljeno šele, ko so vsi komentarji odstranjeni.');
           return;
         }
         const s = loadState(id);
         s.outdated = !wasOutdated;
         saveState(id, s);
         updateBadge(s.outdated);
+        // Toggle visibility depends on outdated — refresh after flip
+        // so ⚠ → ✓ hides the toggle and ✓ → ⚠ reveals it.
+        refreshCommentsToggle();
         const bar = document.getElementById('gh-sync');
         if (bar && typeof bar._refresh === 'function') bar._refresh();
         // When flipping ✓ → ⚠, automatically open the composer so the
