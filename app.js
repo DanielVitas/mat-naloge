@@ -1148,7 +1148,9 @@ function initMenuBar() {
   if (!btn || !dd) return;
   // Mark the menu link that matches the current page so CSS can gray
   // it out + disable pointer events. Per-problem pages (.../problems/N.html)
-  // are children of the Naloge tree → mark the Naloge link.
+  // are sub-pages, NOT one of the top-level menu destinations, so no
+  // item should be marked current there — all three (Naloge, Iskalnik,
+  // Test) remain live affordances.
   (function markCurrent() {
     const path = location.pathname.split('/').pop() || 'index.html';
     const isProblemPage = location.pathname.includes('/problems/');
@@ -1156,8 +1158,8 @@ function initMenuBar() {
       const href = a.getAttribute('href') || '';
       a.classList.remove('is-current');
       if (a.id === 'menu-signin') return;
+      if (isProblemPage) return;            // problem pages: no item current
       if (href === path) a.classList.add('is-current');
-      else if (isProblemPage && /index\.html$/.test(href)) a.classList.add('is-current');
     });
   })();
   btn.addEventListener('click', (e) => {
@@ -1498,7 +1500,11 @@ function initSyncBar() {
       if (displayNameEl) displayNameEl.textContent = dn;
       if (usernameSpan)  usernameSpan.textContent  = login || '…';
       if (loginRowEl) {
-        const showLogin = login && dn && dn !== login;
+        // Only show the @login row when signed in with a GitHub token
+        // AND the display name differs from the GitHub login. Name-only
+        // (export-only) sign-in has no GitHub login — the "login" we
+        // store is just the typed name, so the @row would be redundant.
+        const showLogin = hasToken && login && dn && dn !== login;
         loginRowEl.parentElement.style.display = showLogin ? '' : 'none';
       }
     }
