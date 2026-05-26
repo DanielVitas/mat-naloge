@@ -3045,6 +3045,34 @@ async function initProblemPage(meta) {
     previewPane.classList.add('has-edit-latex-overlay');
   }
 
+  // Add a "+ Dodaj v test" button in the same overlay slot, shown only
+  // when signed OUT (the Uredi LaTeX overlay is shown only when signed
+  // IN; these two share the corner). The label flips to "✓ V testu"
+  // once the problem is in the exam, and clicking it again removes it.
+  if (previewPane && !previewPane.querySelector('.add-to-exam-btn')) {
+    const addBtn = document.createElement('button');
+    addBtn.type = 'button';
+    addBtn.className = 'add-to-exam-btn';
+    function refreshAddLabel() {
+      const inExam = getExam().includes(meta.n);
+      addBtn.textContent = inExam ? '✓ V testu' : '+ Dodaj v test';
+      addBtn.classList.toggle('in-exam', inExam);
+      addBtn.setAttribute('aria-pressed', inExam ? 'true' : 'false');
+    }
+    addBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const cur = getExam();
+      const has = cur.includes(meta.n);
+      const next = has ? cur.filter(n => n !== meta.n) : [...cur, meta.n];
+      setExam(next);
+      refreshAddLabel();
+    });
+    window.addEventListener('exam-changed', refreshAddLabel);
+    previewPane.appendChild(addBtn);
+    previewPane.classList.add('has-add-exam-overlay');
+    refreshAddLabel();
+  }
+
   // -------- LaTeX --------
   // Textbook problems (and any Matura problem that hasn't been transcribed
   // yet) start with empty LaTeX. We still render the same Preview / LaTeX
@@ -4355,12 +4383,15 @@ async function initSearchPage(opts) {
     const hot = e.target.closest('.search-result-hot-zone');
     if (hot && hot.dataset.href) {
       // Save the current search-results list so the per-problem page's
-      // prev/next arrows cycle within the search hits only.
+      // prev/next arrows cycle within the search hits only. NB: search-
+      // page wraps use `data-n` (not the index page's `data-id`), so we
+      // probe both attributes.
       try {
         const list = [];
-        resultsEl.querySelectorAll('.search-result-wrap[data-id]').forEach(w => {
+        resultsEl.querySelectorAll('.search-result-wrap').forEach(w => {
           if (w.classList.contains('unapproved-hidden')) return;
-          const id = parseInt(w.dataset.id, 10);
+          const raw = w.dataset.n || w.dataset.id;
+          const id = parseInt(raw, 10);
           if (Number.isFinite(id) && !list.includes(id)) list.push(id);
         });
         if (list.length) {

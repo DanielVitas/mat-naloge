@@ -882,6 +882,43 @@ body.signed-in .edit-latex-btn { display: inline-block; }
   opacity: 1;
 }
 
+/* "+ Dodaj v test" — same overlay slot + style as Uredi LaTeX, but
+   shown only when signed OUT (the two share the corner; one is visible
+   at a time). Click to add/remove the current problem from the exam
+   collection in localStorage. */
+body.signed-in .add-to-exam-btn { display: none; }
+.problem-body .pane.has-add-exam-overlay { position: relative; }
+.problem-body .pane.has-add-exam-overlay > .add-to-exam-btn {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  z-index: 5;
+  padding: 0.18rem 0.6rem;
+  font-size: 0.85rem;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.35);
+  color: rgba(0, 0, 0, 0.55);
+  opacity: 0.55;
+  cursor: pointer;
+  transition: opacity 120ms ease, background 120ms ease;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  font-family: inherit;
+}
+.problem-body .pane.has-add-exam-overlay > .add-to-exam-btn:hover {
+  opacity: 1;
+  background: var(--card-bg);
+  color: inherit;
+  border-color: var(--card-border);
+}
+.problem-body .pane.has-add-exam-overlay > .add-to-exam-btn.in-exam {
+  opacity: 1;
+  background: var(--ok-bg);
+  color: var(--ok);
+  border-color: var(--ok);
+}
+
 /* "Full page" button — shown when signed-out (instead of Edit), shows the
    page image without selection UI */
 .full-page-btn {
