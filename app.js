@@ -3377,6 +3377,14 @@ async function initProblemPage(meta) {
     commentsRoot.className = 'comments-thread';
     commentsRoot.hidden = true;
     statusRow.appendChild(commentsRoot);
+    // Stop clicks inside the dropdown from bubbling to the document
+    // outside-click handler. Otherwise: button handlers that call
+    // renderComments() detach themselves from the DOM, then when the
+    // event bubbles up the document handler sees "click target not
+    // inside commentsRoot" and closes the dropdown — losing whatever
+    // the inner button just did (e.g. "+ Dodaj komentar" never gets
+    // to show the composer).
+    commentsRoot.addEventListener('click', (e) => e.stopPropagation());
   }
   // Internal flag — true when the dropdown is currently expanded.
   let commentsDropdownOpen = false;
@@ -4206,7 +4214,7 @@ async function initProblemPage(meta) {
         const add = document.createElement('button');
         add.type = 'button';
         add.className = 'comment-add-btn';
-        add.textContent = '+ Komentar';
+        add.textContent = '+ Dodaj komentar';
         add.addEventListener('click', () => openComposer(''));
         commentsRoot.appendChild(add);
       }
