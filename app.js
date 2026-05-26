@@ -1561,7 +1561,15 @@ function initSyncBar() {
     const open = !signinDropdown.hidden;
     closeDropdowns();
     signinDropdown.hidden = open;          // toggle
-    if (!signinDropdown.hidden) tokenInput.focus();
+    if (!signinDropdown.hidden) {
+      // Auto-focus the input of whatever tab is currently active so
+      // the user can start typing immediately. Default tab is "name",
+      // so most opens drop the cursor straight into the name field.
+      const activeTab = (typeof activeSigninTab === 'function')
+        ? activeSigninTab() : 'name';
+      const target = activeTab === 'name' ? nameInput : tokenInput;
+      if (target) setTimeout(() => target.focus(), 0);
+    }
   });
   cancelSigninBtn.addEventListener('click', (e) => {
     e.stopPropagation();
