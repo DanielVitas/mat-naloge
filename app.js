@@ -3426,10 +3426,16 @@ async function initProblemPage(meta) {
     // comments — so they have an affordance to add one.
     commentsToggle.hidden = !signedIn;
     commentsToggle.classList.toggle('has-comments', list.length > 0);
-    // Match the chevron style used by the source-arrow on the Search
-    // page: literal ▾ that rotates 180° via CSS when aria-expanded.
+    // Match the Matura source-chip + arrow combo design from the
+    // Search page: a small count "chip" rounded on the left + a ▾
+    // arrow "chip" rounded on the right, with a 1-pixel gap between
+    // them so they read as a split pill. When count is 0 the chip is
+    // omitted and the arrow becomes a standalone pill (CSS handles
+    // the fully-rounded fallback).
     commentsToggle.innerHTML =
-      (list.length ? `<span class="comments-toggle-count">${list.length}</span>` : '') +
+      (list.length
+        ? `<span class="comments-toggle-count">${list.length}</span>`
+        : '') +
       `<span class="comments-toggle-arrow">▾</span>`;
   }
 

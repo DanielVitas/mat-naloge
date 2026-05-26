@@ -990,42 +990,75 @@ body:not(.signed-in) .edit-crop-btn { display: none; }
    comments-toggle button next to the status badge. It overlays
    surrounding content via position:absolute + a high z-index. ─── */
 .meta-row .status-row { position: relative; }
-/* Chevron-style trigger that mirrors the search-page Source arrow:
-   a small ▾ that rotates 180° when expanded. Sits flush next to the
-   status badge. */
+/* Comments trigger — mirrors the Matura "source-chip + arrow combo"
+   on the Search page. The whole button is borderless / transparent;
+   the visual is the two inner spans (.comments-toggle-count and
+   .comments-toggle-arrow) which render as a split pill thanks to
+   matching borders + a 1px gap between them. */
 .comments-toggle {
   appearance: none;
-  display: inline-flex; align-items: center; justify-content: center;
-  gap: 0.25rem;
+  display: inline-flex;
+  align-items: stretch;
+  gap: 1px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.78rem;
+  line-height: 1;
+}
+.comments-toggle[hidden] { display: none; }
+.comments-toggle-count,
+.comments-toggle-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 1.55rem;
   padding: 0 0.55rem;
   border: 1px solid var(--card-border);
   background: var(--card-bg);
   color: var(--muted);
-  border-radius: 999px;
-  font-size: 0.78rem; line-height: 1;
-  height: 1.55rem;
-  cursor: pointer;
-  transition: border-color 120ms ease, color 120ms ease;
+  transition: border-color 120ms ease, color 120ms ease, background 120ms ease;
 }
-.comments-toggle[hidden] { display: none; }
-.comments-toggle:hover,
-.comments-toggle[aria-expanded="true"] { color: var(--accent); border-color: var(--accent); }
-.comments-toggle.has-comments { border-color: #d4a843; color: #b08323; }
-.comments-toggle-arrow {
-  display: inline-block;
-  transition: transform 140ms ease;
-}
-.comments-toggle[aria-expanded="true"] .comments-toggle-arrow { transform: rotate(180deg); }
+/* Count chip — left half of the pill. Holds the unresolved comment
+   count and reads as the matura-style label. */
 .comments-toggle-count {
-  font-size: 0.7rem;
+  border-top-left-radius: 999px;
+  border-bottom-left-radius: 999px;
   font-weight: 600;
+}
+/* Arrow chip — right half. Rotates 180° when the dropdown is open. */
+.comments-toggle-arrow {
+  border-top-right-radius: 999px;
+  border-bottom-right-radius: 999px;
+  transition: transform 140ms ease, border-color 120ms ease, color 120ms ease;
+}
+/* When no comments exist, the count chip isn't rendered — make the
+   arrow fully rounded so it stands alone as a single pill. */
+.comments-toggle-arrow:first-child {
+  border-top-left-radius: 999px;
+  border-bottom-left-radius: 999px;
+}
+.comments-toggle:hover .comments-toggle-count,
+.comments-toggle:hover .comments-toggle-arrow,
+.comments-toggle[aria-expanded="true"] .comments-toggle-count,
+.comments-toggle[aria-expanded="true"] .comments-toggle-arrow {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.comments-toggle[aria-expanded="true"] .comments-toggle-arrow {
+  transform: rotate(180deg);
+}
+/* Unresolved-comments amber accent applies to the count chip only. */
+.comments-toggle.has-comments .comments-toggle-count {
   background: #d4a843;
   color: white;
-  border-radius: 999px;
-  padding: 0 0.35rem;
-  min-width: 0.95rem;
-  text-align: center;
-  line-height: 1.2;
+  border-color: #d4a843;
+}
+.comments-toggle.has-comments:hover .comments-toggle-count {
+  background: #b08323;
+  border-color: #b08323;
+  color: white;
 }
 .comments-thread {
   position: absolute;
