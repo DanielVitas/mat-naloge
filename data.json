@@ -2,7 +2,15 @@
   "1": {
     "approved_by": "DanielVitas",
     "latex": "Izraz $\\dfrac{(a^{3})^{2}}{a^{8}}$ zapišite v obliki $a^{m}$, kjer je $m$ celo število.",
-    "outdated": true
+    "outdated": true,
+    "comments": [
+      {
+        "id": "1779838863205-19767",
+        "author": "DanielVitas",
+        "text": "abc",
+        "ts": "2026-05-26T23:41:03.205Z"
+      }
+    ]
   },
   "2": {
     "outdated": false,
@@ -44,6 +52,15 @@
   },
   "15": {
     "outdated": false
+  },
+  "30": {},
+  "81": {
+    "outdated": false
+  },
+  "94": {},
+  "506": {},
+  "538": {
+    "approved_by": null
   },
   "display_names": {
     "DanielVitas": "BigD"
