@@ -4155,9 +4155,9 @@ async function initProblemPage(meta) {
     const text = composerDraft.trim();
     if (!text) { closeComposer(); return; }
     addCommentTo(id, text);
-    composerOpen = false;
-    composerDraft = '';
-    renderComments();
+    // Dismiss the whole dropdown after a successful post — user has
+    // delivered their feedback, no need to keep the panel open.
+    closeCommentsDropdown();
     renderApprovers();           // re-render so the chip reflects gated state
     if (badge) updateBadge(effectiveState(id).outdated);
     const bar = document.getElementById('gh-sync');
