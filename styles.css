@@ -1060,6 +1060,19 @@ body:not(.signed-in) .edit-crop-btn { display: none; }
   border-color: #b08323;
   color: white;
 }
+/* No-comments-but-outdated: the chip slot shows a ⚠ alert glyph in
+   the same amber palette as the count, signaling the unresolved
+   state without doubling up with the (also-amber) standalone badge. */
+.comments-toggle.needs-redo .comments-toggle-count.comments-toggle-alert {
+  background: #d4a843;
+  color: white;
+  border-color: #d4a843;
+  font-weight: 600;
+}
+.comments-toggle.needs-redo:hover .comments-toggle-count.comments-toggle-alert {
+  background: #b08323;
+  border-color: #b08323;
+}
 .comments-thread {
   position: absolute;
   top: calc(100% + 6px);
