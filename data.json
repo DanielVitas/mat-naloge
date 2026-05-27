@@ -2,25 +2,26 @@
   "1": {
     "approved_by": "DanielVitas",
     "latex": "Izraz $\\dfrac{(a^{3})^{2}}{a^{8}}$ zapišite v obliki $a^{m}$, kjer je $m$ celo število.",
-    "outdated": true,
-    "comments": [
-      {
-        "id": "1779838863205-19767",
-        "author": "DanielVitas",
-        "text": "abc",
-        "ts": "2026-05-26T23:41:03.205Z"
-      }
-    ]
+    "outdated": false,
+    "comments": []
   },
   "2": {
-    "outdated": false,
-    "approved_by": null
+    "outdated": true,
+    "approved_by": null,
+    "comments": [
+      {
+        "id": "1779865905054-74724",
+        "author": "DanielVitas",
+        "text": "primer komentarja",
+        "ts": "2026-05-27T07:11:45.054Z"
+      }
+    ]
   },
   "3": {
     "topics": []
   },
   "4": {
-    "approved_by": "DanielVitas",
+    "approved_by": null,
     "outdated": false
   },
   "5": {
@@ -38,17 +39,15 @@
     "outdated": false
   },
   "8": {
-    "approved_by": [
-      "DanielVitas"
-    ],
-    "outdated": true
+    "approved_by": null,
+    "outdated": false
   },
   "12": {
     "topics": [
       "4.10 Funkcije",
       "4.10.6 Logaritemska funkcija"
     ],
-    "outdated": true
+    "outdated": false
   },
   "15": {
     "outdated": false
