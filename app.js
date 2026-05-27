@@ -375,6 +375,7 @@ const TOPIC_PARENT = {
   "4.10.7 Polinomska funkcija":     "4.10 Funkcije",
   "4.10.8 Racionalna funkcija":     "4.10 Funkcije",
   "4.10.9 Kotne funkcije":          "4.10 Funkcije",
+  "4.10.10 Limita":                 "4.10 Funkcije",
   "4.11.1 Elipsa":                  "4.11 Stožnice",
   "4.11.2 Parabola":                "4.11 Stožnice",
   "4.11.3 Hiperbola":               "4.11 Stožnice",
