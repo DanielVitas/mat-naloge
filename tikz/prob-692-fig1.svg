@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg data-source-hash="f5dbc49a03cf" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="221.248pt" height="162.541pt" viewBox="0 0 221.248 162.541" version="1.2">
+<svg data-source-hash="c01bbbaa2518" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="221.248pt" height="162.541pt" viewBox="0 0 221.248 162.541" version="1.2">
 <defs>
 <g>
 <symbol overflow="visible" id="glyph0-0">
@@ -131,6 +131,6 @@
 <g style="fill:rgb(0%,0%,0%);fill-opacity:1;">
   <use xlink:href="#glyph3-1" x="107.132866" y="100.243014"/>
 </g>
-<path style="fill:none;stroke-width:0.79701;stroke-linecap:butt;stroke-linejoin:miter;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;" d="M -91.276823 0.0010661 L -39.684089 0.0010661 L 0.0011211 39.686277 L 19.841767 39.686277 L 39.686332 0.0010661 L 91.275145 0.0010661 " transform="matrix(0.996613,0,0,-0.996613,103.045758,88.653406)"/>
+<path style="fill:none;stroke-width:1.39478;stroke-linecap:butt;stroke-linejoin:miter;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;" d="M -91.276823 0.0010661 L -39.684089 0.0010661 L 0.0011211 39.686277 L 19.841767 39.686277 L 39.686332 0.0010661 L 91.275145 0.0010661 " transform="matrix(0.996613,0,0,-0.996613,103.045758,88.653406)"/>
 </g>
 </svg>
