@@ -2313,7 +2313,7 @@ function openTopicPicker(meta, anchorBtn) {
   const search = document.createElement('input');
   search.className = 'topic-picker-search';
   search.type = 'text';
-  search.placeholder = 'Filter or type a new topic…';
+  search.placeholder = 'Poišči temo…';
   picker.appendChild(search);
   const list = document.createElement('div');
   list.className = 'topic-picker-list';
