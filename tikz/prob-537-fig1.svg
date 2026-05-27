@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg data-source-hash="b5e3e940240e" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="241.093pt" height="310.312pt" viewBox="0 0 241.093 310.312" version="1.2">
+<svg data-source-hash="c93bde2fd05d" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="241.093pt" height="310.312pt" viewBox="0 0 241.093 310.312" version="1.2">
 <defs>
 <g>
 <symbol overflow="visible" id="glyph0-0">
@@ -42,7 +42,7 @@
 </g>
 <path style=" stroke:none;fill-rule:nonzero;fill:rgb(0%,0%,0%);fill-opacity:1;" d="M 67.933594 252.609375 C 67.933594 251.703125 67.203125 250.972656 66.296875 250.972656 C 65.394531 250.972656 64.660156 251.703125 64.660156 252.609375 C 64.660156 253.515625 65.394531 254.246094 66.296875 254.246094 C 67.203125 254.246094 67.933594 253.515625 67.933594 252.609375 Z M 67.933594 252.609375 "/>
 <g style="fill:rgb(0%,0%,0%);fill-opacity:1;">
-  <use xlink:href="#glyph0-3" x="53.469845" y="256.678071"/>
+  <use xlink:href="#glyph0-3" x="55.454379" y="250.508282"/>
 </g>
 </g>
 </svg>
