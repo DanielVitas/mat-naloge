@@ -114,8 +114,8 @@ and these libraries: `calc,angles,quotes,intersections,decorations.pathreplacing
   the original side-by-side. The user wants to react inside the same turn,
   not after a 5-minute deploy + hard-refresh cycle.
 - **Montage orientation (user preference):** whenever you change TikZ, show
-  the comparison as a 2-up montage with the ORIGINAL on the LEFT and the
-  newly-compiled TikZ on the RIGHT. Always this order, every time.
+  the comparison as a 2-up montage with the newly-compiled TikZ on the LEFT
+  and the ORIGINAL on the RIGHT. Always this order, every time.
 - **One problem per turn during iterative figure work.** Bundling 6 figures
   into one round means each subsequent feedback loop has to spool through
   stale renders for all of them. The user has explicitly asked for this.

@@ -83,7 +83,7 @@ Status legend: ✓ = verified faithful, ◐ = TikZ fixed this session,
 | 800 | 2016_Spomladanski_Pola1_OR        | ◐      | line through A, B; dashed projections |
 | 808 | 2016_Spomladanski_Pola1_OR        | ◐      | cubic; itemize → underlined lines     |
 | 818 | 2016_Spomladanski_Pola1_OR         | ◐◒    | empty coord; axes extended to ±5, y=4 tick added; original crop re-cropped (was wrong bbox) |
-| 820 | 2016                              | ?      |                                       |
+| 820 | 2016_Spomladanski_Pola1_OR         | ◐◒    | two circles + equilateral △; A/B labels moved to line level; crop was whole-problem, re-cropped to figure |
 | 836 | 2016_Jesenski_Pola1                | ?      |                                       |
 | 843 | 2016                              | ?      |                                       |
 | 854 | 2016_Jesenski_Pola2_VR             | ?      |                                       |
@@ -100,8 +100,8 @@ For each problem in the next batch (4 at a time is the sweet spot):
 3. Read the figure-only crop PNG at `webpage/matura_figs/...`.
 4. If the crop looks blank or wrong, the bbox is wrong — re-crop from
    the problem-level page at `webpage/matura_refined/<paper>/prob_NN.png`.
-5. Build a 2-column montage at 480×360 cells. **Order: original LEFT,
-   newly-compiled TikZ RIGHT** (user preference — always this orientation).
+5. Build a 2-column montage at 480×360 cells. **Order: newly-compiled TikZ
+   LEFT, original RIGHT** (user preference — always this orientation).
 6. **Show preview to user before claiming done.** This is critical — visual
    confirmation in the same turn avoids the deploy-and-pray cycle.
 7. Update the table above with the new status.
