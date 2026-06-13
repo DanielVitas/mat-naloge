@@ -142,14 +142,16 @@ and these libraries: `calc,angles,quotes,intersections,decorations.pathreplacing
   ad-hoc offsets and do NOT put some y-labels on the right — that breaks
   consistency with the "0". (Earlier figures 818/839 had only one y-label,
   centre-aligned to "0"; the general rule above supersedes that.)
-- **Figure size / label-to-axis proportion (provisional — refine as we go):**
-  labels use a fixed font size, so a figure with fewer units renders as a
-  smaller SVG and gets upscaled on the page, making the labels look oversized.
-  Keep coordinate-system figures at roughly the same rendered width as 818
-  (~140pt) by choosing `scale` accordingly — e.g. a ±3.5 span (847) uses
-  `scale=0.6` → ~137pt, vs 818's ±5 span at `scale=0.45` → ~144pt. Check the
-  SVG header's `width="...pt"` and compare against 818. Rule of thumb, not a
-  hard constant — expect to adjust it.
+- **Figure size / label-to-axis proportion (updated):** the problem page CSS
+  (`.preview-box .tex-tikz img/svg`) now sets `width:100%` (max 600px), so
+  EVERY figure scales up to fill the preview column regardless of its
+  intrinsic pt size — intrinsic width no longer controls on-screen size.
+  What still matters is keeping the on-screen LABEL size consistent across
+  figures. Since label font is fixed pt and the SVG is scaled to the column,
+  on-screen label size ∝ 1/(svg intrinsic width) = 1/(units × scale). So pick
+  `scale ≈ 4.5 / (number of units across)` to match 818's feel:
+  818 ≈10 units→0.45, 847 ≈7 units→0.6, 538/578 ≈13–14 units→~0.35. Rule of
+  thumb, refine as we go.
 - **One problem per turn during iterative figure work.** Bundling 6 figures
   into one round means each subsequent feedback loop has to spool through
   stale renders for all of them. The user has explicitly asked for this.
