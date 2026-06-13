@@ -107,7 +107,7 @@ exist with tikz_count>=1 and were never listed:
 | 710 | 2014_Jesenski_Pola2_VR            | ◐◒    | **authored** (latex was PNG-only): empty coord for parabola, x/y ticks −8..8, arrows on +x/+y, labels 0/1(x)/1(y)/x/y; inserted block after item a); scale 0.43 (matches original's large labels / dense cells); crop re-cropped (top was cut off, "y" label missing); hash d62467940e12 |
 | 750 | 2015_Spomladanski_Pola2_VR        | ◐◒    | **authored 2 figs** (latex was PNG-only, tikz_count 1→2): fig1 (part a) empty coord x −6..6, y −3..3, arrows +x/+y, labels 0/1/1/x/y; fig2 (part d) ADDED = drawn curve y=f(\|x\|)=(\|x\|−1)/(\|x\|+1), cusp (0,−1), zeros ±1, asymptote y=1; scale 0.4 (cap/unit 0.62); both originals re-cropped, fig2 original added; hashes 212bb41b05b4 / bbb68a662f25 |
 | 785 | 2015_Jesenski_Pola2_VR            | ◐◒    | **authored** (latex was PNG-only, tikz_originals was empty/absent — original PNG created from page): graph y=2x·sin(3x), small left hump touching origin, main hump 0→π/3 hatched (north east lines), small dip below axis past π/3; labels 0/π/3/x/y; xscale 2.0 yscale 1.55 (matches stretch + label size); hash a2fd811d0195 (π/3 label nudged left) |
-| 791 | 2015_Jesenski_Pola2_VR            | ?      | not audited |
+| 791 | 2015_Jesenski_Pola2_VR            | ◐◒    | **authored** (latex was PNG-only): oblique cube ABCDEFGH, square front face ABFE, depth (0.47,0.575)·s up-right; hidden vertex D → dashed edges DA/DC/DH, rest solid; vertex labels + edge label a; NO P/S (not in original); scale 1.8 (enlarged per request, labels relatively smaller); original re-cropped to just the cube; hash 30047613863b |
 | 794 | 2015_Jesenski_Pola2_VR            | ?      | not audited |
 
 ## Audit pipeline
