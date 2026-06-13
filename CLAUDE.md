@@ -116,6 +116,29 @@ and these libraries: `calc,angles,quotes,intersections,decorations.pathreplacing
 - **Montage orientation (user preference):** whenever you change TikZ, show
   the comparison as a 2-up montage with the newly-compiled TikZ on the LEFT
   and the ORIGINAL on the RIGHT. Always this order, every time.
+- **ALWAYS give a side-by-side comparison after ANY TikZ change — no
+  exceptions.** Every time you touch a figure (initial rework or the
+  smallest follow-up nudge), present the left-right montage image (new
+  TikZ left, original right) to the user. Never just describe the result
+  in text; the user wants to see the comparison every single time.
+- **The origin label "0" always goes in the bottom-left of the origin**
+  (`\node[below left] at (0,0) {$0$};`) in every coordinate-system figure,
+  regardless of how the original positioned it.
+- **Axis-label alignment — ALWAYS keep every axis label consistent with the
+  "0", no exceptions unless there is a specific reason (e.g. a label would
+  collide with something).** Since "0" is `[below left]`, give EVERY axis
+  number label the `[below left]` anchor at its own tick:
+  - x-axis: `\node[below left] at (n,0) {$n$};`
+  - y-axis: `\node[below left] at (0,m) {$m$};`
+
+  This makes each label's offset from its tick identical to the "0"'s offset
+  from the origin, so automatically: x-axis labels all share the "0"'s
+  VERTICAL level, and y-axis labels all share the "0"'s HORIZONTAL position.
+  Every label ends up slightly below-and-left of its tick (off the curves),
+  and y-axis numbers stay on the LEFT of the axis. Do NOT scatter labels at
+  ad-hoc offsets and do NOT put some y-labels on the right — that breaks
+  consistency with the "0". (Earlier figures 818/839 had only one y-label,
+  centre-aligned to "0"; the general rule above supersedes that.)
 - **One problem per turn during iterative figure work.** Bundling 6 figures
   into one round means each subsequent feedback loop has to spool through
   stale renders for all of them. The user has explicitly asked for this.
