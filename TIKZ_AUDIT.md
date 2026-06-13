@@ -100,7 +100,8 @@ For each problem in the next batch (4 at a time is the sweet spot):
 3. Read the figure-only crop PNG at `webpage/matura_figs/...`.
 4. If the crop looks blank or wrong, the bbox is wrong — re-crop from
    the problem-level page at `webpage/matura_refined/<paper>/prob_NN.png`.
-5. Build a 2-column montage (TikZ left, original right) at 480×360 cells.
+5. Build a 2-column montage at 480×360 cells. **Order: original LEFT,
+   newly-compiled TikZ RIGHT** (user preference — always this orientation).
 6. **Show preview to user before claiming done.** This is critical — visual
    confirmation in the same turn avoids the deploy-and-pray cycle.
 7. Update the table above with the new status.
