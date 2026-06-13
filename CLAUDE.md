@@ -148,10 +148,16 @@ and these libraries: `calc,angles,quotes,intersections,decorations.pathreplacing
   intrinsic pt size — intrinsic width no longer controls on-screen size.
   What still matters is keeping the on-screen LABEL size consistent across
   figures. Since label font is fixed pt and the SVG is scaled to the column,
-  on-screen label size ∝ 1/(svg intrinsic width) = 1/(units × scale). So pick
-  `scale ≈ 4.5 / (number of units across)` to match 818's feel:
-  818 ≈10 units→0.45, 847 ≈7 units→0.6, 538/578 ≈13–14 units→~0.35. Rule of
-  thumb, refine as we go.
+  on-screen label size ∝ 1/(svg intrinsic width) = 1/(units × scale). The CSS
+  now displays figures at ~600px column width, so the OLD small scales
+  (~0.35–0.6) blow the labels/arrows/line-widths up huge. Author at a much
+  larger scale: **`scale ≈ 17 / (number of units across)`** so the grid is big
+  relative to the fixed-pt font/arrows. Verified: 578 (≈14 units) → scale 1.2
+  matches the original at column width. At these large scales the y-axis "1"
+  needs NO manual x-offset (just `\node[left] at (0,1)`) — it auto-aligns with
+  "0". NOTE: figures authored earlier this session (818, 820, 839, 843, 847,
+  538) are still at the old small scales and will look oversized at column
+  width — they need re-rendering at `scale≈17/units`.
 - **One problem per turn during iterative figure work.** Bundling 6 figures
   into one round means each subsequent feedback loop has to spool through
   stale renders for all of them. The user has explicitly asked for this.
