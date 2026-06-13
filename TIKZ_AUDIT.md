@@ -102,7 +102,7 @@ exist with tikz_count>=1 and were never listed:
 | 538 | 2012_Spomladanski_Pola2_VR        | ◐◒    | **authored from scratch** (latex had no tikzpicture, only orphaned placeholder SVG). fig1 = empty coord ±6.5, ticks ±1..6, scale 0.35 (~146pt); inserted block into latex after item a); crop re-cropped. fig2 (part d) ADDED: cubic f1(x)=(x+a)^3-1, inflection (-a,-1) with dashed construction, labels -a/0/1/a & 1/-1, curve label; tikz_count now 2 |
 | 578 | 2012_Jesenski_Pola2_VR            | ◐◒    | **authored from scratch** (no tikzpicture in latex). empty coord for f=2x/(x²+1): wide x ±1..6 (axis -7..7.2 arrow), y ±1,2,3 (axis ±4 arrow); inserted after item a); crop re-cropped |
 | 644 | 2013_Jesenski_Pola2_VR            | ◐◒    | **authored from scratch**: exponential f=2·3^(1-x) through A(0,6),B(1,2), decaying to x-axis; very thick curve; x ticks -3..8, y 1..7; scale 0.7 to match original's larger labels; crop re-cropped |
-| 672 | 2014_Spomladanski_Pola2_VR        | ?      | not audited |
+| 672 | 2014_Spomladanski_Pola2_VR        | ◐◒    | **authored**: empty grid for quadratic, ALL integers labeled (x -6..6, y -4..4); scale 0.8 to match original's larger labels; crop re-cropped |
 | 683 | 2014_Spomladanski_Pola2_VR        | ?      | not audited |
 | 710 | 2014_Jesenski_Pola2_VR            | ?      | not audited |
 | 750 | 2015_Spomladanski_Pola2_VR        | ?      | not audited |
