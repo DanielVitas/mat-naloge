@@ -21,17 +21,38 @@ Status legend: [ ] todo · [x] done · [~] in progress
 
 ---
 
-## 1. TikZ needs fixing (54)
+## 1. TikZ needs fixing (56)
 Content/accuracy problems with the existing render.
 
 5, 11, 15, 20, 38, 53, 58, 64, 68, 71, 77, 78, 87, 99, 104
-107, 115, 139, 143, 148, 161, 163, 165, 170, 176, 188, 221, 224, 231, 245
-247, 256, 276, 289, 314, 315, 325, 334, 346, 374, 384, 385, 396, 403, 404
-413, 421, 460, 461, 462, 472, 525, 528, 763
+107, 115, 122, 139, 143, 148, 161, 163, 165, 170, 176, 188, 221, 224, 231
+245, 247, 256, 276, 289, 314, 315, 325, 334, 346, 374, 384, 385, 396, 403
+404, 413, 421, 460, 461, 462, 472, 525, 528, 532, 763
+
+(122 = vector diagram, 532 = vectors — moved here from group 2; they are
+not empty coords and need proper redrawing, not rescaling.)
 
 ## 2. Rescale / resize + axis dashes + empty-coord preset (86)
 Adjust overall size (labels relatively smaller), add axis dashes where needed;
 roll empty coordinate systems into the shared preset.
+
+**LESSON (do NOT just bulk-rescale):** a blind scale-only pass was rejected.
+Each figure needs proper per-figure readjustment — verify axis ranges, which
+ticks are labelled and their positions, axis dashes/arrows, AND scale — against
+the recropped original, with a montage each time. Work them ONE at a time.
+
+**Empty-coord set careful readjustment — DONE & committed (all 23):**
+67, 89, 160, 164, 186, 220, 240, 257, 364, 369, 378, 387, 388, 399, 408,
+415, 422, 431, 435, 442, 451, 622, 773
+(each rebuilt to match original tick range + labels [π, π/3, i, 5/10, eqn
+labels] + scale; 186 kept at 0.4 = already correct; 387 = 3 coord systems;
+622 = complex plane w/ grid. Committed to bodies.json + svgs, caches bumped.)
+
+Remaining group-2 = the NON-empty figures (curves/shapes/vectors): 16, 26,
+112, 120, 129, 134, 140, 145, 168, 193, 239, 259, 266, 272, 307, 308, 314,
+321, 323, 328, 330, 343, 344, 351, 360, 363, 367, 383, 393, 398, 400, 412,
+430, 446, 452, 458, 459, 481, 487, 498, 530, 537, 538, 624, 779 — do these
+one at a time like the empty coords.
 
 16, 26, 67, 89, 106, 112, 120, 121, 122, 128, 129, 134, 140, 145, 160
 164, 168, 186, 193, 208, 210, 220, 236, 239, 240, 257, 259, 266, 272, 307
