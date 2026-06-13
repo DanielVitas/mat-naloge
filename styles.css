@@ -1359,13 +1359,16 @@ body.full-page-on .crop-view { display: none; }
      fallbacks keep the box from collapsing to text width if a render
      starts before the build-time img has loaded (the sync lock-snapshot
      in renderTeXPreview only works once the image is rendered). */
-  display: inline-flex;
+  /* Block-level flex so the box spans the preview column (was inline-flex,
+     which shrank to the image's intrinsic width and kept figures small).
+     Now the child img/svg `width:100%` can actually grow to fill it. */
+  display: flex;
   align-items: center; justify-content: center;
   background: white; padding: 4px;
   border: 1px solid var(--card-border); border-radius: 4px;
   box-sizing: border-box;
   overflow: hidden;
-  max-width: 100%;
+  width: 100%; max-width: 100%;
   min-width: 200px; min-height: 100px;
   /* Click-to-enlarge: a click on the figure opens a fixed-position
      lightbox (built by JS) — see .figure-lightbox below. The figure
