@@ -104,9 +104,9 @@ exist with tikz_count>=1 and were never listed:
 | 644 | 2013_Jesenski_Pola2_VR            | ◐◒    | **authored from scratch**: exponential f=2·3^(1-x) through A(0,6),B(1,2), decaying to x-axis; very thick curve; x ticks -3..8, y 1..7; scale 0.7 to match original's larger labels; crop re-cropped |
 | 672 | 2014_Spomladanski_Pola2_VR        | ◐◒    | **authored**: empty grid for quadratic, ALL integers labeled (x -6..6, y -4..4); scale 0.8 to match original's larger labels; crop re-cropped |
 | 683 | 2014_Spomladanski_Pola2_VR        | ◐◒    | **authored**: blank complex plane (Re/Im axes, ticks −4..4), labels 0 (below-left), 1 (below), i (left); tikzpicture inserted into latex (was PNG-only); scale 0.95 (matches original label size); hash a15e3a44a563 |
-| 710 | 2014_Jesenski_Pola2_VR            | ?      | not audited |
-| 750 | 2015_Spomladanski_Pola2_VR        | ?      | not audited |
-| 785 | 2015_Jesenski_Pola2_VR            | ?      | not audited |
+| 710 | 2014_Jesenski_Pola2_VR            | ◐◒    | **authored** (latex was PNG-only): empty coord for parabola, x/y ticks −8..8, arrows on +x/+y, labels 0/1(x)/1(y)/x/y; inserted block after item a); scale 0.43 (matches original's large labels / dense cells); crop re-cropped (top was cut off, "y" label missing); hash d62467940e12 |
+| 750 | 2015_Spomladanski_Pola2_VR        | ◐◒    | **authored 2 figs** (latex was PNG-only, tikz_count 1→2): fig1 (part a) empty coord x −6..6, y −3..3, arrows +x/+y, labels 0/1/1/x/y; fig2 (part d) ADDED = drawn curve y=f(\|x\|)=(\|x\|−1)/(\|x\|+1), cusp (0,−1), zeros ±1, asymptote y=1; scale 0.4 (cap/unit 0.62); both originals re-cropped, fig2 original added; hashes 212bb41b05b4 / bbb68a662f25 |
+| 785 | 2015_Jesenski_Pola2_VR            | ◐◒    | **authored** (latex was PNG-only, tikz_originals was empty/absent — original PNG created from page): graph y=2x·sin(3x), small left hump touching origin, main hump 0→π/3 hatched (north east lines), small dip below axis past π/3; labels 0/π/3/x/y; xscale 2.0 yscale 1.55 (matches stretch + label size); hash a2fd811d0195 (π/3 label nudged left) |
 | 791 | 2015_Jesenski_Pola2_VR            | ?      | not audited |
 | 794 | 2015_Jesenski_Pola2_VR            | ?      | not audited |
 

@@ -122,8 +122,17 @@ and these libraries: `calc,angles,quotes,intersections,decorations.pathreplacing
   TikZ left, original right) to the user. Never just describe the result
   in text; the user wants to see the comparison every single time.
   **Generating/Read-ing the montage is NOT enough — you must actually call
-  `present_files` on it so it shows up in the chat.** (Forgetting this call
-  after rendering the montage has been a repeated slip.)
+  `present_files` on it so it shows up in the chat.**
+- **ORDER OF OPERATIONS — call `present_files` on the montage IMMEDIATELY
+  after rendering it, BEFORE syncing the data (bodies.json / inline html /
+  svg copy) and BEFORE bumping any caches.** Render → present → THEN sync +
+  caches. Rationale: the forgetting always happens on follow-up tweaks,
+  where the present step gets buried under the sync/cache sequence and the
+  task feels "done" without it. Putting `present_files` first — at the
+  salient moment, with nothing after the render to distract — makes it
+  impossible to skip. Do NOT batch the montage render together with the
+  data-sync steps; the very next tool call after the montage is generated
+  must be `present_files`.
 - **The origin label "0" always goes in the bottom-left of the origin**
   (`\node[below left] at (0,0) {$0$};`) in every coordinate-system figure,
   regardless of how the original positioned it.
