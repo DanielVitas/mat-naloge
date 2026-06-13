@@ -82,11 +82,11 @@ Status legend: ✓ = verified faithful, ◐ = TikZ fixed this session,
 |-----|-----------------------------------|--------|---------------------------------------|
 | 800 | 2016_Spomladanski_Pola1_OR        | ◐      | line through A, B; dashed projections |
 | 808 | 2016_Spomladanski_Pola1_OR        | ◐      | cubic; itemize → underlined lines     |
-| 818 | 2016_Spomladanski_Pola1_OR         | ◐◒    | empty coord; axes extended to ±5, y=4 tick added; original crop re-cropped (was wrong bbox); x/y "1" labels aligned to "0" |
-| 820 | 2016_Spomladanski_Pola1_OR         | ◐◒    | two circles + equilateral △; A/B labels to line level; K1/K2 moved up-left/up-right; crop re-cropped to figure |
-| 839 | 2016_Jesenski_Pola1_OR             | ◐◒    | complex plane z,w. **w corrected -2+2i → -3+2i** (matched -3 tick); added z vertical dashed to axis; full integer ticks; crop re-cropped (was whole-problem). NOTE: table row was wrongly "836" |
-| 847 | 2016_Jesenski_Pola1_OR             | ◐◒    | empty coord (log graph); axes ±4/5 → symmetric ±3.5, ticks ±1,2,3; labels consistent [below left] with 0; crop re-cropped to figure |
-| 843 | 2016_Jesenski_Pola1_OR             | ◐◒    | four conics (2 circles + 2 ellipses). **C corrected (1,-0.7) → (2/√5,-2/√5)** = ellipse∩ellipse; A/C labels → above right; axis number labels nudged off curves to match original (y 1/2 lowered into clear zones, negatives on left); 0 → below left; crop re-cropped |
+| 818 | 2016_Spomladanski_Pola1_OR         | ◐◒    | empty coord; axes extended to ±5, y=4 tick added; original crop re-cropped (was wrong bbox); x/y "1" labels aligned to "0" **[rescaled 0.45→0.55, cap/unit 0.44; hash 423935bc0d73]** |
+| 820 | 2016_Spomladanski_Pola1_OR         | ◐◒    | two circles + equilateral △; A/B labels to line level; K1/K2 moved up-left/up-right; crop re-cropped to figure **[rescaled 1.0→0.7, cap/unit 0.35; hash 8b6d925c7886]** |
+| 839 | 2016_Jesenski_Pola1_OR             | ◐◒    | complex plane z,w. **w corrected -2+2i → -3+2i** (matched -3 tick); added z vertical dashed to axis; full integer ticks; crop re-cropped (was whole-problem). NOTE: table row was wrongly "836" **[rescaled 0.7→1.0, cap/unit 0.24; hash c901298a8a2a]** |
+| 847 | 2016_Jesenski_Pola1_OR             | ◐◒    | empty coord (log graph); axes ±4/5 → symmetric ±3.5, ticks ±1,2,3; labels consistent [below left] with 0; crop re-cropped to figure **[rescaled 0.6→1.0, cap/unit 0.24; hash a289cdd210af]** |
+| 843 | 2016_Jesenski_Pola1_OR             | ◐◒    | four conics (2 circles + 2 ellipses). **C corrected (1,-0.7) → (2/√5,-2/√5)** = ellipse∩ellipse; A/C labels → above right; axis number labels nudged off curves to match original (y 1/2 lowered into clear zones, negatives on left); 0 → below left; crop re-cropped **[rescaled 0.9→1.1, cap/unit 0.22; hash 0b4dc29d3ae0]** |
 | 854 | —                                  | n/a    | does not exist (stale table entry)    |
 | 862 | 2016_Jesenski_Pola2_VR             | n/a    | exists but tikz_count=0, no figure (was a Limita topic reassignment, not a figure) |
 
@@ -99,7 +99,7 @@ exist with tikz_count>=1 and were never listed:
 
 | n   | paper                              | status | notes |
 |-----|-----------------------------------|--------|-------|
-| 538 | 2012_Spomladanski_Pola2_VR        | ◐◒    | **authored from scratch** (latex had no tikzpicture, only orphaned placeholder SVG). fig1 = empty coord ±6.5, ticks ±1..6, scale 0.35 (~146pt); inserted block into latex after item a); crop re-cropped. fig2 (part d) ADDED: cubic f1(x)=(x+a)^3-1, inflection (-a,-1) with dashed construction, labels -a/0/1/a & 1/-1, curve label; tikz_count now 2 |
+| 538 | 2012_Spomladanski_Pola2_VR        | ◐◒    | **authored from scratch** (latex had no tikzpicture, only orphaned placeholder SVG). fig1 = empty coord ±6.5, ticks ±1..6, scale 0.35 (~146pt); inserted block into latex after item a); crop re-cropped. fig2 (part d) ADDED: cubic f1(x)=(x+a)^3-1, inflection (-a,-1) with dashed construction, labels -a/0/1/a & 1/-1, curve label; tikz_count now 2 **[rescaled both figs →1.0, cap/unit 0.24; hashes c9a87bc260bc / 99668ae60fb0]** |
 | 578 | 2012_Jesenski_Pola2_VR            | ◐◒    | **authored from scratch** (no tikzpicture in latex). empty coord for f=2x/(x²+1): wide x ±1..6 (axis -7..7.2 arrow), y ±1,2,3 (axis ±4 arrow); inserted after item a); crop re-cropped |
 | 644 | 2013_Jesenski_Pola2_VR            | ◐◒    | **authored from scratch**: exponential f=2·3^(1-x) through A(0,6),B(1,2), decaying to x-axis; very thick curve; x ticks -3..8, y 1..7; scale 0.7 to match original's larger labels; crop re-cropped |
 | 672 | 2014_Spomladanski_Pola2_VR        | ◐◒    | **authored**: empty grid for quadratic, ALL integers labeled (x -6..6, y -4..4); scale 0.8 to match original's larger labels; crop re-cropped |
