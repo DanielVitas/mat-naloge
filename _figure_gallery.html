@@ -1,0 +1,626 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Matura figure audit gallery</title>
+<style>
+body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;margin:0;background:#f4f5f7;color:#1a1a1a}
+header{position:sticky;top:0;background:#fff;border-bottom:1px solid #ddd;padding:12px 18px;z-index:10;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+h1{font-size:17px;margin:0 0 6px}
+.sub{font-size:13px;color:#555;margin-bottom:8px}
+.filters button{font:inherit;font-size:13px;padding:5px 12px;margin-right:6px;border:1px solid #bbb;border-radius:6px;background:#fff;cursor:pointer}
+.filters button.active{background:#1a73e8;color:#fff;border-color:#1a73e8}
+.wrap{padding:16px;max-width:1200px;margin:0 auto}
+.card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;margin-bottom:16px;overflow:hidden}
+.hd{padding:8px 14px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:10px;font-size:14px}
+.pid{font-weight:700;font-size:15px} .meta{color:#666;font-size:12px}
+.badge{margin-left:auto;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px}
+.b-tikz{background:#e6f4ea;color:#137333} .b-miss{background:#fce8e6;color:#c5221f}
+.cmp{display:grid;grid-template-columns:1fr 1fr}
+.col{padding:12px;border-right:1px solid #f0f0f0;text-align:center;min-height:120px;display:flex;flex-direction:column;align-items:center}
+.col:last-child{border-right:none}
+.lbl{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#888;margin-bottom:8px}
+.col img{max-width:100%;max-height:430px;object-fit:contain;background:#fff}
+.placeholder{flex:1;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:13px;min-height:120px}
+.notikz{color:#c5221f;font-weight:700;font-size:18px;border:2px dashed #f0bbb8;border-radius:8px;width:90%}
+.none-sec{margin-top:24px;padding:14px;background:#fff;border:1px solid #e0e0e0;border-radius:10px}
+.none-sec h2{font-size:14px;margin:0 0 8px} .nid{display:inline-block;font-size:12px;color:#999;margin:2px 6px 2px 0}
+.hidden{display:none}
+</style></head><body>
+<header><h1>Matura figure audit — current TikZ vs original</h1>
+<div class="sub">665 problems · <b>179</b> with TikZ · <b style="color:#c5221f">17</b> with a figure but NO TikZ · 469 text/table-only. Left = current render, right = original.</div>
+<div class="filters">
+<button data-f="all" class="active">All with images (196)</button>
+<button data-f="missing">Missing — no tikz (17)</button>
+<button data-f="tikz">Has tikz (179)</button></div></header>
+<div class="wrap"><div class="card missing" data-cat="missing" id="p138">
+  <div class="hd"><span class="pid">#138</span> <span class="meta">2022 · Jesenski_Pola1_OR</span> <span class="badge b-miss">NO TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><div class="placeholder notikz">NO&nbsp;TIKZ</div></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2022_Jesenski_Pola1_OR/prob_10.png" alt="orig"></div></div>
+</div><div class="card missing" data-cat="missing" id="p141">
+  <div class="hd"><span class="pid">#141</span> <span class="meta">2022 · Jesenski_Pola1_OR</span> <span class="badge b-miss">NO TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><div class="placeholder notikz">NO&nbsp;TIKZ</div></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2022_Jesenski_Pola1_OR/prob_13.png" alt="orig"></div></div>
+</div><div class="card missing" data-cat="missing" id="p269">
+  <div class="hd"><span class="pid">#269</span> <span class="meta">2024 · Jesenski_Pola1_OR</span> <span class="badge b-miss">NO TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><div class="placeholder notikz">NO&nbsp;TIKZ</div></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2024_Jesenski_Pola1_OR/prob_11.png" alt="orig"></div></div>
+</div><div class="card missing" data-cat="missing" id="p271">
+  <div class="hd"><span class="pid">#271</span> <span class="meta">2024 · Jesenski_Pola1_OR</span> <span class="badge b-miss">NO TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><div class="placeholder notikz">NO&nbsp;TIKZ</div></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2024_Jesenski_Pola1_OR/prob_13.png" alt="orig"></div></div>
+</div><div class="card missing" data-cat="missing" id="p273">
+  <div class="hd"><span class="pid">#273</span> <span class="meta">2024 · Jesenski_Pola1_VR</span> <span class="badge b-miss">NO TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><div class="placeholder notikz">NO&nbsp;TIKZ</div></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2024_Jesenski_Pola1_VR/prob_07.png" alt="orig"></div></div>
+</div><div class="card missing" data-cat="missing" id="p286">
+  <div class="hd"><span class="pid">#286</span> <span class="meta">2024 · Jesenski_Pola2_OR</span> <span class="badge b-miss">NO TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><div class="placeholder notikz">NO&nbsp;TIKZ</div></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2024_Jesenski_Pola2_OR/prob_12.png" alt="orig"></div></div>
+</div><div class="card missing" data-cat="missing" id="p309">
+  <div class="hd"><span class="pid">#309</span> <span class="meta">2024 · Spomladanski_Pola1_VR</span> <span class="badge b-miss">NO TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><div class="placeholder notikz">NO&nbsp;TIKZ</div></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2024_Spomladanski_Pola1_VR/prob_09.png" alt="orig"></div></div>
+</div><div class="card missing" data-cat="missing" id="p376">
+  <div class="hd"><span class="pid">#376</span> <span class="meta">2018 · Spomladanski_Pola1_OR</span> <span class="badge b-miss">NO TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><div class="placeholder notikz">NO&nbsp;TIKZ</div></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2018_Spomladanski_Pola1_OR/prob_02.png" alt="orig"></div></div>
+</div><div class="card missing" data-cat="missing" id="p439">
+  <div class="hd"><span class="pid">#439</span> <span class="meta">2020 · Spomladanski_Pola1_OR</span> <span class="badge b-miss">NO TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><div class="placeholder notikz">NO&nbsp;TIKZ</div></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2020_Spomladanski_Pola1_OR/prob_01.png" alt="orig"></div></div>
+</div><div class="card missing" data-cat="missing" id="p466">
+  <div class="hd"><span class="pid">#466</span> <span class="meta">? · ?</span> <span class="badge b-miss">NO TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><div class="placeholder notikz">NO&nbsp;TIKZ</div></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="textbook/mat-3-zn/kotne-funkcije-poljubnih-kotov/ex-012.png" alt="orig"></div></div>
+</div><div class="card missing" data-cat="missing" id="p468">
+  <div class="hd"><span class="pid">#468</span> <span class="meta">? · ?</span> <span class="badge b-miss">NO TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><div class="placeholder notikz">NO&nbsp;TIKZ</div></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="textbook/mat-3-zn/kotne-funkcije-poljubnih-kotov/ex-014.png" alt="orig"></div></div>
+</div><div class="card missing" data-cat="missing" id="p550">
+  <div class="hd"><span class="pid">#550</span> <span class="meta">2012 · Spomladanski_Pola2_VR</span> <span class="badge b-miss">NO TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><div class="placeholder notikz">NO&nbsp;TIKZ</div></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2012_Spomladanski_Pola2_VR/prob_13.png" alt="orig"></div></div>
+</div><div class="card missing" data-cat="missing" id="p670">
+  <div class="hd"><span class="pid">#670</span> <span class="meta">2014 · Spomladanski_Pola1_OR</span> <span class="badge b-miss">PHOTO (no tikz)</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><div class="placeholder notikz">NO&nbsp;TIKZ</div></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2014_Spomladanski_Pola1_OR/prob_12.png" alt="orig"></div></div>
+</div><div class="card missing" data-cat="missing" id="p783">
+  <div class="hd"><span class="pid">#783</span> <span class="meta">2015 · Jesenski_Pola1_OR</span> <span class="badge b-miss">NO TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><div class="placeholder notikz">NO&nbsp;TIKZ</div></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2015_Jesenski_Pola1_OR/prob_12.png" alt="orig"></div></div>
+</div><div class="card missing" data-cat="missing" id="p825">
+  <div class="hd"><span class="pid">#825</span> <span class="meta">2016 · Spomladanski_Pola2_VR</span> <span class="badge b-miss">NO TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><div class="placeholder notikz">NO&nbsp;TIKZ</div></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2016_Spomladanski_Pola2_VR/prob_04.png" alt="orig"></div></div>
+</div><div class="card missing" data-cat="missing" id="p832">
+  <div class="hd"><span class="pid">#832</span> <span class="meta">2016 · Spomladanski_Pola2_VR</span> <span class="badge b-miss">NO TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><div class="placeholder notikz">NO&nbsp;TIKZ</div></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2016_Spomladanski_Pola2_VR/prob_11.png" alt="orig"></div></div>
+</div><div class="card missing" data-cat="missing" id="p866">
+  <div class="hd"><span class="pid">#866</span> <span class="meta">2016 · Jesenski_Pola2_VR</span> <span class="badge b-miss">NO TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><div class="placeholder notikz">NO&nbsp;TIKZ</div></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2016_Jesenski_Pola2_VR/prob_08.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p5">
+  <div class="hd"><span class="pid">#5</span> <span class="meta">2025 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-005-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2025_Spomladanski_Pola1_OR_prob05_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p8">
+  <div class="hd"><span class="pid">#8</span> <span class="meta">2025 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-008-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2025_Spomladanski_Pola1_OR_prob08_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p11">
+  <div class="hd"><span class="pid">#11</span> <span class="meta">2025 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-011-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2025_Spomladanski_Pola1_OR_prob11_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p15">
+  <div class="hd"><span class="pid">#15</span> <span class="meta">2025 · Spomladanski_Pola1_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-015-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2025_Spomladanski_Pola1_VR_prob07_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p16">
+  <div class="hd"><span class="pid">#16</span> <span class="meta">2025 · Spomladanski_Pola1_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-016-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2025_Spomladanski_Pola1_VR_prob10_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p20">
+  <div class="hd"><span class="pid">#20</span> <span class="meta">2025 · Spomladanski_Pola2_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-020-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2025_Spomladanski_Pola2_OR_prob04_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p26">
+  <div class="hd"><span class="pid">#26</span> <span class="meta">2025 · Spomladanski_Pola2_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-026-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2025_Spomladanski_Pola2_OR_prob10_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p30">
+  <div class="hd"><span class="pid">#30</span> <span class="meta">2025 · Spomladanski_Pola2_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-030-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2025_Spomladanski_Pola2_OR_prob14_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p32">
+  <div class="hd"><span class="pid">#32</span> <span class="meta">2025 · Spomladanski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-032-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2025_Spomladanski_Pola2_VR_prob11_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p38">
+  <div class="hd"><span class="pid">#38</span> <span class="meta">2025 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-038-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2025_Jesenski_Pola1_OR_prob06_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p43">
+  <div class="hd"><span class="pid">#43</span> <span class="meta">2025 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-043-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2025_Jesenski_Pola1_OR_prob11_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p53">
+  <div class="hd"><span class="pid">#53</span> <span class="meta">2025 · Jesenski_Pola2_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-053-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2025_Jesenski_Pola2_OR_prob05_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p58">
+  <div class="hd"><span class="pid">#58</span> <span class="meta">2025 · Jesenski_Pola2_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-058-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2025_Jesenski_Pola2_OR_prob10_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p64">
+  <div class="hd"><span class="pid">#64</span> <span class="meta">2025 · Jesenski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-064-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2025_Jesenski_Pola2_VR_prob10_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p66">
+  <div class="hd"><span class="pid">#66</span> <span class="meta">2021 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-066-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2021_Jesenski_Pola1_OR/prob_02.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p67">
+  <div class="hd"><span class="pid">#67</span> <span class="meta">2021 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-067-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2021_Jesenski_Pola1_OR/prob_03.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p68">
+  <div class="hd"><span class="pid">#68</span> <span class="meta">2021 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-068-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2021_Jesenski_Pola1_OR/prob_04.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p71">
+  <div class="hd"><span class="pid">#71</span> <span class="meta">2021 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-071-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2021_Jesenski_Pola1_OR/prob_07.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p74">
+  <div class="hd"><span class="pid">#74</span> <span class="meta">2021 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-074-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2021_Jesenski_Pola1_OR/prob_10.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p77">
+  <div class="hd"><span class="pid">#77</span> <span class="meta">2021 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-077-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2021_Jesenski_Pola1_OR/prob_13.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p78">
+  <div class="hd"><span class="pid">#78</span> <span class="meta">2021 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-078-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2021_Jesenski_Pola1_OR/prob_14.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p87">
+  <div class="hd"><span class="pid">#87</span> <span class="meta">2021 · Jesenski_Pola2_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-087-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2021_Jesenski_Pola2_OR/prob_07.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p89">
+  <div class="hd"><span class="pid">#89</span> <span class="meta">2021 · Jesenski_Pola2_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-089-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2021_Jesenski_Pola2_OR/prob_09.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p94">
+  <div class="hd"><span class="pid">#94</span> <span class="meta">2021 · Jesenski_Pola2_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-094-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2021_Jesenski_Pola2_OR/prob_14.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p99">
+  <div class="hd"><span class="pid">#99</span> <span class="meta">2021 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-099-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2021_Spomladanski_Pola1_OR/prob_03.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p100">
+  <div class="hd"><span class="pid">#100</span> <span class="meta">2021 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-100-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2021_Spomladanski_Pola1_OR/prob_04.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p104">
+  <div class="hd"><span class="pid">#104</span> <span class="meta">2021 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-104-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2021_Spomladanski_Pola1_OR/prob_08.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p106">
+  <div class="hd"><span class="pid">#106</span> <span class="meta">2021 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-106-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2021_Spomladanski_Pola1_OR/prob_10.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p107">
+  <div class="hd"><span class="pid">#107</span> <span class="meta">2021 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-107-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2021_Spomladanski_Pola1_OR/prob_11.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p112">
+  <div class="hd"><span class="pid">#112</span> <span class="meta">2021 · Spomladanski_Pola1_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-112-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2021_Spomladanski_Pola1_VR/prob_10.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p115">
+  <div class="hd"><span class="pid">#115</span> <span class="meta">2021 · Spomladanski_Pola2_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-115-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2021_Spomladanski_Pola2_OR/prob_03.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p120">
+  <div class="hd"><span class="pid">#120</span> <span class="meta">2021 · Spomladanski_Pola2_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-120-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2021_Spomladanski_Pola2_OR/prob_08.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p121">
+  <div class="hd"><span class="pid">#121</span> <span class="meta">2021 · Spomladanski_Pola2_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-121-fig1.svg" alt="fig"><img loading="lazy" src="tikz/prob-121-fig2.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2021_Spomladanski_Pola2_OR/prob_09.png" alt="orig"><img loading="lazy" src="matura_refined/2021_Spomladanski_Pola2_OR/prob_09.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p122">
+  <div class="hd"><span class="pid">#122</span> <span class="meta">2021 · Spomladanski_Pola2_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-122-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2021_Spomladanski_Pola2_OR/prob_10.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p123">
+  <div class="hd"><span class="pid">#123</span> <span class="meta">2021 · Spomladanski_Pola2_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-123-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2021_Spomladanski_Pola2_OR/prob_11.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p128">
+  <div class="hd"><span class="pid">#128</span> <span class="meta">2021 · Spomladanski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-128-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2021_Spomladanski_Pola2_VR/prob_10.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p129">
+  <div class="hd"><span class="pid">#129</span> <span class="meta">2022 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-129-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2022_Jesenski_Pola1_OR/prob_01.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p134">
+  <div class="hd"><span class="pid">#134</span> <span class="meta">2022 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-134-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2022_Jesenski_Pola1_OR/prob_06.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p139">
+  <div class="hd"><span class="pid">#139</span> <span class="meta">2022 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-139-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2022_Jesenski_Pola1_OR/prob_11.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p140">
+  <div class="hd"><span class="pid">#140</span> <span class="meta">2022 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-140-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2022_Jesenski_Pola1_OR/prob_12.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p143">
+  <div class="hd"><span class="pid">#143</span> <span class="meta">2022 · Jesenski_Pola1_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-143-fig1.svg" alt="fig"><img loading="lazy" src="tikz/prob-143-fig2.svg" alt="fig"><img loading="lazy" src="tikz/prob-143-fig3.svg" alt="fig"><img loading="lazy" src="tikz/prob-143-fig4.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2022_Jesenski_Pola1_VR/prob_02.png" alt="orig"><img loading="lazy" src="matura_refined/2022_Jesenski_Pola1_VR/prob_02.png" alt="orig"><img loading="lazy" src="matura_refined/2022_Jesenski_Pola1_VR/prob_02.png" alt="orig"><img loading="lazy" src="matura_refined/2022_Jesenski_Pola1_VR/prob_02.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p145">
+  <div class="hd"><span class="pid">#145</span> <span class="meta">2022 · Jesenski_Pola1_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-145-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2022_Jesenski_Pola1_VR/prob_10.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p148">
+  <div class="hd"><span class="pid">#148</span> <span class="meta">2022 · Jesenski_Pola2_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-148-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2022_Jesenski_Pola2_OR/prob_03.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p154">
+  <div class="hd"><span class="pid">#154</span> <span class="meta">2022 · Jesenski_Pola2_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-154-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2022_Jesenski_Pola2_OR/prob_09.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p157">
+  <div class="hd"><span class="pid">#157</span> <span class="meta">2022 · Jesenski_Pola2_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-157-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2022_Jesenski_Pola2_OR/prob_12.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p160">
+  <div class="hd"><span class="pid">#160</span> <span class="meta">2022 · Jesenski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-160-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2022_Jesenski_Pola2_VR/prob_07.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p161">
+  <div class="hd"><span class="pid">#161</span> <span class="meta">2022 · Jesenski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-161-fig1.svg" alt="fig"><img loading="lazy" src="tikz/prob-161-fig2.svg" alt="fig"><img loading="lazy" src="tikz/prob-161-fig3.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2022_Jesenski_Pola2_VR/prob_10.png" alt="orig"><img loading="lazy" src="matura_refined/2022_Jesenski_Pola2_VR/prob_10.png" alt="orig"><img loading="lazy" src="matura_refined/2022_Jesenski_Pola2_VR/prob_10.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p163">
+  <div class="hd"><span class="pid">#163</span> <span class="meta">2022 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-163-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2022_Spomladanski_Pola1_OR/prob_02.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p164">
+  <div class="hd"><span class="pid">#164</span> <span class="meta">2022 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-164-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2022_Spomladanski_Pola1_OR/prob_03.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p165">
+  <div class="hd"><span class="pid">#165</span> <span class="meta">2022 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-165-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2022_Spomladanski_Pola1_OR/prob_04.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p168">
+  <div class="hd"><span class="pid">#168</span> <span class="meta">2022 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-168-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2022_Spomladanski_Pola1_OR/prob_07.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p170">
+  <div class="hd"><span class="pid">#170</span> <span class="meta">2022 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-170-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2022_Spomladanski_Pola1_OR/prob_09.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p176">
+  <div class="hd"><span class="pid">#176</span> <span class="meta">2022 · Spomladanski_Pola1_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-176-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2022_Spomladanski_Pola1_VR/prob_07.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p186">
+  <div class="hd"><span class="pid">#186</span> <span class="meta">2022 · Spomladanski_Pola2_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-186-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2022_Spomladanski_Pola2_OR/prob_09.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p188">
+  <div class="hd"><span class="pid">#188</span> <span class="meta">2022 · Spomladanski_Pola2_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-188-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2022_Spomladanski_Pola2_OR/prob_11.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p193">
+  <div class="hd"><span class="pid">#193</span> <span class="meta">2022 · Spomladanski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-193-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2022_Spomladanski_Pola2_VR/prob_07.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p208">
+  <div class="hd"><span class="pid">#208</span> <span class="meta">2023 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-208-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2023_Jesenski_Pola1_OR_prob14_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p210">
+  <div class="hd"><span class="pid">#210</span> <span class="meta">2023 · Jesenski_Pola1_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-210-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2023_Jesenski_Pola1_VR_prob11_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p220">
+  <div class="hd"><span class="pid">#220</span> <span class="meta">2023 · Jesenski_Pola2_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-220-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2023_Jesenski_Pola2_OR_prob10_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p221">
+  <div class="hd"><span class="pid">#221</span> <span class="meta">2023 · Jesenski_Pola2_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-221-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2023_Jesenski_Pola2_OR_prob11_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p224">
+  <div class="hd"><span class="pid">#224</span> <span class="meta">2023 · Jesenski_Pola2_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-224-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2023_Jesenski_Pola2_OR_prob14_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p225">
+  <div class="hd"><span class="pid">#225</span> <span class="meta">2023 · Jesenski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-225-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2023_Jesenski_Pola2_VR_prob07_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p231">
+  <div class="hd"><span class="pid">#231</span> <span class="meta">2023 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-231-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2023_Spomladanski_Pola1_OR_prob05_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p236">
+  <div class="hd"><span class="pid">#236</span> <span class="meta">2023 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-236-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2023_Spomladanski_Pola1_OR_prob11_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p239">
+  <div class="hd"><span class="pid">#239</span> <span class="meta">2023 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-239-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2023_Spomladanski_Pola1_OR_prob14_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p240">
+  <div class="hd"><span class="pid">#240</span> <span class="meta">2023 · Spomladanski_Pola1_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-240-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2023_Spomladanski_Pola1_VR/prob_01.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p245">
+  <div class="hd"><span class="pid">#245</span> <span class="meta">2023 · Spomladanski_Pola2_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-245-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2023_Spomladanski_Pola2_OR_prob03_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p247">
+  <div class="hd"><span class="pid">#247</span> <span class="meta">2023 · Spomladanski_Pola2_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-247-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2023_Spomladanski_Pola2_OR_prob05_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p256">
+  <div class="hd"><span class="pid">#256</span> <span class="meta">2023 · Spomladanski_Pola2_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-256-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2023_Spomladanski_Pola2_OR_prob14_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p257">
+  <div class="hd"><span class="pid">#257</span> <span class="meta">2023 · Spomladanski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-257-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2023_Spomladanski_Pola2_VR_prob07_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p259">
+  <div class="hd"><span class="pid">#259</span> <span class="meta">2024 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-259-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2024_Jesenski_Pola1_OR_prob01_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p266">
+  <div class="hd"><span class="pid">#266</span> <span class="meta">2024 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-266-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2024_Jesenski_Pola1_OR_prob08_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p272">
+  <div class="hd"><span class="pid">#272</span> <span class="meta">2024 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-272-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2024_Jesenski_Pola1_OR_prob14_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p276">
+  <div class="hd"><span class="pid">#276</span> <span class="meta">2024 · Jesenski_Pola2_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-276-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2024_Jesenski_Pola2_OR_prob02_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p289">
+  <div class="hd"><span class="pid">#289</span> <span class="meta">2024 · Jesenski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-289-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2024_Jesenski_Pola2_VR_prob07_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p307">
+  <div class="hd"><span class="pid">#307</span> <span class="meta">2024 · Spomladanski_Pola1_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-307-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2024_Spomladanski_Pola1_VR_prob07_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p308">
+  <div class="hd"><span class="pid">#308</span> <span class="meta">2024 · Spomladanski_Pola1_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-308-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2024_Spomladanski_Pola1_VR_prob08_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p314">
+  <div class="hd"><span class="pid">#314</span> <span class="meta">2024 · Spomladanski_Pola2_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-314-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2024_Spomladanski_Pola2_OR_prob05_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p315">
+  <div class="hd"><span class="pid">#315</span> <span class="meta">2024 · Spomladanski_Pola2_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-315-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2024_Spomladanski_Pola2_OR_prob06_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p316">
+  <div class="hd"><span class="pid">#316</span> <span class="meta">2024 · Spomladanski_Pola2_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-316-fig1.svg" alt="fig"><img loading="lazy" src="tikz/prob-316-fig2.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2024_Spomladanski_Pola2_OR_prob07_fig1.png" alt="orig"><img loading="lazy" src="matura_figures/2024_Spomladanski_Pola2_OR_prob07_fig2.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p321">
+  <div class="hd"><span class="pid">#321</span> <span class="meta">2024 · Spomladanski_Pola2_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-321-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2024_Spomladanski_Pola2_OR_prob12_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p323">
+  <div class="hd"><span class="pid">#323</span> <span class="meta">2024 · Spomladanski_Pola2_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-323-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2024_Spomladanski_Pola2_OR_prob14_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p325">
+  <div class="hd"><span class="pid">#325</span> <span class="meta">2024 · Spomladanski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-325-fig1.svg" alt="fig"><img loading="lazy" src="tikz/prob-325-fig2.svg" alt="fig"><img loading="lazy" src="tikz/prob-325-fig3.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figures/2024_Spomladanski_Pola2_VR_prob07_fig1.png" alt="orig"><img loading="lazy" src="matura_figures/2024_Spomladanski_Pola2_VR_prob07_fig2.png" alt="orig"><img loading="lazy" src="matura_figures/2024_Spomladanski_Pola2_VR_prob07_fig3.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p328">
+  <div class="hd"><span class="pid">#328</span> <span class="meta">2017 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-328-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2017_Jesenski_Pola1_OR/prob_02.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p330">
+  <div class="hd"><span class="pid">#330</span> <span class="meta">2017 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-330-fig1.svg" alt="fig"><img loading="lazy" src="tikz/prob-330-fig2.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2017_Jesenski_Pola1_OR/prob_04.png" alt="orig"><img loading="lazy" src="matura_refined/2017_Jesenski_Pola1_OR/prob_04.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p334">
+  <div class="hd"><span class="pid">#334</span> <span class="meta">2017 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-334-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2017_Jesenski_Pola1_OR/prob_08.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p343">
+  <div class="hd"><span class="pid">#343</span> <span class="meta">2017 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-343-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2017_Spomladanski_Pola1_OR/prob_01.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p344">
+  <div class="hd"><span class="pid">#344</span> <span class="meta">2017 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-344-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2017_Spomladanski_Pola1_OR/prob_02.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p346">
+  <div class="hd"><span class="pid">#346</span> <span class="meta">2017 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-346-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2017_Spomladanski_Pola1_OR/prob_04.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p349">
+  <div class="hd"><span class="pid">#349</span> <span class="meta">2017 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-349-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2017_Spomladanski_Pola1_OR/prob_07.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p351">
+  <div class="hd"><span class="pid">#351</span> <span class="meta">2017 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-351-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2017_Spomladanski_Pola1_OR/prob_09.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p354">
+  <div class="hd"><span class="pid">#354</span> <span class="meta">2017 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-354-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2017_Spomladanski_Pola1_OR/prob_12.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p360">
+  <div class="hd"><span class="pid">#360</span> <span class="meta">2018 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-360-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2018_Jesenski_Pola1_OR/prob_02.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p361">
+  <div class="hd"><span class="pid">#361</span> <span class="meta">2018 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-361-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2018_Jesenski_Pola1_OR/prob_03.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p363">
+  <div class="hd"><span class="pid">#363</span> <span class="meta">2018 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-363-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2018_Jesenski_Pola1_OR/prob_05.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p364">
+  <div class="hd"><span class="pid">#364</span> <span class="meta">2018 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-364-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2018_Jesenski_Pola1_OR/prob_06.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p367">
+  <div class="hd"><span class="pid">#367</span> <span class="meta">2018 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-367-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2018_Jesenski_Pola1_OR/prob_09.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p369">
+  <div class="hd"><span class="pid">#369</span> <span class="meta">2018 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-369-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2018_Jesenski_Pola1_OR/prob_11.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p374">
+  <div class="hd"><span class="pid">#374</span> <span class="meta">2018 · Jesenski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-374-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2018_Jesenski_Pola2_VR/prob_13.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p378">
+  <div class="hd"><span class="pid">#378</span> <span class="meta">2018 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-378-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2018_Spomladanski_Pola1_OR/prob_04.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p383">
+  <div class="hd"><span class="pid">#383</span> <span class="meta">2018 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-383-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2018_Spomladanski_Pola1_OR/prob_09.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p384">
+  <div class="hd"><span class="pid">#384</span> <span class="meta">2018 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-384-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2018_Spomladanski_Pola1_OR/prob_10.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p385">
+  <div class="hd"><span class="pid">#385</span> <span class="meta">2018 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-385-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2018_Spomladanski_Pola1_OR/prob_11.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p387">
+  <div class="hd"><span class="pid">#387</span> <span class="meta">2018 · Spomladanski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-387-fig1.svg" alt="fig"><img loading="lazy" src="tikz/prob-387-fig2.svg" alt="fig"><img loading="lazy" src="tikz/prob-387-fig3.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2018_Spomladanski_Pola2_VR/prob_01.png" alt="orig"><img loading="lazy" src="matura_refined/2018_Spomladanski_Pola2_VR/prob_01.png" alt="orig"><img loading="lazy" src="matura_refined/2018_Spomladanski_Pola2_VR/prob_01.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p388">
+  <div class="hd"><span class="pid">#388</span> <span class="meta">2018 · Spomladanski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-388-fig1.svg" alt="fig"><img loading="lazy" src="tikz/prob-388-fig2.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2018_Spomladanski_Pola2_VR/prob_05.png" alt="orig"><img loading="lazy" src="matura_refined/2018_Spomladanski_Pola2_VR/prob_05.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p393">
+  <div class="hd"><span class="pid">#393</span> <span class="meta">2019 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-393-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2019_Jesenski_Pola1_OR/prob_02.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p396">
+  <div class="hd"><span class="pid">#396</span> <span class="meta">2019 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-396-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2019_Jesenski_Pola1_OR/prob_05.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p398">
+  <div class="hd"><span class="pid">#398</span> <span class="meta">2019 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-398-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2019_Jesenski_Pola1_OR/prob_07.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p399">
+  <div class="hd"><span class="pid">#399</span> <span class="meta">2019 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-399-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2019_Jesenski_Pola1_OR/prob_08.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p400">
+  <div class="hd"><span class="pid">#400</span> <span class="meta">2019 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-400-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2019_Jesenski_Pola1_OR/prob_09.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p403">
+  <div class="hd"><span class="pid">#403</span> <span class="meta">2019 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-403-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2019_Jesenski_Pola1_OR/prob_12.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p404">
+  <div class="hd"><span class="pid">#404</span> <span class="meta">2019 · Jesenski_Pola1_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-404-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2019_Jesenski_Pola1_VR/prob_05.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p408">
+  <div class="hd"><span class="pid">#408</span> <span class="meta">2019 · Jesenski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-408-fig1.svg" alt="fig"><img loading="lazy" src="tikz/prob-408-fig2.svg" alt="fig"><img loading="lazy" src="tikz/prob-408-fig3.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2019_Jesenski_Pola2_VR/prob_11.png" alt="orig"><img loading="lazy" src="matura_refined/2019_Jesenski_Pola2_VR/prob_11.png" alt="orig"><img loading="lazy" src="matura_refined/2019_Jesenski_Pola2_VR/prob_11.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p412">
+  <div class="hd"><span class="pid">#412</span> <span class="meta">2019 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-412-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2019_Spomladanski_Pola1_OR/prob_04.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p413">
+  <div class="hd"><span class="pid">#413</span> <span class="meta">2019 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-413-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2019_Spomladanski_Pola1_OR/prob_05.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p415">
+  <div class="hd"><span class="pid">#415</span> <span class="meta">2019 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-415-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2019_Spomladanski_Pola1_OR/prob_07.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p421">
+  <div class="hd"><span class="pid">#421</span> <span class="meta">2019 · Spomladanski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-421-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2019_Spomladanski_Pola2_VR/prob_04.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p422">
+  <div class="hd"><span class="pid">#422</span> <span class="meta">2019 · Spomladanski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-422-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2019_Spomladanski_Pola2_VR/prob_07.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p430">
+  <div class="hd"><span class="pid">#430</span> <span class="meta">2020 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-430-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2020_Jesenski_Pola1_OR/prob_08.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p431">
+  <div class="hd"><span class="pid">#431</span> <span class="meta">2020 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-431-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2020_Jesenski_Pola1_OR/prob_09.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p435">
+  <div class="hd"><span class="pid">#435</span> <span class="meta">2020 · Jesenski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-435-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2020_Jesenski_Pola2_VR/prob_01.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p442">
+  <div class="hd"><span class="pid">#442</span> <span class="meta">2020 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-442-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2020_Spomladanski_Pola1_OR/prob_04.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p446">
+  <div class="hd"><span class="pid">#446</span> <span class="meta">2020 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-446-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2020_Spomladanski_Pola1_OR/prob_08.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p451">
+  <div class="hd"><span class="pid">#451</span> <span class="meta">2020 · Spomladanski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-451-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2020_Spomladanski_Pola2_VR/prob_01.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p452">
+  <div class="hd"><span class="pid">#452</span> <span class="meta">2020 · Spomladanski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-452-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2020_Spomladanski_Pola2_VR/prob_05.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p458">
+  <div class="hd"><span class="pid">#458</span> <span class="meta">2020 · Spomladanski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-458-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2020_Spomladanski_Pola2_VR/prob_01.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p459">
+  <div class="hd"><span class="pid">#459</span> <span class="meta">2020 · Spomladanski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-459-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_refined/2020_Spomladanski_Pola2_VR/prob_05.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p460">
+  <div class="hd"><span class="pid">#460</span> <span class="meta">? · ?</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-460-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="textbook/mat-3-zn/kotne-funkcije-poljubnih-kotov/ex-006.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p461">
+  <div class="hd"><span class="pid">#461</span> <span class="meta">? · ?</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-461-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="textbook/mat-3-zn/kotne-funkcije-poljubnih-kotov/ex-007.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p462">
+  <div class="hd"><span class="pid">#462</span> <span class="meta">? · ?</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-462-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="textbook/mat-3-zn/kotne-funkcije-poljubnih-kotov/ex-008.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p472">
+  <div class="hd"><span class="pid">#472</span> <span class="meta">? · ?</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-472-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="textbook/mat-3-zn/kotne-funkcije-poljubnih-kotov/ex-018.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p481">
+  <div class="hd"><span class="pid">#481</span> <span class="meta">2011 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-481-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2011_Spomladanski_Pola1_OR_prob_481_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p483">
+  <div class="hd"><span class="pid">#483</span> <span class="meta">2011 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-483-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2011_Spomladanski_Pola1_OR_prob_483_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p487">
+  <div class="hd"><span class="pid">#487</span> <span class="meta">2011 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-487-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2011_Spomladanski_Pola1_OR_prob_487_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p488">
+  <div class="hd"><span class="pid">#488</span> <span class="meta">2011 · Spomladanski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-488-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2011_Spomladanski_Pola2_VR_prob_488_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p498">
+  <div class="hd"><span class="pid">#498</span> <span class="meta">2011 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-498-fig1.svg" alt="fig"><img loading="lazy" src="tikz/prob-498-fig2.svg" alt="fig"><img loading="lazy" src="tikz/prob-498-fig3.svg" alt="fig"><img loading="lazy" src="tikz/prob-498-fig4.svg" alt="fig"><img loading="lazy" src="tikz/prob-498-fig5.svg" alt="fig"><img loading="lazy" src="tikz/prob-498-fig6.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2011_Jesenski_Pola1_OR_prob_498_fig1.png" alt="orig"><img loading="lazy" src="matura_figs/2011_Jesenski_Pola1_OR_prob_498_fig2.png" alt="orig"><img loading="lazy" src="matura_figs/2011_Jesenski_Pola1_OR_prob_498_fig3.png" alt="orig"><img loading="lazy" src="matura_figs/2011_Jesenski_Pola1_OR_prob_498_fig4.png" alt="orig"><img loading="lazy" src="matura_figs/2011_Jesenski_Pola1_OR_prob_498_fig5.png" alt="orig"><img loading="lazy" src="matura_figs/2011_Jesenski_Pola1_OR_prob_498_fig6.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p505">
+  <div class="hd"><span class="pid">#505</span> <span class="meta">2011 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-505-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2011_Jesenski_Pola1_OR_prob_505_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p506">
+  <div class="hd"><span class="pid">#506</span> <span class="meta">2011 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-506-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2011_Jesenski_Pola1_OR_prob_506_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p515">
+  <div class="hd"><span class="pid">#515</span> <span class="meta">2011 · Jesenski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-515-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2011_Jesenski_Pola2_VR_prob_515_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p525">
+  <div class="hd"><span class="pid">#525</span> <span class="meta">2012 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-525-fig1.svg" alt="fig"><img loading="lazy" src="tikz/prob-525-fig2.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2012_Spomladanski_Pola1_OR_prob_525_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p528">
+  <div class="hd"><span class="pid">#528</span> <span class="meta">2012 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-528-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2012_Spomladanski_Pola1_OR_prob_528_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p530">
+  <div class="hd"><span class="pid">#530</span> <span class="meta">2012 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-530-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2012_Spomladanski_Pola1_OR_prob_530_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p532">
+  <div class="hd"><span class="pid">#532</span> <span class="meta">2012 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-532-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2012_Spomladanski_Pola1_OR_prob_532_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p537">
+  <div class="hd"><span class="pid">#537</span> <span class="meta">2012 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-537-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2012_Spomladanski_Pola1_OR_prob_537_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p538">
+  <div class="hd"><span class="pid">#538</span> <span class="meta">2012 · Spomladanski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-538-fig1.svg" alt="fig"><img loading="lazy" src="tikz/prob-538-fig2.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2012_Spomladanski_Pola2_VR_prob_538_fig1.png" alt="orig"><img loading="lazy" src="matura_figs/2012_Spomladanski_Pola2_VR_prob_538_fig2.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p556">
+  <div class="hd"><span class="pid">#556</span> <span class="meta">2012 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-556-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2012_Jesenski_Pola1_OR_prob_556_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p566">
+  <div class="hd"><span class="pid">#566</span> <span class="meta">2012 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-566-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2012_Jesenski_Pola1_OR_prob_566_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p578">
+  <div class="hd"><span class="pid">#578</span> <span class="meta">2012 · Jesenski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-578-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2012_Jesenski_Pola2_VR_prob_578_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p599">
+  <div class="hd"><span class="pid">#599</span> <span class="meta">2013 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-599-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2013_Spomladanski_Pola1_OR_prob_599_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p622">
+  <div class="hd"><span class="pid">#622</span> <span class="meta">2013 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-622-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2013_Jesenski_Pola1_OR_prob_622_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p623">
+  <div class="hd"><span class="pid">#623</span> <span class="meta">2013 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-623-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2013_Jesenski_Pola1_OR_prob_623_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p624">
+  <div class="hd"><span class="pid">#624</span> <span class="meta">2013 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-624-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2013_Jesenski_Pola1_OR_prob_624_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p625">
+  <div class="hd"><span class="pid">#625</span> <span class="meta">2013 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-625-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2013_Jesenski_Pola1_OR_prob_625_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p626">
+  <div class="hd"><span class="pid">#626</span> <span class="meta">2013 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-626-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2013_Jesenski_Pola1_OR_prob_626_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p630">
+  <div class="hd"><span class="pid">#630</span> <span class="meta">2013 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-630-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2013_Jesenski_Pola1_OR_prob_630_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p644">
+  <div class="hd"><span class="pid">#644</span> <span class="meta">2013 · Jesenski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-644-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2013_Jesenski_Pola2_VR_prob_644_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p660">
+  <div class="hd"><span class="pid">#660</span> <span class="meta">2014 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-660-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2014_Spomladanski_Pola1_OR_prob_660_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p672">
+  <div class="hd"><span class="pid">#672</span> <span class="meta">2014 · Spomladanski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-672-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2014_Spomladanski_Pola2_VR_prob_672_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p683">
+  <div class="hd"><span class="pid">#683</span> <span class="meta">2014 · Spomladanski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-683-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2014_Spomladanski_Pola2_VR_prob_683_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p688">
+  <div class="hd"><span class="pid">#688</span> <span class="meta">2014 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-688-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2014_Jesenski_Pola1_OR_prob_688_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p692">
+  <div class="hd"><span class="pid">#692</span> <span class="meta">2014 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-692-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2014_Jesenski_Pola1_OR_prob_692_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p710">
+  <div class="hd"><span class="pid">#710</span> <span class="meta">2014 · Jesenski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-710-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2014_Jesenski_Pola2_VR_prob_710_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p727">
+  <div class="hd"><span class="pid">#727</span> <span class="meta">2015 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-727-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2015_Spomladanski_Pola1_OR_prob_727_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p731">
+  <div class="hd"><span class="pid">#731</span> <span class="meta">2015 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-731-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2015_Spomladanski_Pola1_OR_prob_731_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p750">
+  <div class="hd"><span class="pid">#750</span> <span class="meta">2015 · Spomladanski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-750-fig1.svg" alt="fig"><img loading="lazy" src="tikz/prob-750-fig2.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2015_Spomladanski_Pola2_VR_prob_750_fig1.png" alt="orig"><img loading="lazy" src="matura_figs/2015_Spomladanski_Pola2_VR_prob_750_fig2.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p761">
+  <div class="hd"><span class="pid">#761</span> <span class="meta">2015 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-761-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2015_Jesenski_Pola1_OR_prob_761_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p763">
+  <div class="hd"><span class="pid">#763</span> <span class="meta">2015 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-763-fig1.svg" alt="fig"><img loading="lazy" src="tikz/prob-763-fig2.svg" alt="fig"><img loading="lazy" src="tikz/prob-763-fig3.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2015_Jesenski_Pola1_OR_prob_763_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p773">
+  <div class="hd"><span class="pid">#773</span> <span class="meta">2015 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-773-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2015_Jesenski_Pola1_OR_prob_773_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p779">
+  <div class="hd"><span class="pid">#779</span> <span class="meta">2015 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-779-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2015_Jesenski_Pola1_OR_prob_779_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p785">
+  <div class="hd"><span class="pid">#785</span> <span class="meta">2015 · Jesenski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-785-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2015_Jesenski_Pola2_VR_prob_785_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p791">
+  <div class="hd"><span class="pid">#791</span> <span class="meta">2015 · Jesenski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-791-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2015_Jesenski_Pola2_VR_prob_791_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p794">
+  <div class="hd"><span class="pid">#794</span> <span class="meta">2015 · Jesenski_Pola2_VR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-794-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2015_Jesenski_Pola2_VR_prob_794_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p800">
+  <div class="hd"><span class="pid">#800</span> <span class="meta">2016 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-800-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2016_Spomladanski_Pola1_OR_prob_800_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p808">
+  <div class="hd"><span class="pid">#808</span> <span class="meta">2016 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-808-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2016_Spomladanski_Pola1_OR_prob_808_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p818">
+  <div class="hd"><span class="pid">#818</span> <span class="meta">2016 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-818-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2016_Spomladanski_Pola1_OR_prob_818_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p820">
+  <div class="hd"><span class="pid">#820</span> <span class="meta">2016 · Spomladanski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-820-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2016_Spomladanski_Pola1_OR_prob_820_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p839">
+  <div class="hd"><span class="pid">#839</span> <span class="meta">2016 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-839-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2016_Jesenski_Pola1_OR_prob_839_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p843">
+  <div class="hd"><span class="pid">#843</span> <span class="meta">2016 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-843-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2016_Jesenski_Pola1_OR_prob_843_fig1.png" alt="orig"></div></div>
+</div><div class="card tikz" data-cat="tikz" id="p847">
+  <div class="hd"><span class="pid">#847</span> <span class="meta">2016 · Jesenski_Pola1_OR</span> <span class="badge b-tikz">TIKZ</span></div>
+  <div class="cmp"><div class="col"><div class="lbl">current TikZ</div><img loading="lazy" src="tikz/prob-847-fig1.svg" alt="fig"></div><div class="col"><div class="lbl">original</div><img loading="lazy" src="matura_figs/2016_Jesenski_Pola1_OR_prob_847_fig1.png" alt="orig"></div></div>
+</div>
+<div class="none-sec"><h2>Text / table-only — no figure detected (469)</h2><span class="nid">#1</span> <span class="nid">#2</span> <span class="nid">#3</span> <span class="nid">#4</span> <span class="nid">#6</span> <span class="nid">#7</span> <span class="nid">#9</span> <span class="nid">#10</span> <span class="nid">#12</span> <span class="nid">#13</span> <span class="nid">#14</span> <span class="nid">#17</span> <span class="nid">#18</span> <span class="nid">#19</span> <span class="nid">#21</span> <span class="nid">#22</span> <span class="nid">#23</span> <span class="nid">#24</span> <span class="nid">#25</span> <span class="nid">#27</span> <span class="nid">#28</span> <span class="nid">#29</span> <span class="nid">#31</span> <span class="nid">#33</span> <span class="nid">#34</span> <span class="nid">#35</span> <span class="nid">#36</span> <span class="nid">#37</span> <span class="nid">#39</span> <span class="nid">#40</span> <span class="nid">#41</span> <span class="nid">#42</span> <span class="nid">#44</span> <span class="nid">#45</span> <span class="nid">#46</span> <span class="nid">#47</span> <span class="nid">#48</span> <span class="nid">#49</span> <span class="nid">#50</span> <span class="nid">#51</span> <span class="nid">#52</span> <span class="nid">#54</span> <span class="nid">#55</span> <span class="nid">#56</span> <span class="nid">#57</span> <span class="nid">#59</span> <span class="nid">#60</span> <span class="nid">#61</span> <span class="nid">#62</span> <span class="nid">#63</span> <span class="nid">#65</span> <span class="nid">#69</span> <span class="nid">#70</span> <span class="nid">#72</span> <span class="nid">#73</span> <span class="nid">#75</span> <span class="nid">#76</span> <span class="nid">#79</span> <span class="nid">#80</span> <span class="nid">#81</span> <span class="nid">#82</span> <span class="nid">#83</span> <span class="nid">#84</span> <span class="nid">#85</span> <span class="nid">#86</span> <span class="nid">#88</span> <span class="nid">#90</span> <span class="nid">#91</span> <span class="nid">#92</span> <span class="nid">#93</span> <span class="nid">#95</span> <span class="nid">#96</span> <span class="nid">#97</span> <span class="nid">#98</span> <span class="nid">#101</span> <span class="nid">#102</span> <span class="nid">#103</span> <span class="nid">#105</span> <span class="nid">#108</span> <span class="nid">#109</span> <span class="nid">#110</span> <span class="nid">#111</span> <span class="nid">#113</span> <span class="nid">#114</span> <span class="nid">#116</span> <span class="nid">#117</span> <span class="nid">#118</span> <span class="nid">#119</span> <span class="nid">#124</span> <span class="nid">#125</span> <span class="nid">#126</span> <span class="nid">#127</span> <span class="nid">#130</span> <span class="nid">#131</span> <span class="nid">#132</span> <span class="nid">#133</span> <span class="nid">#135</span> <span class="nid">#136</span> <span class="nid">#137</span> <span class="nid">#142</span> <span class="nid">#144</span> <span class="nid">#146</span> <span class="nid">#147</span> <span class="nid">#149</span> <span class="nid">#150</span> <span class="nid">#151</span> <span class="nid">#152</span> <span class="nid">#153</span> <span class="nid">#155</span> <span class="nid">#156</span> <span class="nid">#158</span> <span class="nid">#159</span> <span class="nid">#162</span> <span class="nid">#166</span> <span class="nid">#167</span> <span class="nid">#169</span> <span class="nid">#171</span> <span class="nid">#172</span> <span class="nid">#173</span> <span class="nid">#174</span> <span class="nid">#175</span> <span class="nid">#177</span> <span class="nid">#178</span> <span class="nid">#179</span> <span class="nid">#180</span> <span class="nid">#181</span> <span class="nid">#182</span> <span class="nid">#183</span> <span class="nid">#184</span> <span class="nid">#185</span> <span class="nid">#187</span> <span class="nid">#189</span> <span class="nid">#190</span> <span class="nid">#191</span> <span class="nid">#192</span> <span class="nid">#194</span> <span class="nid">#195</span> <span class="nid">#196</span> <span class="nid">#197</span> <span class="nid">#198</span> <span class="nid">#199</span> <span class="nid">#200</span> <span class="nid">#201</span> <span class="nid">#202</span> <span class="nid">#203</span> <span class="nid">#204</span> <span class="nid">#205</span> <span class="nid">#206</span> <span class="nid">#207</span> <span class="nid">#209</span> <span class="nid">#211</span> <span class="nid">#212</span> <span class="nid">#213</span> <span class="nid">#214</span> <span class="nid">#215</span> <span class="nid">#216</span> <span class="nid">#217</span> <span class="nid">#218</span> <span class="nid">#219</span> <span class="nid">#222</span> <span class="nid">#223</span> <span class="nid">#226</span> <span class="nid">#227</span> <span class="nid">#228</span> <span class="nid">#229</span> <span class="nid">#230</span> <span class="nid">#232</span> <span class="nid">#233</span> <span class="nid">#234</span> <span class="nid">#235</span> <span class="nid">#237</span> <span class="nid">#238</span> <span class="nid">#241</span> <span class="nid">#242</span> <span class="nid">#243</span> <span class="nid">#244</span> <span class="nid">#246</span> <span class="nid">#248</span> <span class="nid">#249</span> <span class="nid">#250</span> <span class="nid">#251</span> <span class="nid">#252</span> <span class="nid">#253</span> <span class="nid">#254</span> <span class="nid">#255</span> <span class="nid">#258</span> <span class="nid">#260</span> <span class="nid">#261</span> <span class="nid">#262</span> <span class="nid">#263</span> <span class="nid">#264</span> <span class="nid">#265</span> <span class="nid">#267</span> <span class="nid">#268</span> <span class="nid">#270</span> <span class="nid">#274</span> <span class="nid">#275</span> <span class="nid">#277</span> <span class="nid">#278</span> <span class="nid">#279</span> <span class="nid">#280</span> <span class="nid">#281</span> <span class="nid">#282</span> <span class="nid">#283</span> <span class="nid">#284</span> <span class="nid">#285</span> <span class="nid">#287</span> <span class="nid">#288</span> <span class="nid">#290</span> <span class="nid">#291</span> <span class="nid">#292</span> <span class="nid">#293</span> <span class="nid">#294</span> <span class="nid">#295</span> <span class="nid">#296</span> <span class="nid">#297</span> <span class="nid">#298</span> <span class="nid">#299</span> <span class="nid">#300</span> <span class="nid">#301</span> <span class="nid">#302</span> <span class="nid">#303</span> <span class="nid">#304</span> <span class="nid">#305</span> <span class="nid">#306</span> <span class="nid">#310</span> <span class="nid">#311</span> <span class="nid">#312</span> <span class="nid">#313</span> <span class="nid">#317</span> <span class="nid">#318</span> <span class="nid">#319</span> <span class="nid">#320</span> <span class="nid">#322</span> <span class="nid">#324</span> <span class="nid">#326</span> <span class="nid">#327</span> <span class="nid">#329</span> <span class="nid">#331</span> <span class="nid">#332</span> <span class="nid">#333</span> <span class="nid">#335</span> <span class="nid">#336</span> <span class="nid">#337</span> <span class="nid">#338</span> <span class="nid">#339</span> <span class="nid">#340</span> <span class="nid">#341</span> <span class="nid">#342</span> <span class="nid">#345</span> <span class="nid">#347</span> <span class="nid">#348</span> <span class="nid">#350</span> <span class="nid">#352</span> <span class="nid">#353</span> <span class="nid">#355</span> <span class="nid">#356</span> <span class="nid">#357</span> <span class="nid">#358</span> <span class="nid">#359</span> <span class="nid">#362</span> <span class="nid">#365</span> <span class="nid">#366</span> <span class="nid">#368</span> <span class="nid">#370</span> <span class="nid">#371</span> <span class="nid">#372</span> <span class="nid">#373</span> <span class="nid">#375</span> <span class="nid">#377</span> <span class="nid">#379</span> <span class="nid">#380</span> <span class="nid">#381</span> <span class="nid">#382</span> <span class="nid">#386</span> <span class="nid">#389</span> <span class="nid">#390</span> <span class="nid">#391</span> <span class="nid">#392</span> <span class="nid">#394</span> <span class="nid">#395</span> <span class="nid">#397</span> <span class="nid">#401</span> <span class="nid">#402</span> <span class="nid">#405</span> <span class="nid">#406</span> <span class="nid">#407</span> <span class="nid">#409</span> <span class="nid">#410</span> <span class="nid">#411</span> <span class="nid">#414</span> <span class="nid">#416</span> <span class="nid">#417</span> <span class="nid">#418</span> <span class="nid">#419</span> <span class="nid">#420</span> <span class="nid">#423</span> <span class="nid">#424</span> <span class="nid">#425</span> <span class="nid">#426</span> <span class="nid">#427</span> <span class="nid">#428</span> <span class="nid">#429</span> <span class="nid">#432</span> <span class="nid">#433</span> <span class="nid">#434</span> <span class="nid">#436</span> <span class="nid">#437</span> <span class="nid">#438</span> <span class="nid">#440</span> <span class="nid">#441</span> <span class="nid">#443</span> <span class="nid">#444</span> <span class="nid">#445</span> <span class="nid">#447</span> <span class="nid">#448</span> <span class="nid">#449</span> <span class="nid">#450</span> <span class="nid">#453</span> <span class="nid">#454</span> <span class="nid">#455</span> <span class="nid">#456</span> <span class="nid">#457</span> <span class="nid">#463</span> <span class="nid">#464</span> <span class="nid">#465</span> <span class="nid">#467</span> <span class="nid">#469</span> <span class="nid">#470</span> <span class="nid">#471</span> <span class="nid">#473</span> <span class="nid">#474</span> <span class="nid">#475</span> <span class="nid">#476</span> <span class="nid">#477</span> <span class="nid">#478</span> <span class="nid">#479</span> <span class="nid">#480</span> <span class="nid">#482</span> <span class="nid">#484</span> <span class="nid">#485</span> <span class="nid">#486</span> <span class="nid">#492</span> <span class="nid">#495</span> <span class="nid">#499</span> <span class="nid">#504</span> <span class="nid">#507</span> <span class="nid">#508</span> <span class="nid">#509</span> <span class="nid">#511</span> <span class="nid">#512</span> <span class="nid">#513</span> <span class="nid">#514</span> <span class="nid">#519</span> <span class="nid">#522</span> <span class="nid">#526</span> <span class="nid">#527</span> <span class="nid">#529</span> <span class="nid">#531</span> <span class="nid">#533</span> <span class="nid">#535</span> <span class="nid">#536</span> <span class="nid">#542</span> <span class="nid">#546</span> <span class="nid">#554</span> <span class="nid">#558</span> <span class="nid">#560</span> <span class="nid">#562</span> <span class="nid">#564</span> <span class="nid">#568</span> <span class="nid">#570</span> <span class="nid">#572</span> <span class="nid">#574</span> <span class="nid">#576</span> <span class="nid">#581</span> <span class="nid">#585</span> <span class="nid">#588</span> <span class="nid">#592</span> <span class="nid">#593</span> <span class="nid">#594</span> <span class="nid">#595</span> <span class="nid">#596</span> <span class="nid">#597</span> <span class="nid">#600</span> <span class="nid">#601</span> <span class="nid">#602</span> <span class="nid">#603</span> <span class="nid">#604</span> <span class="nid">#605</span> <span class="nid">#609</span> <span class="nid">#613</span> <span class="nid">#616</span> <span class="nid">#620</span> <span class="nid">#621</span> <span class="nid">#627</span> <span class="nid">#628</span> <span class="nid">#629</span> <span class="nid">#631</span> <span class="nid">#632</span> <span class="nid">#636</span> <span class="nid">#640</span> <span class="nid">#648</span> <span class="nid">#650</span> <span class="nid">#652</span> <span class="nid">#654</span> <span class="nid">#656</span> <span class="nid">#658</span> <span class="nid">#662</span> <span class="nid">#664</span> <span class="nid">#666</span> <span class="nid">#668</span> <span class="nid">#675</span> <span class="nid">#679</span> <span class="nid">#686</span> <span class="nid">#690</span> <span class="nid">#694</span> <span class="nid">#696</span> <span class="nid">#698</span> <span class="nid">#700</span> <span class="nid">#702</span> <span class="nid">#704</span> <span class="nid">#706</span> <span class="nid">#708</span> <span class="nid">#714</span> <span class="nid">#717</span> <span class="nid">#720</span> <span class="nid">#723</span> <span class="nid">#725</span> <span class="nid">#729</span> <span class="nid">#733</span> <span class="nid">#735</span> <span class="nid">#737</span> <span class="nid">#739</span> <span class="nid">#741</span> <span class="nid">#743</span> <span class="nid">#745</span> <span class="nid">#747</span> <span class="nid">#754</span> <span class="nid">#757</span> <span class="nid">#765</span> <span class="nid">#767</span> <span class="nid">#769</span> <span class="nid">#771</span> <span class="nid">#775</span> <span class="nid">#777</span> <span class="nid">#781</span> <span class="nid">#788</span> <span class="nid">#798</span> <span class="nid">#802</span> <span class="nid">#804</span> <span class="nid">#806</span> <span class="nid">#810</span> <span class="nid">#812</span> <span class="nid">#814</span> <span class="nid">#816</span> <span class="nid">#822</span> <span class="nid">#828</span> <span class="nid">#835</span> <span class="nid">#837</span> <span class="nid">#841</span> <span class="nid">#845</span> <span class="nid">#849</span> <span class="nid">#851</span> <span class="nid">#853</span> <span class="nid">#855</span> <span class="nid">#857</span> <span class="nid">#859</span> <span class="nid">#862</span> <span class="nid">#870</span></div></div>
+<script>
+const btns=[...document.querySelectorAll('.filters button')];
+btns.forEach(b=>b.onclick=()=>{btns.forEach(x=>x.classList.remove('active'));b.classList.add('active');
+const f=b.dataset.f;document.querySelectorAll('.card').forEach(c=>c.classList.toggle('hidden',f!=='all'&&c.dataset.cat!==f));});
+</script></body></html>
