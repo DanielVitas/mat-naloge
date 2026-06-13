@@ -121,6 +121,9 @@ and these libraries: `calc,angles,quotes,intersections,decorations.pathreplacing
   smallest follow-up nudge), present the left-right montage image (new
   TikZ left, original right) to the user. Never just describe the result
   in text; the user wants to see the comparison every single time.
+  **Generating/Read-ing the montage is NOT enough — you must actually call
+  `present_files` on it so it shows up in the chat.** (Forgetting this call
+  after rendering the montage has been a repeated slip.)
 - **The origin label "0" always goes in the bottom-left of the origin**
   (`\node[below left] at (0,0) {$0$};`) in every coordinate-system figure,
   regardless of how the original positioned it.
@@ -139,6 +142,14 @@ and these libraries: `calc,angles,quotes,intersections,decorations.pathreplacing
   ad-hoc offsets and do NOT put some y-labels on the right — that breaks
   consistency with the "0". (Earlier figures 818/839 had only one y-label,
   centre-aligned to "0"; the general rule above supersedes that.)
+- **Figure size / label-to-axis proportion (provisional — refine as we go):**
+  labels use a fixed font size, so a figure with fewer units renders as a
+  smaller SVG and gets upscaled on the page, making the labels look oversized.
+  Keep coordinate-system figures at roughly the same rendered width as 818
+  (~140pt) by choosing `scale` accordingly — e.g. a ±3.5 span (847) uses
+  `scale=0.6` → ~137pt, vs 818's ±5 span at `scale=0.45` → ~144pt. Check the
+  SVG header's `width="...pt"` and compare against 818. Rule of thumb, not a
+  hard constant — expect to adjust it.
 - **One problem per turn during iterative figure work.** Bundling 6 figures
   into one round means each subsequent feedback loop has to spool through
   stale renders for all of them. The user has explicitly asked for this.

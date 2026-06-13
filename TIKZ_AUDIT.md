@@ -85,7 +85,7 @@ Status legend: ✓ = verified faithful, ◐ = TikZ fixed this session,
 | 818 | 2016_Spomladanski_Pola1_OR         | ◐◒    | empty coord; axes extended to ±5, y=4 tick added; original crop re-cropped (was wrong bbox); x/y "1" labels aligned to "0" |
 | 820 | 2016_Spomladanski_Pola1_OR         | ◐◒    | two circles + equilateral △; A/B labels to line level; K1/K2 moved up-left/up-right; crop re-cropped to figure |
 | 839 | 2016_Jesenski_Pola1_OR             | ◐◒    | complex plane z,w. **w corrected -2+2i → -3+2i** (matched -3 tick); added z vertical dashed to axis; full integer ticks; crop re-cropped (was whole-problem). NOTE: table row was wrongly "836" |
-| 847 | 2016_Jesenski_Pola1_OR             | ?      | not audited (was missing from table)  |
+| 847 | 2016_Jesenski_Pola1_OR             | ◐◒    | empty coord (log graph); axes ±4/5 → symmetric ±3.5, ticks ±1,2,3; labels consistent [below left] with 0; crop re-cropped to figure |
 | 843 | 2016_Jesenski_Pola1_OR             | ◐◒    | four conics (2 circles + 2 ellipses). **C corrected (1,-0.7) → (2/√5,-2/√5)** = ellipse∩ellipse; A/C labels → above right; axis number labels nudged off curves to match original (y 1/2 lowered into clear zones, negatives on left); 0 → below left; crop re-cropped |
 | 854 | 2016_Jesenski_Pola2_VR             | ?      |                                       |
 | 862 | 2016_Jesenski_Pola2_VR             | ?      | (was in Limita reassignment)          |
