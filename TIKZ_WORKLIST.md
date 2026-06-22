@@ -7,7 +7,8 @@ montage **rendered → present_files → then sync**, never fabricate, one probl
 per turn unless told otherwise).
 
 ## WHERE WE LEFT OFF (status)
-- **Cache state:** global `v=602020`, `sw.js mat-tikz-628`. Bump both on any change.
+- **Cache state:** global `v=602040`, `sw.js mat-tikz-630`. Bump both on any change.
+- **Group-1 NEXT: #77** (done so far: 5,11,15,20,38,53,58,64,68,71). Resume there.
 - **Recrop (section 3): DONE & committed** for 118 problems → `matura_figs/`
   crops + `tikz_originals` updated + busters. **Skipped 316, 325** (2024
   multi-fig in `matura_figures/`; auto-cropper can't split them — left as-is,
@@ -133,6 +134,26 @@ not empty coords and need proper redrawing, not rescaling.)
   thin grid, trace segments→meters, keep door gaps. (2) the grid extends ~half a box
   past the last meter line on the RIGHT, and the dark meter lines continue into that
   strip. (3) Daniel iterates label x-positions one nudge at a time — expect it.
+- [x] 68 — two vectors a,b on a coord system (read the components). BOTH vectors were
+  wrong: old a=(-3,1.5), b=(3.5,-0.5). Measured the original (unit=39px, origin
+  px(657,327)): **a=(-5,2)** (origin→(-5,2)), **b=(5,-1)** drawn (-4,-2)→(1,-3). Old
+  render also MISSING the integer ticks (orig has ticks every integer -5..5 on both
+  axes; one-sided: x-ticks UP, y-ticks RIGHT, same style as #38). Dashed boxes project
+  BOTH endpoints to BOTH axes; for b Daniel corrected twice: tail y-proj stops at
+  (0,-2), tip y-proj is (0,-3)-(1,-3). scale 0.5, arrows positive ends only.
+  hash ebd9e1ff03c8. NOTE: tikz_originals is the matura_refined PAGE (prob_04.png,
+  text+figure), NOT a _figN crop — could recrop to just the figure later (not in
+  recrop list). LESSON: to read a drawn vector, isolate the SOLID line (largest
+  component; the y-axis splits it — combine parts), endpoints=tail/tip; dashes are
+  separate small components.
+- [x] 71 — square (side 7) with lower-left isosceles-right triangle (legs 4) cut →
+  pentagon; perimeter problem. Geometry was already right (fill (0,7)-(7,7)-(7,0)-
+  (4,0)-(0,4); diagonal (0,4)-(4,0)). Only fixes: (a) "x" label was on the LEFT EDGE
+  but the original has it ON THE DIAGONAL (hypotenuse) at (1.7,1.7); (b) fill gray!40
+  → gray!50 (measured orig fill value 191). a (top, above) & y (bottom-right, below 5.4)
+  already correct. hash 27acec2140ba. LESSON: read where side LABELS actually sit
+  (measure label centroids in square-normalised coords) — they can mark the diagonal,
+  not the edge.
 
 ## 2. Rescale / resize + axis dashes + empty-coord preset (86)
 Adjust overall size (labels relatively smaller), add axis dashes where needed;
