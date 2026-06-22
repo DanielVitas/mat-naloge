@@ -171,6 +171,68 @@ and these libraries: `calc,angles,quotes,intersections,decorations.pathreplacing
   into one round means each subsequent feedback loop has to spool through
   stale renders for all of them. The user has explicitly asked for this.
 
+## "From scratch" figure protocol (MEASURE, don't eyeball)
+
+When the user says to (re)build a figure **"from scratch"** (or rejects an
+eyeballed attempt), match the original rigorously. The steps that produced a
+"very good" result on #20:
+
+1. **Measure BOTH axis units separately.** Find the pixel position of each
+   axis's "1" digit (and tick spacing) → `unit_px` for x AND y. Decide
+   uniform-vs-stretched from the measured ratio — do NOT assume. (#20's portrait
+   look was a tall y-RANGE with uniform units, not an xscale/yscale stretch; a
+   wrong guess there was rejected.)
+2. **Detect EVERY tick and reproduce the full range.** Scan both axes for all
+   short perpendicular dashes; emit them with `\foreach` over the true range
+   (#20 was x −4..4, y −7..7). Missing dashes is the most common complaint.
+3. **Scale** = `0.243 / (label-cap-px / unit-px)` so labels read at the
+   original's relative size.
+4. **Plotted curves: TRACE, don't guess the formula.** Zero out the axis lines
+   (±1px at vx/hy) and ticks, `ndimage.label` the rest, and read from the curve
+   components: x-range, roots (y sign-changes), local max/min (x & y), and the
+   y-intercept. Then fit the function from roots + intercept (solve k). Eyeballing
+   #20 gave roots ≈±0.6 (tiny wiggle); tracing gave the real ±2/0.9 (fills frame).
+5. **Frame extent.** Match the original's (often asymmetric/tall) view box so the
+   curve tails exit at the same edges.
+6. **Labels & anchors.** Place labels at the original's measured positions with
+   explicit `\node at (...)`. For angle arcs use `angle eccentricity < 1` (≈0.6)
+   or explicit nodes so the label sits INSIDE the arc; set each arc radius to
+   match. Keep the "0"/axis-label conventions above.
+7. **Line weights & markers.** Use `thick`/`line width=...` where the original is
+   bold; put filled dots at every marked vertex/point; enlarge arrowheads via
+   line width (classic `>=latex` tip scales with width).
+8. **Intersections & incidences.** Verify lines/curves actually cross at the
+   intended points and that marked points lie exactly on the curves.
+9. **Verify TWO ways before claiming done:** (a) a RED(mine)-on-BLACK(original)
+   pixel overlay at matched size to catch position/scale drift, then (b) the
+   side-by-side montage (present THAT per the montage rule). Iterate on real
+   measurements, not impressions.
+
+Helper preamble for rendering during this work (superset of the deployed one):
+`\usetikzlibrary{calc,angles,quotes,intersections,decorations.pathreplacing,patterns}`.
+
+## Angle arcs (when asked to "redo/fix the arc")
+Do NOT eyeball start/end angles or radius. Instead:
+1. **Identify the two edges the arc spans** — from the geometry, which ray to which
+   ray (e.g. "from line BE to line BC" = ray B→E to ray B→C). The arc is always
+   centred at the shared vertex.
+2. **Compute the angle from the vertex coordinates.** Vectors from the vertex to
+   each neighbour give the two ray angles; the span is their difference. (Sanity-
+   check against the problem data, e.g. β = arctan(EC/EB).) Example #58:
+   B=(2,0), E=(0,0), C=(0,4) → B→E = 180°, B→C = atan2(4,−2)=116.57° → β=63.43°.
+3. **Draw it edge-to-edge with the `angle` pic so the span is locked to the actual
+   coordinates** (no hardcoded angles that can drift off the edges):
+   `\pic [draw, "$\beta$", angle radius=6mm, angle eccentricity=0.62] {angle = C--B--E};`
+   Order the three points so the SHORT (interior) arc is drawn — swap the outer two
+   if it draws the reflex side. `angle radius` = arc size (absolute mm, NOT scaled by
+   the picture `scale`); `angle eccentricity<1` pulls the label INSIDE toward the
+   vertex (Daniel likes the label close to the vertex), `>1` pushes it outside.
+4. Verify the arc visually touches BOTH edges and that the label sits where wanted.
+
+Note: a matura ORIGINAL angle arc may be drawn large (foot far from the vertex), but
+Daniel generally prefers a tight marker hugging the vertex with the label close in —
+confirm size if unsure, but always get the span (edge-to-edge) and centre exactly right.
+
 ## Topic vocabulary
 
 The curriculum is the M-MAT-2026 syllabus. The TOPIC_PARENT map in
