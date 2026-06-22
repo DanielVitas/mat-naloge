@@ -6,6 +6,23 @@ needs each kind of work. Follow CLAUDE.md rules (3-place sync, cache bumps,
 montage **rendered → present_files → then sync**, never fabricate, one problem
 per turn unless told otherwise).
 
+## WHERE WE LEFT OFF (status)
+- **Cache state:** global `v=601940`, `sw.js mat-tikz-602`. Bump both on any change.
+- **Recrop (section 3): DONE & committed** for 118 problems → `matura_figs/`
+  crops + `tikz_originals` updated + busters. **Skipped 316, 325** (2024
+  multi-fig in `matura_figures/`; auto-cropper can't split them — left as-is,
+  may need per-figure manual recrop later). See [[matura-crop-conventions]].
+- **Empty coordinate systems: ALL 23 DONE & committed** (see
+  `_empty_coord_updates.html`): 67,89,160,164,186,220,240,257,364,369,378,
+  387(×3),388(×2),399,408(×3),415,422,431,435,442,451,622,773. Lessons in
+  [[matura-coordinate-systems]].
+- **NEXT: section-2 NON-empty figures** (curves/shapes/vectors) — not started.
+  List at bottom of section 2. Do one at a time, montage each.
+- Sections **1 (fixing, incl. 122/532)** and **4 (need-tikz)**: not started.
+- Working/preview HTML files in `webpage/` (`_figure_gallery.html`,
+  `_recrop_gallery.html`, `_empty_coord_updates.html`, `_recrop_preview/`,
+  `_readjust*`) are scratch for review — fine to delete before final commit.
+
 Conventions reminder for this batch:
 - **Rescale/resize:** match each figure's size to its original; at the current
   `width:100%` display this means **labels should be relatively smaller** than
@@ -31,6 +48,21 @@ Content/accuracy problems with the existing render.
 
 (122 = vector diagram, 532 = vectors — moved here from group 2; they are
 not empty coords and need proper redrawing, not rescaling.)
+
+**Group-1 progress (committed):**
+- [x] 5 — quadrilateral ABCD. Real issue was the ANGLE LABELS: `angle eccentricity`
+  flung γ/101°/70° far along the bisector (γ floated mid-shape). Fix = draw arcs
+  with `\pic` (no quote label, per-angle radii 9/6/10/6 mm) + place the four
+  labels with explicit `\node at (...)` at the original's measured positions.
+  Vertices also set to cv2-detected corners A(0,0) B(5.4,0) C(4.31,2.06) D(1.96,2.82).
+  Verified by RED-on-BLACK overlay (mine vs original) — outline+arcs+labels align.
+  hash 36a90b4353f6. (2025 problem; no per-problem html.)
+  **LESSON: overlay the render on the original to catch label-position errors;
+  avoid `angle eccentricity` for labels — place them explicitly.**
+- [x] 11 — unit circle w/ A, A', C, B, α=60°. Made circle + triangle lines
+  `thick` (original is bold), added missing `0` origin label, fixed A' label
+  (was colliding with −1 → `[above right]`), lowered `C(0,0)` to axis level.
+  hash ff508d6dc47b. (2025; no per-problem html.)
 
 ## 2. Rescale / resize + axis dashes + empty-coord preset (86)
 Adjust overall size (labels relatively smaller), add axis dashes where needed;
