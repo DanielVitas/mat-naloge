@@ -7,8 +7,32 @@ montage **rendered → present_files → then sync**, never fabricate, one probl
 per turn unless told otherwise).
 
 ## WHERE WE LEFT OFF (status)
-- **Cache state:** global `v=602050`, `sw.js mat-tikz-631`. Bump both on any change.
-- **Group-1 NEXT: #78** (done so far: 5,11,15,20,38,53,58,64,68,71,77). Resume there.
+- **Cache state:** global `v=602113`, `sw.js mat-tikz-640`. Bump both on any change.
+- **Group-1 NEXT: #148** (done: …,104,107,115,122,139,143). Resume there.
+  - #143 (4-fig angle problem, ONE latex w/ 4 tikz in a tabular; hashes fig1 `a3fa3c3d9c28`,
+    fig2 `a27fb1a8750b`, fig3 `f71bef23482a`, fig4 `24ce03c45041`). Originals had NO arcs;
+    added double-arrow `<->` arcs everywhere + geometry rebuilds: fig1 parallel lines+2
+    transversals (measured intersections via Hough; β/α≈62°, given 63°/55°; minor-arc point
+    order matters, swap to draw interior; 55° label manual outside-then-Daniel moved top-right);
+    fig2 regular octagon E@top (vertices 10°+45°k; line through edge E–F extended, NOT tangent
+    @F; γ=interior 135° arc @F label inside-low, δ=45° arc @F label tight to F); fig3 circle
+    diam AB (A162/B342/C114°, ε@C); fig4 circle diam AC (A226.5/C46.5/B314°, ω@S/44°@B/φ@C).
+    Sync = sequential re.sub over the 4 tikz blocks in order, stamp 4 svgs. fig fig2/4 had
+    several Daniel arc-nudge iterations.
+  - #139 (frequency polygon, hash `0d16f0174d0f`): added DOTTED guides (each point→both
+    axes), OPEN-circle markers (was filled `*`) at the 5 data pts only (none at (0,0)/(6,0)),
+    non-uniform per-axis units x=0.95cm/y=0.32cm (~3:1 stretch; cap15/uy19.67). Y-axis has
+    MINOR ticks at EVERY integer 1-18 ONE-SIDED pointing right (len 0.12 x-u); labels only
+    1,6,9,12,15,18 (non-uniform). Site has no arrows.meta. fig2 = LaTeX tabular (untouched).
+  - #122 (vector diagram, hash `4fe762f46127`): extended ticks to full range
+    x −4..4 / y −3..3 (was positive-only; #1 fix), labels only at 0,1,4 & 1,2,3,
+    scale 0.95 (cap20/unit78). `b` label = `[right] at (0,2.4)` (right of shaft
+    near top, NOT midway-left), `a` label `[below] at (3.3,1.66)` just under line.
+    Vectors `line width=1.5pt` for bigger latex arrowheads (site has no arrows.meta,
+    so use line width — not `Latex[length=..]`). a=(4,2), b=(0,3), dashes (4,0)-(4,2)+(0,2)-(4,2).
+- **ANGLE-ARC SIZING is now a STANDING METHOD** — see [[matura-coordinate-systems]] +
+  CLAUDE.md "Angle arcs": measure original arc radii (circle overlays) AND keep labels
+  contained inside (R≥r/(e·sin(θ/2))). Use on every angle figure.
 - **Recrop (section 3): DONE & committed** for 118 problems → `matura_figs/`
   crops + `tikz_originals` updated + busters. **Skipped 316, 325** (2024
   multi-fig in `matura_figures/`; auto-cropper can't split them — left as-is,
@@ -162,6 +186,59 @@ not empty coords and need proper redrawing, not rescaling.)
   extends nearly full height (3,-5.95)-(3,5.9) "just as the graph does". hash
   f855c68cfca7. LESSON: read root MULTIPLICITIES from touch-vs-cross, pin leading
   coeff from a marked point, and cross-check against any given areas/integrals.
+- [x] 78 — f(x)=1+1/x, shaded region. Old SHADING was wrong (filled down to x-axis
+  over x∈[1,3]). Correct region (from original): bounded by y-axis, y=4/3(=f(3))
+  below, and y=2(=f(1)) for x∈[0,1] then the curve for x∈[1,3] above. Area = **ln3**
+  (verified: 2/3 + ∫_1^3(1/x-1/3)dx). Fill path (0,4/3)-(0,2)-(1,2)-plot(1..3)-cycle.
+  Reference lines y=4/3(to x=3), y=2(to x=1), verticals x=1(to 2), x=3(to 4/3).
+  scale 1.0→**1.25** (cap/unit 0.19). Ticks were MISSING: x at 1,2,3 (up), y at
+  1,2,3,4 (right), len 0.08. "y" label at (-0.22,3.28). hash 10536b78f905. LESSON:
+  for a shaded-area problem, work out which region gives a clean exact answer
+  (here ln3) to disambiguate the boundaries.
+- [x] 87 — triangle ABC, α=75°(A), β=52.5°(B), find AC. Old triangle had WRONG angles
+  (A≈64.5°). Original is drawn TO SCALE (measured A=74.7,B=52.6,C=52.7; isosceles
+  AB=AC). Rebuilt: A=(0,0), B=(5,0), C=(0.2588·5, 0.9659·5)=(1.294,4.83) [from
+  α=75°, AB=AC]. Angle arcs via pic: Daniel wants `<->` (BOTH ends arrowed), bigger
+  (angle radius 9mm), labels CLOSE to vertex (angle eccentricity=0.6, inside). C
+  label [above left]. scale 0.85 (label/AB ratio). hash 719d262a1b5e. LESSON: trig
+  triangles are often drawn to scale — construct from the actual angles (place AB on
+  x-axis, apex from the two base angles), don't keep an eyeballed shape.
+- [x] 99 — circle k, tangent p at T, chord TB, radius SB; angles β(at T, tangent-chord)
+  & 40°(∠TBS). Old fig: T,B were 120° apart → ∠TBS=30°, but label says 40° (inconsistent);
+  also MISSING the angle arcs. Fixed: ∠TBS=40° ⇒ T,B 100° apart ⇒ T=120°, B=20°
+  (B radius dir measured ~19°). β=50°. Added pic arcs `<->` (both arrowed) for β
+  (angle=B--T--P, P=tangent dir +30°) and 40° (angle=T--B--S). Daniel: labels CLOSE
+  to vertices (β at (T)+(4:0.6), 40° at (B)+(180:0.65)), 40°-arc bigger (10mm), line p
+  extended both ways (30:2.1)/(210:2.0). hash 93ec68f6090f. NOTE: bodies '99' had
+  tikz_count=0 (wrong) but the figure IS in the latex/svg. LESSON: circle-geometry
+  figures must be self-consistent — derive point angles from the labeled angle
+  (isosceles radius triangle), don't trust the inherited positions.
+- [x] 104 — area figure: 3×3 grid (cell=a), shaded region with 4 quarter-arcs (r=a).
+  Verified shading (sample cell centres + corner-cell inner/outer points) and arc
+  centres (dark-fraction along candidates = 1.0). TOP corners CONVEX (gray quarter-disk
+  centred at INNER corner TL@(1,2),TR@(2,2)); BOTTOM corners CONCAVE (white quarter-disk
+  at OUTER corner BL@(0,0),BR@(3,0)). Fill = one path: (0,2) arc→(1,3) -(2,3)- arc→(3,2)
+  -(3,1)- arc→(2,0) -(1,0)- arc→cycle. Thin grid+square over fill; thick arcs = curved
+  sides; radius arrows centre→arc with "a" (nudged up); side "a" top & right.
+  hash 44f560975a39. LESSON: for arc-area figures MEASURE which side of each arc is
+  shaded and the arc centre — convex vs concave corners can differ within one figure.
+- [x] 107 — ellipse a=5,b=2 with vertices A(-5,0),B(5,0),C(0,-2),D(0,2). Geometry was
+  already right. Fixes: REMOVED the vertex dots (original has none), fixed the
+  B(5,0)/"x" collision (put "x" below-right of the axis, B label above the axis to its
+  right), placed vertex labels at measured centres (A≈(-6,0.42), B≈(5.8,0.42),
+  D≈(0.9,2.5), C≈(1.2,-2.45)); Daniel then nudged A right / B left. scale 0.85.
+  hash d3c46a393858. LESSON: check for stray vertex DOTS the original lacks, and
+  resolve label/axis-arrow collisions by separating them vertically (label above axis,
+  axis-name below).
+- [x] 115 — quadrilateral ABCD + diagonal AC, angles 30°(DCA),74°(ADC),50°(CAB),
+  φ(DAC),β(ABC), given AC=AB. Old shape WRONG (A≈33° not 50°) + 30° arc on wrong
+  sub-angle (BCD). Rebuilt to scale: A=(0,0),B=(6,0), C=(0.6428·6,0.7660·6)=(3.857,
+  4.596) [from CAB=50°,AC=AB], D from triangle ACD (AD=AC·sin30/sin74, dir 126°)=
+  (-1.834,2.525). φ=76°, β=65°. Pic `angle` order must give the SHORT interior arc
+  (swap outer pts if reflex). ARC SIZING is the big lesson → new STANDING METHOD
+  (measure original arc radii via circle overlays + containment formula; labels inside
+  at ecc~0.7). Final radii 30°→1.4u,φ/50°→1.2u,β→1.1u,74°→0.95u; all `<->`.
+  hash 259b356dd766.
 
 ## 2. Rescale / resize + axis dashes + empty-coord preset (86)
 Adjust overall size (labels relatively smaller), add axis dashes where needed;

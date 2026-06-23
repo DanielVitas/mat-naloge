@@ -229,9 +229,33 @@ Do NOT eyeball start/end angles or radius. Instead:
    vertex (Daniel likes the label close to the vertex), `>1` pushes it outside.
 4. Verify the arc visually touches BOTH edges and that the label sits where wanted.
 
+### Label-inside-the-arc sizing (DETECTION rule — Daniel wants labels CONTAINED inside arcs)
+The recurring bug: labels float outside the arc or spill past the rays. The label must
+sit INSIDE the arc (between vertex and arc) and INSIDE the wedge. This LINKS the arc
+radius to the angle and the label size — compute it, don't eyeball:
+1. **Measure the label's bounding-radius r** (figure units, at the picture scale):
+   render the label standalone, get its width w & height h in figure units,
+   r = sqrt((w/2)²+(h/2)²). (At scale 1.0, "30°"≈r 0.28, a single Greek letter≈0.16–0.19.)
+2. **Pick eccentricity e** (label at d = e·R on the bisector); e≈0.6 puts it nicely inside.
+3. **Arc radius:** the wedge half-width at distance d is d·sin(θ/2); to contain the
+   label box there you need d·sin(θ/2) ≥ r ⇒ **R ≥ r / (e·sin(θ/2))**. Set
+   `angle radius = R·scale` (cm) and `angle eccentricity = e`. Floor R≈0.5u so tiny
+   arcs don't vanish. ⇒ NARROW angles need BIG arcs (so the label fits the thin wedge);
+   wide angles can be small. (#115: 30°→R 1.8u, 50°→1.1u, 74°→0.78u, φ→0.5u, β→0.59u, all e=0.6.)
+4. Verify by rendering: the label should be fully between the vertex and the arc, not
+   crossing either ray.
+5. **ALSO match the ORIGINAL arc radii** (Daniel wants the arc sizes to match): measure
+   each original arc by drawing reference circles of known radius (in figure units)
+   centred at the vertex and reading which circle the arc lies on (the containment
+   formula only gives a MINIMUM — the original size is the target, usually bigger for
+   wide angles). Matura arcs are fairly uniform (#115: 30°→1.4u, φ/50°→1.2u, β→1.1u,
+   74°→0.95u; labels inside at eccentricity ≈0.7). Set `angle radius` to the measured u
+   (×scale) and eccentricity so the label sits ~0.7·R inside.
+
 Note: a matura ORIGINAL angle arc may be drawn large (foot far from the vertex), but
-Daniel generally prefers a tight marker hugging the vertex with the label close in —
-confirm size if unsure, but always get the span (edge-to-edge) and centre exactly right.
+Daniel generally prefers a tight marker hugging the vertex with the label CONTAINED
+INSIDE the arc — always get the span (edge-to-edge) and centre right, and size the arc
+to the label per the rule above.
 
 ## Topic vocabulary
 
