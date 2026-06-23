@@ -7,8 +7,8 @@ montage **rendered → present_files → then sync**, never fabricate, one probl
 per turn unless told otherwise).
 
 ## WHERE WE LEFT OFF (status)
-- **Cache state:** global `v=602040`, `sw.js mat-tikz-630`. Bump both on any change.
-- **Group-1 NEXT: #77** (done so far: 5,11,15,20,38,53,58,64,68,71). Resume there.
+- **Cache state:** global `v=602050`, `sw.js mat-tikz-631`. Bump both on any change.
+- **Group-1 NEXT: #78** (done so far: 5,11,15,20,38,53,58,64,68,71,77). Resume there.
 - **Recrop (section 3): DONE & committed** for 118 problems → `matura_figs/`
   crops + `tikz_originals` updated + busters. **Skipped 316, 325** (2024
   multi-fig in `matura_figures/`; auto-cropper can't split them — left as-is,
@@ -154,6 +154,14 @@ not empty coords and need proper redrawing, not rescaling.)
   already correct. hash 27acec2140ba. LESSON: read where side LABELS actually sit
   (measure label centroids in square-normalised coords) — they can mark the diagonal,
   not the edge.
+- [x] 77 — cubic p with shaded S1,S2 + line x=3. Old poly WRONG: (x+3)(x-2)² (double
+  root at 2). Original TOUCHES at -3 (double) & CROSSES at 2 (simple) →
+  **p(x) = -(1/9)(x+3)²(x-2)** (a from p(0)=2). VERIFIED via given areas: S1=625/108,
+  S2=193/108 both exact, ∫_{-3}^{3}=4. Big ±6 figure, integer ticks -5..5 (x up,
+  y right), scale 0.48, arrows +ends. Dots (-3,0),(0,2),(2,0) at 2.2pt. Line x=3
+  extends nearly full height (3,-5.95)-(3,5.9) "just as the graph does". hash
+  f855c68cfca7. LESSON: read root MULTIPLICITIES from touch-vs-cross, pin leading
+  coeff from a marked point, and cross-check against any given areas/integrals.
 
 ## 2. Rescale / resize + axis dashes + empty-coord preset (86)
 Adjust overall size (labels relatively smaller), add axis dashes where needed;
