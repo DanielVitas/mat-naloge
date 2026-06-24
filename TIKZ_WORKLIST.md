@@ -14,8 +14,30 @@ montage **rendered → present_files → then sync**, never fabricate, one probl
 per turn unless told otherwise).
 
 ## WHERE WE LEFT OFF (status)
-- **Cache state:** global `v=602145`, `sw.js mat-tikz-672`. Bump both on any change.
-- **Group-1 NEXT: #413** (done: …,385,396,403; #404 MERGED into #396 — see below). Resume there.
+- **Cache state:** global `v=602147`, `sw.js mat-tikz-674`. Bump both on any change.
+- **Group-1 NEXT: #460** (done: …,403,413,421; #404 MERGED into #396 — see below). Resume there.
+  - #421 (circle r6 ctr S + inscribed rect ABCD + radii SC,SD + angle φ=∠CSD + shaded region, hash
+    `3d1131b452e7`, orig `?v=e0a805` unchanged): tunnel cross-section. Rect corners (±2.4,±1.8) (tikz r=3,
+    matches orig). Existing render shaded ONLY the rectangle + light `gray!40` + had NO φ arc. FIX:
+    shaded region = rectangle **+ TOP circular segment** (area 54sinφ+18φ = 72sinφ rect + (18φ−18sinφ)
+    seg). Fill path `(A)--(B)--(C) arc[start angle=36.87,end angle=143.13,radius=3] -- cycle` (arc center
+    inferred = (0,0)=S; top arc C→D over 90°). Fill **gray!70** (orig val165). Added φ angle arc at S:
+    `(36.87:0.62) arc[start angle=36.87,end angle=143.13,radius=0.62]`, φ label (0,0.3). Lines **semithick**
+    (orig thin; `thick` was too bold). LESSON: shaded-area problems — the region often includes a circular
+    segment beyond a chord; verify via the given area formula (sector ½r²φ=18φ term ⇒ segment present).
+  - #413 (line p + circle k diam AB + 2 shaded circular segments, hash `bff4f8627155`, orig `?v=8f93be`
+    unchanged): circle k center (2,3) r=√13 passes through A(0,6), origin(0,0), B(4,0). Existing render
+    FAKED the segments with `arc[...]` whose center (derived from start point) was (2.55,3.45), NOT k's
+    center → crescents didn't follow the circle; line p had wrong slope (didn't pass through A&B). FIX:
+    segments are the REAL k-segments — left (x<0, chord on y-axis (0,0)-(0,6)): `(0,6) arc[start angle=
+    123.69,end angle=236.31,radius=3.6056] -- cycle`; bottom (y<0, chord on x-axis (0,0)-(4,0)): `(0,0)
+    arc[start angle=236.31,end angle=303.69,radius=3.6056] -- cycle` (TikZ arc center = startpt −
+    r·(cos start,sin start) = (2,3) ✓). Line p exact slope −1.5 through A,B: `(-1.2,7.8)--(5.3,-1.95)`.
+    Fill `gray!50` (orig val 191). Added integer tick marks (x{-2,-1,1,2,3,5}, y{-1,1,2,3,4,5}). A/B
+    labels `above right`, nudged up-left to (-0.18,6.18)/(3.82,0.18); 6/1 left, 1/4 below, 0 below-left,
+    k right of circle, p at line's bottom-right. scale 0.7. LESSON: `arc[start angle,radius]` infers the
+    center from the current point — to trace a SPECIFIC circle's segment, start at a known point ON that
+    circle and use that circle's radius so the inferred center lands right.
 - **DUP MERGE (done):** the corpus had same-text problems stored as two entries. Merged the two genuine
   OR/VR splits into ONE problem each carrying both levels (matches the #346 template — `levels:["OR","VR"]`,
   one figure, two `instances`): **#396←#404** (2019 Jesenski water-tank) and **#302←#306** (2024 ellipse).
