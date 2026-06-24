@@ -14,9 +14,89 @@ montage **rendered → present_files → then sync**, never fabricate, one probl
 per turn unless told otherwise).
 
 ## WHERE WE LEFT OFF (status)
-- **Cache state:** global `v=602120`, `sw.js mat-tikz-647`. Bump both on any change.
-- **Group-1 NEXT: #188** (done: …,148,161,163,165,170,176). Resume there. (stopped end of day after #176.)
-  - #176 (curvilinear "Reuleaux" triangle, hash `f18371d560c0`): A(-1,0) B(1,0) C(0,√3), arcs radius2
+- **Cache state:** global `v=602138`, `sw.js mat-tikz-665`. Bump both on any change.
+- **Group-1 NEXT: #346** (done: …,315,325,334). Resume there.
+  - #334 (two circles, shaded ring, hash `bb7dc31d0369`, `?v=bb7dc3`): big (3,0)r3, inner (3,-1)r√2
+    (=1.4142; old r2 was WRONG — made it tangent at bottom). Fill `black!50` (orig val127; was gray!50/light).
+  - #325 (3-VIEW silos+building: side/front/top, hashes fig1 `bc12124faa96` fig2 `9423d3b28052`
+    fig3 `a341c045d8ab`): originals were MIS-CROPPED (overlapping figs+text). RE-CROPPED all 3 from
+    `pages/2024_Spomladanski_Pola2_VR_page-16.png` (found via cv2.matchTemplate of clean fig2, score 1.0;
+    unit 39px) → saved over the `_fig{1,2,3}.png` paths (safe, not page paths). tikz: solid graph-grid
+    `step=0.25 gray!22`+`step=1 gray!60`, fill `gray!30`(=val217). Side: building x[1,8]z[1,6] divider
+    z4, silos x[1,4]z[6,7]. Front (yz, y LEFT → drew with NEGATIVE x, no xscale=-1): silos y[4,7]z[1,7],
+    house y[1,4] walls z[1,4] peak (2.5,6); annotations \tiny; sleme arrow. Top (xy): circle (2.5,5.5)r1.5
+    fill=white, rect x[1,8]y[1,4] divider y2.5, A(2.5,4) B(4,1).
+  - #315 (cube ABCDEFGH + pyramid ABDE, hash `e4db338599f7`, `?v=e4db33`): measure 8 vertex dots →
+    derive 3 edge dirs (horiz/vert/depth) by which pairs differ by a constant vector → assign labels so
+    bottom ABCD & top EFGH are parallelograms. Orig DEPTH (2.65,3.33) much steeper than old (2.5,1.8).
+    Shading `gray!N`=255−1.27N: ABE gray!45(198), EBD gray!50(192). Pyramid edges E-B/E-D/B-D `ultra
+    thick` (orig emphasises them); cube edges `thick`; hidden edges to D `dashed`. scale 0.5.
+  - #314 (triangle ABC, find x, hash `39a90776da71`, `?v=39a907`): measured orig vertices (drawn ~to
+    scale w/ slight base tilt): C(0,0) A(4.99,-0.30) B(3.20,1.49). 110° arc @B (205→315°), 40° arc @A
+    (135→176.6°, made bigger r0.9, label pulled toward A r0.62). dots `circle (0.03)` units. scale 1.1.
+  - #289 (unit circle, points A-E+O, central angles, hash `550b40e9d90b`, `?v=550b40`): added `<->`
+    arrows on α/β/γ arcs (α big sweep r0.33, β r0.22, γ r0.18); REMOVED extra chords B-C and C-E (orig
+    only has B-E diameter, B-D, O-C radius — all `semithick` per Daniel); dots at all 8 (A,B,C,D,E,O +
+    axis pts (0,1),(-1,0)); fixed dup "-1"/D labels (−1 left, D right). scale 2.2.
+- **HOUGH LINE-DETECT (complex multi-line figures, #276):** `cv2.HoughLinesP` to get line angles+
+  endpoints, dedupe by (angle, perp-dist), compute intersections for arc vertices. These figs are
+  SCHEMATIC (drawn angle ≠ labelled value — reproduce as-drawn). Angle arcs: zoom each to see which
+  way it opens (e.g. 92°/γ open DOWNWARD into the triangle, not up). β+130° share ONE radius = a
+  continuous semicircle split by the transversal (but Daniel ended up wanting β arc bigger than 130°).
+  - #276 (hash `baaf096fa684`, `?v=baaf09`): 5 lines (baseline, α-line 26.5°, 2 parallels 141.5°, perp
+    50.3°). Lots of label/arc-size nudging — final values in new276.txt-style build. scale 0.55.
+- **SILHOUETTE PIXEL-TRACE (Daniel "max effort", #256):** for a detailed shaded shape (CN Tower),
+  segment the solid-fill gray (2D connected comp, tight range ~145–192 to exclude line halos), take
+  per-row L/R edges, half-width=(R−L)/2 (centered, ignores overlapping black lines), Douglas–Peucker
+  simplify (~35 pts), build a symmetric `\fill` path. VERIFY by overlaying the path on the original.
+  - #256 (CN Tower, hash `df52783e64c1`, `?v=df5278`): geometry A(0,0)B(5.36,0)C(0,2.97)D(0,5) →
+    ABD=43°,ABC=29° (old B@7.5 was wrong ~34°). Fill `black!35` (orig val165, gray!55 too light).
+    Silhouette traced from pixels ×1.2 width (Daniel "a bit thicker"). A–D line `thin` (Daniel wanted
+    it thinner, 2×), other lines `thick`. Dots `circle (0.05)` units.
+  - #247 (parabola f=(x+1)(x-3), hash `fb127c14c45f`, `?v=fb127c`): grid darkened+dense, extent -2..5 ×
+    -4..4, domain -1.92:3.92 (arms reach top ~y4.6, NOT y5 which was "way too much"), y-axis to 4.8,
+    dots `circle (0.08)` units at (-1,0)(3,0)(0,-3)(1,-4), axis labels `[below left]`+nudge (fixed -1/0 collision).
+- **DENSE-DASH RETROFIT (user, #247):** all coordinate grids use `dash pattern=on (2.835·scale)pt
+  off (1.7·scale)pt` (~6 dashes/cell, matches originals), NOT plain `dashed`. Done+synced: #231,#245,
+  #259,#307,#308,#323 (the last 4 were also DARKENED gray!55→black!88 to match their dark originals).
+  #307==#308 identical figs. Rule in CLAUDE.md. #247 has it too (sync pending curve-height approval).
+  - #245 (draw vectors u=a+b,v=…; grid + given a,b, hash `d8e179bb9f66`, `?v=d8e179`): vectors measured
+    from orig — a=(3,3) (was (3,2)), b=(-2,1) (was (-2,1.5)). Grid darkened faint→`dashed,black!88,thin`,
+    extent ±6 (orig grid -6..6 both, unit 50px). scale 0.5→0.65 to MATCH orig label size (orig cap/unit
+    ≈0.36 → scale≈0.243/0.36; 17/units would've been too small — confirms: match orig even for grid figs).
+    Unit "1" labels `[below left]`+nudge (x xshift6, y yshift6), "0" no shift. No dots (orig has none).
+  - #231 (polygon ABCDE on grid, area, hash `684179a0792e`, `?v=684179`): GRID-ON-FILL technique — draw
+    `\draw[step=1,dashed,black!90,thin]` grid FIRST, then `\fill[black!40,opacity=0.8]` (semi-transparent
+    so the dashed mesh shows THROUGH the gray, matches orig; fill≈value174). Dots `circle (0.09)` units (5
+    equal). Vertex labels: A `[above left]`, B `[above right]` (BOTH outside — orig had them outside, old
+    tikz had them inside-swapped); C/D/E `[above right]/[above right]/[above left]`. Axis numbers `[below
+    left]` per rule BUT Daniel wanted them nudged toward centered: x `xshift=6pt`, y `yshift=6pt`, 0 NO shift.
+  - #224 (3 small circles in big R=3, hash `905f3143c33e`, `?v=905f31`): r=R(2√3−3)=1.3923, dist=1.6077,
+    circles @90/210/330°. dotted center-triangle + dotted radii (orig lines ARE dotted, confirmed by zoom),
+    solid radius to 210° rim. Dots UNIT-based: small centers `circle (0.045)`, BIG center `circle (0.078)`
+    (orig big-center dot ~1.7× the small ones: 2.56% vs 1.48% of width). scale 0.85 kept.
+- **THREE RULES added to CLAUDE.md (Daniel, #221):** (1) MATCH original arc ARROWHEADS (both→`<->`,
+  one→`<-`/`->`, none→none) AND vertex/intersection DOTS (present→include, absent→omit) — ZOOM orig
+  to check. (2) SCALE: match the original's label size for shape/dimension figures; `17/units` is only
+  for coordinate-GRID figures. (3) **DOT-SIZE GOTCHA: `[scale=s]` scales `circle (Npt)` radius too,
+  so pt-dots VANISH at small scales — size dots in UNITS: `circle (R)`, R≈0.0085×(units across)
+  (≈1.7% width). ZOOM a vertex to confirm dots actually render.**
+  - #221 (right trapezoid ABCD, hash `f4e614954970`, `?v=f4e614`): orig in `matura_figures/` (not figs).
+    A(0,0)B(32,0)C(19.42,15)D(0,15); right-∠ marks @A,D; 50° arc @B `\pic[<->,radius0.62cm]{angle=C--B--A}`
+    (130→180°, DOUBLE arrow — orig has both) + MANUAL `\node at (27.5,2.3) {$50^\circ$}` (label moved
+    up-left then tiny bit down per Daniel); dots `circle (0.27)` UNITS (NOT pt — pt vanished at scale 0.18!).
+    Old tikz: 12pt dots (invisible), `<-` single arrow, 30° arc. scale 0.18 (orig big labels).
+  - #188 (clock 1:50, hash `fae48f299c57`, `?v=fae48f`): old tikz had only 12 ticks + wrong hands.
+    Rebuilt: circle r2 `thick`; 60 minute ticks (\foreach 0..59, angle 90-6m, r2→1.88) + 12 hour
+    ticks (thick, r2→1.74); numbers \large at r1.60; minute hand →10 (150°, len1.7=0.85R) LONGER,
+    hour hand →35° (1:50, len1.28=0.64R) shorter, both `line width=4.5pt,round`. Measured circle
+    ~0.016R, hands ~0.14R, numbers ~0.24R; scale 1.0 (17/units rule is for GRIDS, not clocks).
+- **CLAUDE.md re-read (day 2):** axis number labels ALL use `[below left]` (not `[left]` for y);
+  scale ≈ 17/units; on SVG change ALSO bump the per-fig `tikz_originals ?v=` in bodies+html.
+  TIKZ_AUDIT.md (pre-2017 2011–16) has NO `?` rows left — that track is done; the 2021–22 group-1
+  worklist (this file) is the active one.
+  - #176 (curvilinear "Reuleaux" triangle, hash `78fd36020e6c`, tikz_originals `?v=78fd36`): O label
+    `[above right]` (above x-axis, near circle bottom); `0` stays `[below left]`. A(-1,0) B(1,0) C(0,√3), arcs radius2
     centered A&B. INSCRIBED CIRCLE was WRONG in old tikz (r=2/√3); correct r=3/4, S=(0,0.75), tangent
     AB@O, arcs@T=(0.6,1.2) (|AS|=2-r⇒r=3/4). gray=triangle minus white circle; A–S–T thin line + bold
     OS,ST radii(=r); A,B labels ABOVE axis. **GRAY: use `black!35`(≈value165) NOT `gray!35` — tikz

@@ -109,6 +109,21 @@ and these libraries: `calc,angles,quotes,intersections,decorations.pathreplacing
   figure** unless you've verified it's not in the original PDF page.
   Conversely, never add elements (points, labels, branches) that aren't
   visible in the original.
+- **Match the original's arc arrowheads AND vertex/intersection dots
+  exactly (user rule, #221).** If an angle/arc in the original has
+  arrowheads on BOTH ends, the `\pic`/arc must use `<->`; one end → `<-`
+  or `->`; no arrowhead → none. If the original marks vertices or
+  intersection points with small filled dots, include them; if the
+  original has NO dots, do NOT add any. Always zoom the original to check
+  arrowhead count and dot presence before authoring — do not default.
+  **CRITICAL DOT-SIZE GOTCHA (#221): `[scale=s]` ALSO scales a `circle (Npt)`
+  radius by s, so at small scales (e.g. 0.18) a `circle (1-2pt)` dot shrinks
+  to sub-pixel and VANISHES — the dots silently don't render. Size vertex
+  dots in COORDINATE UNITS, not pt: `\fill (P) circle (R)` with
+  `R ≈ 0.0085 × (units across)` so the dot ≈1.7% of figure width (match the
+  original's dot/figure ratio). #221 (32 units) → `circle (0.27)`. After
+  authoring dots, ZOOM a vertex in the render to confirm they actually
+  appear — never assume a `\fill ... circle` rendered.**
 - **Always preview a TikZ change before claiming it's done** — render the
   SVG, convert to PNG with white background, view the image, compare to
   the original side-by-side. The user wants to react inside the same turn,
@@ -151,6 +166,25 @@ and these libraries: `calc,angles,quotes,intersections,decorations.pathreplacing
   ad-hoc offsets and do NOT put some y-labels on the right — that breaks
   consistency with the "0". (Earlier figures 818/839 had only one y-label,
   centre-aligned to "0"; the general rule above supersedes that.)
+  **Nudge (user, #231): from the `[below left]` anchor, push x-axis numbers a
+  bit RIGHT and y-axis numbers a bit UP (e.g. `xshift=6pt` / `yshift=6pt`,
+  same shift for every label on an axis) so they sit ~centered on their
+  gridlines like the originals — but DO NOT shift "0" (it stays in the
+  corner). This keeps the uniform-offset/alignment property while matching
+  the original's centered look.**
+  **Grid-on-fill (user, #231): when a gray-filled region sits on a dashed
+  grid and the grid shows THROUGH the fill in the original, draw the grid
+  FIRST, then a SEMI-TRANSPARENT fill (`\fill[black!40,opacity=0.8]`) so the
+  mesh remains visible; match the grid darkness to the original (often
+  near-black `dashed,black!90,thin`, not faint `help lines`).**
+  **DENSE DASHES (user, #247 — applies to EVERY coordinate-system grid, retro
+  + future): never use plain `dashed` (too sparse) for grid lines. The matura
+  originals use ~6 short dashes per cell (≈on 5px / off 3px on a 50px unit).
+  Reproduce with `dash pattern=on Xpt off Ypt` where `X = 2.835·scale`,
+  `Y = 1.7·scale` (so density stays ~6/unit regardless of `scale`, since the
+  pattern is ABSOLUTE pt and is NOT scaled by the picture `scale`). e.g.
+  scale 0.7→`on 1.98pt off 1.19pt`, 0.5→`on 1.42pt off 0.85pt`. Applied to
+  #231/#245/#247/#259/#307/#308/#323; use it on all new grids too.**
 - **Figure size / label-to-axis proportion (updated):** the problem page CSS
   (`.preview-box .tex-tikz img/svg`) now sets `width:100%` (max 600px), so
   EVERY figure scales up to fill the preview column regardless of its
@@ -167,6 +201,12 @@ and these libraries: `calc,angles,quotes,intersections,decorations.pathreplacing
   "0". NOTE: figures authored earlier this session (818, 820, 839, 843, 847,
   538) are still at the old small scales and will look oversized at column
   width — they need re-rendering at `scale≈17/units`.
+  **CLARIFICATION (user decided on #221): `17/units` is for COORDINATE-GRID
+  figures (axes + tick numbers). For SHAPE / dimension-label figures (a
+  trapezoid with side labels, a triangle, etc.) MATCH THE ORIGINAL's
+  on-screen label size instead — scale so label-cap-height / figure-width
+  equals the original's. Those originals often have large labels and
+  17/units would shrink them too much. #221 (32 units wide) → scale 0.18.**
 - **One problem per turn during iterative figure work.** Bundling 6 figures
   into one round means each subsequent feedback loop has to spool through
   stale renders for all of them. The user has explicitly asked for this.
