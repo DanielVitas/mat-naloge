@@ -1,5 +1,12 @@
 # TikZ figure worklist (gradual)
 
+> ## ⛔ #1 RULE — NEVER SKIP ⛔
+> **EVERY figure turn (rebuild OR a one-line tweak) MUST LEAD with a SIDE-BY-SIDE montage
+> (new render LEFT, original RIGHT, matched height) via `present_files`, BEFORE any text or
+> "approve?" question.** No exceptions, no vertical stacks, no render-only, no overlay-only.
+> Daniel raged on #58 and #165 when this was skipped. If a turn touches a figure and the
+> reply has no new-vs-original side-by-side, STOP — that reply is wrong.
+
 Generated from the full-corpus figure audit (see `_figure_gallery.html`).
 Work through these gradually. A problem may appear in several sections — it
 needs each kind of work. Follow CLAUDE.md rules (3-place sync, cache bumps,
@@ -7,9 +14,46 @@ montage **rendered → present_files → then sync**, never fabricate, one probl
 per turn unless told otherwise).
 
 ## WHERE WE LEFT OFF (status)
-- **Cache state:** global `v=602113`, `sw.js mat-tikz-640`. Bump both on any change.
-- **Group-1 NEXT: #148** (done: …,104,107,115,122,139,143). Resume there.
-  - #143 (4-fig angle problem, ONE latex w/ 4 tikz in a tabular; hashes fig1 `a3fa3c3d9c28`,
+- **Cache state:** global `v=602120`, `sw.js mat-tikz-647`. Bump both on any change.
+- **Group-1 NEXT: #188** (done: …,148,161,163,165,170,176). Resume there. (stopped end of day after #176.)
+  - #176 (curvilinear "Reuleaux" triangle, hash `f18371d560c0`): A(-1,0) B(1,0) C(0,√3), arcs radius2
+    centered A&B. INSCRIBED CIRCLE was WRONG in old tikz (r=2/√3); correct r=3/4, S=(0,0.75), tangent
+    AB@O, arcs@T=(0.6,1.2) (|AS|=2-r⇒r=3/4). gray=triangle minus white circle; A–S–T thin line + bold
+    OS,ST radii(=r); A,B labels ABOVE axis. **GRAY: use `black!35`(≈value165) NOT `gray!35` — tikz
+    `gray!N` renders LIGHT (gray!35≈211). Measure orig gray & match: black!N ≈ value 255*(1-N/100).**
+    **TICK DASHES were at x=±0.5 (UP) & y=0.5 (RIGHT), small ~0.07u — NOT at integer/labelled posns;
+    Daniel made me revert ticks I wrongly put at ±1. MEASURE tick positions, don't assume integers.**
+  - #170 (rational fn graph, hash `fdd6dea22f86`): old tikz function was WRONG (`3-6/(x+2)`); correct
+    **f(x)=3-12/(x+2)** (V.asym x=-2, H.asym y=3, zero x=2, f(0)=-3 from the 2 marked pts). WIDE
+    tick-axis (~±20, \foreach unit ticks), dashed asymptotes, \clip to frame, branches domain
+    -21:-2.6 & -1.48:22. LABEL ALIGNMENT: x-labels incl `0` share a row, y-labels a right-aligned
+    column — never offset the integers but leave `0` floating (Daniel flagged this hard).
+  - #165 (right triangle c=10,b=3; hash `0e5ede73e213`): a=9.54,b=3, right angle at B. Replaced crude
+    arrow markers with double-arrow ARCS via angle pic — β at A (interior B--A--C, big radius 1.5cm
+    since 17° wedge, label inside near vertex), α at C (interior A--C--B, radius 0.7cm, label inside).
+    APPLY ANGLE-ARC METHOD FROM THE START (measure orig radii, labels inside) — I forgot & Daniel raged.
+- **!! CHECK FOR DUPLICATE FIGURES before rebuilding from scratch !!** Same matura figures get
+  reused across years. #163 (2022, perimeter) = SAME figure as #104 (2021, area) — 3x3 grid,
+  4 quarter-arcs (TL/TR convex @inner corners (1,2)/(2,2); BL/BR concave @outer corners (0,0)/(3,0)).
+  Daniel had me reuse #104's approved block verbatim for #163 (hash `44f560975a39`, identical to
+  #104 fig1) — keeps the two consistent. Before building, grep bodies.json for matching phrases
+  (e.g. "krivočrtne stranice so loki", shared tikz patterns) to catch reuse.
+  - #161 (Bent Pyramid, 3 tikz in one tabular; hashes fig1 `cd9821cc9212`, fig2 `39357569457c`,
+    fig3 `a354b973b8a9`). fig1=3D isometric bent pyramid: MEASURE all 9 projected vertices from the
+    original (base+break are PARALLELOGRAMS, view slightly rotated so the back vertical edge
+    K–bK–T separates from the solid front F–bF–T and shows DASHED — a symmetric view hides it!).
+    Shade 4 visible faces, solid visible edges, dashed hidden (L-K-R base back, K-bK vert, bL-bK-bR
+    break back, bK-T). fig2=cross-section true proportions (base190/break47m/slopes54°&43°):
+    43° arc at break pt KR (upper slope vs horiz ref line), 54° arc at BASE corner BR (base vs lower
+    slope, INSIDE polygon — NOT at break), thin base ref line to bracket, "47" rotated 90° LEFT of
+    bracket. fig3=top view square+inner sq(0.64 ratio)+diagonals, 190 w/ end-ticks, A–A spread out.
+  - #148 (circular sector OAB, α=0.5rad; hash `8d91e749fafb`): geometry was fine; fixes were
+    framing (kill empty axis margins → wide ~2:1; x to 1.42, y to 0.8), scale 4.5 (cap19/R353px
+    so labels read small), bold sector boundary (OB line width 1.2pt, arc 1.7pt — Daniel had me
+    thin from 1.6/2.2), small dots (0.6pt — Daniel: "too thick"), A label above-right, thin guide
+    arc CONCENTRIC w/ A–B arc (both r=1, thin from B(0.5r) to 52° — Daniel: arcs must match at B),
+    α near O. figs 2-4 svg = stale leftovers (only fig1 used).
+  - #143 (4-fig angle problem, ONE latex w/ 4 tikz in a tabular; hashes fig1 `643ced933b41`,
     fig2 `a27fb1a8750b`, fig3 `f71bef23482a`, fig4 `24ce03c45041`). Originals had NO arcs;
     added double-arrow `<->` arcs everywhere + geometry rebuilds: fig1 parallel lines+2
     transversals (measured intersections via Hough; β/α≈62°, given 63°/55°; minor-arc point
