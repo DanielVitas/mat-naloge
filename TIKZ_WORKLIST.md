@@ -14,8 +14,18 @@ montage **rendered → present_files → then sync**, never fabricate, one probl
 per turn unless told otherwise).
 
 ## WHERE WE LEFT OFF (status)
-- **Cache state:** global `v=602144`, `sw.js mat-tikz-671`. Bump both on any change.
-- **Group-1 NEXT: #404** (done: …,384,385,396,403). Resume there.
+- **Cache state:** global `v=602145`, `sw.js mat-tikz-672`. Bump both on any change.
+- **Group-1 NEXT: #413** (done: …,385,396,403; #404 MERGED into #396 — see below). Resume there.
+- **DUP MERGE (done):** the corpus had same-text problems stored as two entries. Merged the two genuine
+  OR/VR splits into ONE problem each carrying both levels (matches the #346 template — `levels:["OR","VR"]`,
+  one figure, two `instances`): **#396←#404** (2019 Jesenski water-tank) and **#302←#306** (2024 ellipse).
+  Per merge: meta entry kept on the OR/lower n (levels→[OR,VR]); drop entry removed from meta+bodies; the
+  VR `instance` object appended to the kept page's `const PROBLEM`; the dropped page (`404.html`/`306.html`)
+  replaced with a redirect to the kept page; prev/next links rerouted to skip (403↔405, 305↔307); index.html
+  grid divs for the dropped id removed (each appears once per topic: 404×2, 306×3) + total count 665→663.
+  Numbering is non-contiguous so nothing renumbered. **#460/#462 are NOT dupes** — they only share the
+  boilerplate instruction sentence; 460=textbook ex-006 (6 sin/cos circles), 462=ex-008 (3 tan/cot circles),
+  different exercises — left separate (they still need their own figure audit, they're in §1 list).
   - #403 (square side 2 + 2 semicircles + 2 small circles, area problem, hash `1871e287cf79`, orig
     `?v=61c489` unchanged): existing render had WRONG small-circle radius `3-2√2`≈0.172 + too-light
     `gray!40` fill. Correct radius from tangency (circle tangent to BOTH semicircles + a square side,
