@@ -14,8 +14,57 @@ montage **rendered → present_files → then sync**, never fabricate, one probl
 per turn unless told otherwise).
 
 ## WHERE WE LEFT OFF (status)
-- **Cache state:** global `v=602138`, `sw.js mat-tikz-665`. Bump both on any change.
-- **Group-1 NEXT: #346** (done: …,315,325,334). Resume there.
+- **Cache state:** global `v=602144`, `sw.js mat-tikz-671`. Bump both on any change.
+- **Group-1 NEXT: #404** (done: …,384,385,396,403). Resume there.
+  - #403 (square side 2 + 2 semicircles + 2 small circles, area problem, hash `1871e287cf79`, orig
+    `?v=61c489` unchanged): existing render had WRONG small-circle radius `3-2√2`≈0.172 + too-light
+    `gray!40` fill. Correct radius from tangency (circle tangent to BOTH semicircles + a square side,
+    center on y=1): dist((r,1),(1,2))=1+r ⇒ (1-r)²+1=(1+r)² ⇒ **r=1/4**; measured orig confirms
+    (~0.5u diameter). Fill **gray!70** (measured val 165; gray!40=204 was too light). Semis: top
+    center(1,2) bulge down, bottom center(1,0) bulge up, meet at (1,1). Dim arrows "2" right+bottom,
+    scale 1.4 (shape figure → match orig label size). LESSON: solve tangency exactly, don't trust a
+    stored radius.
+  - #396 (water-tank linear graph h vs t on graph paper, hash `48a6c7847c2c`, orig `?v=e7672d`
+    unchanged): existing render had a COARSE light gray!40 step-0.5 grid + period decimals. Original is
+    FINE BLACK graph-paper grid: square cells, h-step 0.1 (0→2.2), t-step 2.5min=0.25u (0→75). Comma
+    decimals "0,2".."2,2" (Slovenian). Used `[x=1.1cm,y=2.75cm]` (ratio 2.5 → square cells since xstep
+    0.25=ystep 0.1 visually) + `\draw[black,line width=0.4pt] grid[xstep=0.25,ystep=0.1]`. Line f:
+    (0,0.5)-(7.5,2). t-labels 5..75 every5, h-labels every0.2, all `\tiny`. **GRID GOTCHA (Daniel
+    flagged): at small render size thin grid lines ALIAS → "every odd line looks gray" + appear
+    uneven. It's a RASTER-PREVIEW artifact (vector SVG is fine); DON'T thicken lines to hide it (he
+    caught 0.8pt as too thick) — keep thin (0.4pt, matches orig) and RENDER THE MONTAGE AT HIGH RES
+    (output_width≥1400 → LANCZOS downscale) so the preview shows the true uniform thin grid.**
+  - #385 (cubic f w/ 3 zeros 0,2,5 + shaded areas S1/S2, hash `5901b686b2c4`, orig `?v=6a3a3a`
+    unchanged): existing render FAKED the curve with TWO separate parabolas (peak too low, shapes
+    wrong). Original is ONE smooth cubic f=k·x(x-2)(x-5); areas S1=1.3 on[0,2], S2=3.9 on[2,5] give
+    k≈0.245-0.25 (used 0.25 → peak~1.0, trough~-2.05; ratio 3.0 matches). Equal-scaled (x-unit=y-unit
+    ≈63px… here 78px). Fills via `\fill[..] plot[domain=a:b] (\x,{..}) -- cycle;` (cycle closes along
+    axis): S1 `black!28`(val184) light, S2 `black!53`(val120) dark. y-axis -2.5..2.7, x-axis -1.5..5.9.
+    Ticks x{-1,1,2,3,4,5} y{-2,-1,1,2}; labels only 0,1,2,5 & y=1. **scale=1.0** (text was too big vs
+    figure at 0.6/0.85 → S1 label overflowed hump; bigger scale shrinks text). S1 label ended at
+    (0.98,0.30) after many nudges; S2 (3.55,-0.85); f (5.2,2.4). LESSON: faked multi-piece curves →
+    rebuild as the true single function; fill-to-axis via plot+cycle.
+  - #384 (log graph f=a·log_{1/3}(x+b), hash `251db266dd97`, orig `?v=a4d58e` unchanged): existing render
+    was MISSING the axis TICK MARKS (orig has them on both axes). Measured orig: equal-scaled, x-unit=
+    y-unit≈63px. Ticks x∈{-1,1,2,3,4,5,6,7}, y∈{-2,-1,1,2,3,4}; only "0"@origin & "1" on each axis
+    labeled. Curve f=-0.5·ln(x-2)/ln3 (b=-2 from asymptote x=2; a=1/2 from A(5,-½)). **Daniel: extend
+    y-axis BOTH ways + dashed asymptote + curve** → y-axis -2.5..4.3, dashed x=2 from -2..3.75, curve
+    rises to ~3.7 (domain start 2.0003). SMOOTH steep rise via SPLIT plot: dense [2.0003:2.3 samples=250]
+    + [2.3:8 samples=120] (single uniform sampling makes the near-vertical part jagged). A dot `circle
+    (2.5pt)` (orig dot is bold). LESSON: log/asymptote curves — split-domain sampling, dense near asymptote.
+  - #374 (bare unit circle, hash `5088ad76ba2d`, orig `?v=ce25e3` unchanged): existing render had
+    FABRICATED the whole ABCD trapezoid (B,C,diagonals,φ) — original is just a plain unit circle with
+    axes + A(1,0) + D(0,-1) + tick "1"s + O (the trapezoid is what the student must construct). Rebuilt
+    faithfully: thin `\draw` circle r1, axes to ±1.3 with x/y arrows, dots `circle (0.022)` at A & D,
+    labels A[above right]/1[below right]@(1,0), D[below right]@(0,-1), 1[left]@(0,1.08), O[below left].
+    **scale=3.2** (Daniel: original circle much bigger relative to text → bigger tikz scale shrinks text
+    since glyphs are absolute-size; dots/coords scale, text doesn't). LESSON: "no-tikz/fabricated extra
+    geometry" — when the original figure is bare, DON'T draw the answer; match exactly what's printed.
+  - #346 (kite/deltoid ABCD, hash `78360c3ca578`, orig `?v=2b154d` unchanged): exact proportions
+    A(-4,0) C(4,0) D(0,6.928) B(0,-11.314) (8/8 top, 12/12 bottom; half-diag |AC|/2=4 → D height
+    √(8²-4²)=6.928, B depth √(12²-4²)=11.314). Outline `very thick`; diagonal A-C `thin` (Daniel:
+    "a lot thinner"). Angle arcs via `\pic` radii: A/C 0.62cm, D 0.85cm, B 1.0cm. Labels α(-3.55,0)
+    γ(3.55,0) δ(0,6.1) β(0,-10.25); "8 cm" over A-C at (0,0.12).
   - #334 (two circles, shaded ring, hash `bb7dc31d0369`, `?v=bb7dc3`): big (3,0)r3, inner (3,-1)r√2
     (=1.4142; old r2 was WRONG — made it tangent at bottom). Fill `black!50` (orig val127; was gray!50/light).
   - #325 (3-VIEW silos+building: side/front/top, hashes fig1 `bc12124faa96` fig2 `9423d3b28052`
