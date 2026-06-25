@@ -14,7 +14,7 @@ montage **rendered → present_files → then sync**, never fabricate, one probl
 per turn unless told otherwise).
 
 ## WHERE WE LEFT OFF (status)
-- **Cache state:** global `v=602168`, `sw.js mat-tikz-695`. Bump both on any change.
+- **Cache state:** global `v=602172`, `sw.js mat-tikz-699`. Bump both on any change.
 - **GROUP-1 §1 FIXING LIST COMPLETE.** Now in **§4 (need-tikz)**: Daniel chose this group.
   - **#138 was NOT authored — it's the OR twin of #143 (VR), so MERGED #138←#143** (same 2022 Jesenski
     angle problem: parallel 63°/55°, octagon, circle diam AB, circle diam AC 44°; 7 unknowns). Kept #138
@@ -129,8 +129,48 @@ per turn unless told otherwise).
     srednji sin45° blue, majhen sin30° red); arrows fan at varying angles. Appended after \namig (centered).
     Textbook-HTML raw-splice (see #466 note). No per-fig crop → no tikz_originals. Took ~7 iterations on
     colours/arrow-direction/label-placement — Daniel is exacting on these kotne-funkcije callout figures.
-  - **§4 NEXT: #550** (then 670,783,825,832,866; #466,#468 done). **Dup-check each first**;
-    apply the Matura coord-system style (CLAUDE.md). Note 670 is a photograph — confirm before attempting.
+  - **#550 DONE — AUTHORED** (2012 Spomladanski Pola2 VR-only, not a dup). Empty **COMPLEX PLANE** for part
+    2.4 (draw the set equidistant from z1=−4+2i and 0; the answer is line y=2x+5). hash `cc15051d940c`,
+    tikz_count 0→1. Symmetric ±7 plane (x −7..7, y −7..7), unit 42px, **scale 0.64** (cap/unit 0.38). Real
+    axis arrow RIGHT only, imaginary axis arrow TOP only. **x-ticks point UP, y-ticks point LEFT** (one-sided,
+    into Q2 — measured). Labels: `0` [below left,yshift=-2pt], `1` [below left,xshift=6pt,yshift=-2pt] at (1,0),
+    **`i` `[left=2pt]` at (0,1)** (no x/y axis names — complex-plane convention). Split foreach for both axes.
+    **MEASUREMENT GOTCHA: the y-axis "top" first read as 12 units but that was the PROBLEM TEXT above the figure
+    bleeding into the col-scan — the real continuous-axis top is 7.5; scan for the CONTINUOUS dark run from the
+    origin, don't trust max-extent through a text region.** No per-fig crop → no tikz_originals.
+  - **#670 DONE — AUTHORED as a SCHEMATIC** (2014 Spomladanski Pola1 [OR,VR], not a dup). Original is a real
+    PHOTOGRAPH (stone bridge) in a dimensioned frame — **Daniel approved replacing the photo with a gray
+    placeholder**. hash `7c8676c5530a`, tikz_count 0→1. Outer frame `(0,0) rectangle (11,8)` (11×8 dm), inner
+    `\fill[gray!30] (1,1) rectangle (10,7)` (photo placeholder, ~1 dm border — NB the true answer is frame
+    width 0.75 dm; the drawing is schematic/not-to-scale, matching the original). Dimension arrows: 8 dm right
+    (`<->` vertical + extension lines, label `rotate=90`), 11 dm bottom (`<->` horizontal + extension lines).
+    scale 0.5, `>=stealth`. **LESSON: when a §4 figure is a real photo, ASK Daniel — he may want a gray
+    placeholder schematic that keeps the math geometry (frame + dims) and drops the photo.**
+  - **#783 DONE — AUTHORED** (2015 Jesenski Pola1 [OR,VR], not a dup). Stylized **mountain-profile scene**
+    (Triglav → Planika angle-of-depression). hash `bae2b0acd62c`, tikz_count 0→1. Freehand mountain silhouette
+    APPROXIMATED with `plot[smooth,tension=0.6]` through hand-tuned points (summit (0,0), steep left flank,
+    convex right SHOULDER, valley, wavy plateau ~−2.5, Planika on plateau, descent). Vertical ref line through
+    summit; **sight line at 67°11' from vertical (measured slope 0.419 → 67.3°, confirmed)**; **Planika at
+    (5.92,−2.48)** = where the 67°11' sight line meets the −2.5 plateau (NOT closer — the v1 placement was too
+    near). Angle arc `<->` (arrowheads, Daniel), label `67°11'` tucked in the wedge under the convex shoulder
+    (Daniel: "make the curve fatter so 67°11' fits under it"). 1194 m dimension parallel above the sight line.
+    Dots `circle(0.1)` (big). Labels: "vrh Triglava" upper-left (raised), "planinski dom Planika" below Planika
+    (shifted left). Figure inserted MID part-1 (after "…oddaljen 1194 m."). scale 1.0, `>=stealth`. No tikz_originals.
+    LESSON: freehand scenes = approximate the curve via smooth plot through ~15 hand-tuned points; nail the
+    measurable geometry (angle, dimension); iterate the curve shape with Daniel.
+  - **#825 DONE — AUTHORED** (2016 Spomladanski Pola2 VR-only, not a dup). **3D DODECAHEDRON** (12 pentagons).
+    hash `adb530779de4`, tikz_count 0→1. Computed REAL geometry: 20 vertices (±1,±1,±1)/(0,±1/φ,±φ)/(±1/φ,±φ,0)/
+    (±φ,0,±1/φ), 30 edges (pairs at dist 2/φ), 12 faces via scipy ConvexHull (merge coplanar simplices).
+    Pipeline (`outputs/gen825.py`, needs `dodecV.npy`+`dodec_topo.json`): align a face normal→+z, rotate-z so
+    front pentagon is **edge-up** (vertex0 at 126°), tiltx=−14, **tilty=+14** (Daniel: solid front pentagon
+    lower-left, dashed back upper-right), then **MIRROR the 2D projection over y=−x** (Daniel — fixes chirality
+    to match the original). Front faces (normal_z>0): solid `line width=1.1pt` + `\fill[black!12]`; hidden faces'
+    edges `dashed 0.5pt`. Figure after the intro paragraph (centered). No tikz_originals. **LESSON: 3D solids
+    = compute true vertices/edges/faces (scipy hull), orient by aligning a face to +z then small x/y tilts,
+    classify edges by face visibility; be ready to mirror for chirality. Orientation needs Daniel's eye —
+    present LARGE clear side-by-sides (the 4-in-a-row mini-montage was too small to judge).**
+  - **§4 NEXT: #832** (then 866). **Dup-check each first**; apply the Matura coord-system style (CLAUDE.md).
+    Watch for more photos/3D solids — confirm with Daniel if so.
   - #763 (2015_Jes_P1_OR, 3 right-triangle subproblems 2.1/2.2/2.3 find α/x/y, tikz_count "3", 3 figs):
     2.1 & 2.3 already faithful (unchanged); **2.2 (fig2) REBUILT** (hash `aab7cb78c37b`) — old had a broken
     right-angle marker (malformed `!90:` calc) + huge labels. New: measured orig corners (cv2 approxPolyDP)
