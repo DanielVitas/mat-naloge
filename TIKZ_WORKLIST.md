@@ -14,7 +14,7 @@ montage **rendered → present_files → then sync**, never fabricate, one probl
 per turn unless told otherwise).
 
 ## WHERE WE LEFT OFF (status)
-- **Cache state:** global `v=602164`, `sw.js mat-tikz-691`. Bump both on any change.
+- **Cache state:** global `v=602165`, `sw.js mat-tikz-692`. Bump both on any change.
 - **GROUP-1 §1 FIXING LIST COMPLETE.** Now in **§4 (need-tikz)**: Daniel chose this group.
   - **#138 was NOT authored — it's the OR twin of #143 (VR), so MERGED #138←#143** (same 2022 Jesenski
     angle problem: parallel 63°/55°, octagon, circle diam AB, circle diam AC 44°; 7 unknowns). Kept #138
@@ -90,7 +90,18 @@ per turn unless told otherwise).
     2.2 `5657bdb93495`, 2.3 `1dab3220ef64`, 2.4 `7c333fd1571d`, 2.5 `2d45d05eea23`. LESSON: Daniel prefers
     multi-panel "fill-in" sheets as SEPARATE per-panel figures with the answer line directly under each, not
     one combined figure + a separate text block.**
-  - **§4 NEXT: #439** (then 466,468,550,670,783,825,832,866). **Dup-check each first**;
+  - **#439 DONE — AUTHORED** (2020 Spomladanski Pola1 [OR,VR], not a dup). Match-function-to-graph: authored
+    the **9 graphs A–I** (tikz_count 0→9) in a 3×3 `\begin{tabular}{ccc}`, REPLACING the old text legend
+    ("A (linearna)…") which gave away the answers — function table KEPT. Each cell: `\clip` box + axes + curve.
+    Curves: A `2x+1` (line), B `-x^2`, C `x^3`, D `1/x` (2 branches), E `1/x^2` (2 branches), F `ln(x)/ln(2)`,
+    G `exp(x*ln2)` (2^x), H `sqrt(x)`, I `-0.5x^3+2x` (kubična s preg.). Uniform cell window x −2.5..3.5,
+    y −2.7..3.5, integer ticks, **one-sided ticks like #309 (x UP, y RIGHT)** — verified by clean pixel-scan
+    (curve contaminated the naive scan; check tick dir at curve-free spots). scale 0.55, letter label
+    `\node[font=\large] at (-2.2,3.0)`. Split-foreach n/a (used explicit `{-2,-1,1,2,3}`). 9 figs hashes
+    79c9a5ce5f95/0bb904a9ae6e/1382e4120153/aa58108a4991/5e0529eeec12/fd97f2f9cf50/aea6465d2e77/174a6805bbb2/2137e151ce87.
+    No per-fig crops → no tikz_originals. **LESSON: for "match the graph" sets, a uniform cell window across
+    all panels (like #141) reads cleaner than per-panel windows; replace any answer-giving text placeholder.**
+  - **§4 NEXT: #466** (then 468,550,670,783,825,832,866). **Dup-check each first**;
     apply the Matura coord-system style (CLAUDE.md). Note 670 is a photograph — confirm before attempting.
   - #763 (2015_Jes_P1_OR, 3 right-triangle subproblems 2.1/2.2/2.3 find α/x/y, tikz_count "3", 3 figs):
     2.1 & 2.3 already faithful (unchanged); **2.2 (fig2) REBUILT** (hash `aab7cb78c37b`) — old had a broken
