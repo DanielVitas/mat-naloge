@@ -172,6 +172,23 @@ and these libraries: `calc,angles,quotes,intersections,decorations.pathreplacing
   gridlines like the originals — but DO NOT shift "0" (it stays in the
   corner). This keeps the uniform-offset/alignment property while matching
   the original's centered look.**
+  **MATURA coordinate-system style (user, #269 — apply to ALL "Matura"-source
+  coordinate systems, NOT the kotne-funkcije textbook circle figures which have
+  their own scheme):**
+  - **Thin lines:** axes `\draw[line width=0.5pt,->] ...` (with `>=latex`
+    arrowheads); tick dashes `\draw[line width=0.4pt] (\x,-0.1)--(\x,0.1);`
+    (length ±0.1u). Curves stay `very thick`.
+  - **Include "0"** at origin, `[below left]`, nudged a hair DOWN: `yshift=-2pt`.
+  - **Below-axis labels nudged slightly down too:** every x-axis number gets
+    `yshift=-2pt` ON TOP OF the #231 right-nudge → `[below left,xshift=6pt,yshift=-2pt]`.
+    y-axis numbers keep just the up-nudge → `[below left,yshift=6pt]`. So the
+    three label kinds: x-num `[below left,xshift=6pt,yshift=-2pt]`, y-num
+    `[below left,yshift=6pt]`, "0" `[below left,yshift=-2pt]`.
+  - **Axis `x`/`y` names** at the arrow ends: `x` `[below right=-2pt]` at the
+    right end, `y` `[above left=-2pt]` at the top end.
+  - **Scale** to match the original's label/unit proportion (#269 empty
+    log-coord, ~7 units across → scale ≈ 0.85; recent authored coord figures
+    use ~0.55–0.85, not the older `17/units`).
   **Grid-on-fill (user, #231): when a gray-filled region sits on a dashed
   grid and the grid shows THROUGH the fill in the original, draw the grid
   FIRST, then a SEMI-TRANSPARENT fill (`\fill[black!40,opacity=0.8]`) so the

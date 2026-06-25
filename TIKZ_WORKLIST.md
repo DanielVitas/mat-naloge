@@ -14,9 +14,76 @@ montage **rendered → present_files → then sync**, never fabricate, one probl
 per turn unless told otherwise).
 
 ## WHERE WE LEFT OFF (status)
-- **Cache state:** global `v=602155`, `sw.js mat-tikz-682`. Bump both on any change.
-- **GROUP-1 §1 FIXING LIST COMPLETE** (last done: **763**). NEXT: pick up §2 (rescale/resize, the
-  NON-empty list ~16,26,112,… ) or §4 (need-tikz: 138,141,269,…). Ask Daniel which group next.
+- **Cache state:** global `v=602163`, `sw.js mat-tikz-690`. Bump both on any change.
+- **GROUP-1 §1 FIXING LIST COMPLETE.** Now in **§4 (need-tikz)**: Daniel chose this group.
+  - **#138 was NOT authored — it's the OR twin of #143 (VR), so MERGED #138←#143** (same 2022 Jesenski
+    angle problem: parallel 63°/55°, octagon, circle diam AB, circle diam AC 44°; 7 unknowns). Kept #138
+    (OR/lower n per convention), migrated #143's latex+4 tikz+tikz_originals into #138, copied SVGs
+    prob-143-fig{1..4}→prob-138-fig{1..4}, meta #138 levels→[OR,VR] + #143 removed, #138.html PROBLEM got
+    both instances, #143.html→redirect, index −6 cards (count 663→662), nav 142↔144. **LESSON: §4
+    "need-tikz" items may actually be OR/VR duplicate twins of an already-built problem — always dup-check
+    the §4 list against existing built problems before authoring.**
+  - **#141 DONE — AUTHORED** (2022 Jesenski, already [OR,VR], NOT a dup): "match each function graph to its
+    derivative's graph" — 6 function graphs (left) + 6 derivative options A–F (right) + worked example "C",
+    in a `\begin{tabular}{|c|c|c|c|}` (funcgraph | answer | letter | derivgraph). tikz_count 0→**12**, 12 SVGs
+    prob-141-fig{1..12}. APPROACH Daniel wanted: perfect ONE coord-system cell, reuse for all 12, only the
+    curve changes. Cell template: scale 0.55, `baseline={(current bounding box.center)}` (centers cells),
+    x-ticks {−2,−1,1,2,3} y-ticks {−2,−1,1,2}, `1` labels, NO "0", axes `line width=0.7pt` (`->` latex),
+    curve `very thick`. Curves: 1 lin↑,2 lin↓,3 parab v(0.3,−1),4 parab v(1.3,1),5 cubic-S,6 cubic max/min
+    `0.79*(\x-0.4)^3-1.92*(\x-0.4)-0.05`; A const−,B parab,C const+,D lin,E parab-touch,F lin↑. Generator
+    `outputs/gen141.py`. **APP TABULAR LIMITS (app.js ~1890): supports `c/l/r/p{}/m{}/b{}` + `|` borders;
+    STRIPS `\hline`; do NOT use `>{\centering\arraybackslash}` (its colspec regex picks up the c/l/r/b inside
+    \centering\arraybackslash and miscounts columns). Use plain `{|c|c|c|c|}`.** No per-fig crops → no tikz_originals.
+  - **#269 DONE — AUTHORED** (2024 Jesenski, already [OR,VR], not a dup): empty coordinate system for
+    f(x)=log₂x+1 (student draws f). hash `e02e1d29e681`, tikz_count 0→1. x-ticks {−2,−1,1,2,3,4}, y-ticks
+    {−2,−1,1,2,3}, scale 0.85. **This figure SET the Matura coord-system style now in CLAUDE.md** (thin
+    0.5pt axes / 0.4pt ticks, [below left]+#231 nudge labels, "0" & x-nums nudged down yshift=-2pt, y-nums
+    up yshift=6pt). ALSO fixed a transcription error: f(x) was wrongly `\log_{2}(x+1)` → corrected to
+    `\log_{2}x+1` (image shows log₂x+1). No per-fig crop → no tikz_originals.
+  - **#271 DONE — AUTHORED** (2024 Jesenski, [OR,VR], not a dup): empty SINE-graph coord system for
+    f(x)=2sin x−1. hash `1b8504e8d1ea`, tikz_count 0→1. x-ticks at **π/3** `({\k*pi/3},0)` for k=−6..6
+    (−2π to 2π), only "π" labelled (at k=3); y-ticks −4..4, "1" labelled; uniform scale 0.85; Matura style.
+  - **#273 DONE — AUTHORED** (2024 Jesenski Pola1 **VR-only**, not a dup): empty coord system for hyperbola
+    H: x²−y²+2x−8=0 (student draws H). hash `6ab502e8279b`, tikz_count 0→1. **Fine integer grid** — x-ticks
+    every int −10..10, y-ticks every int −8..8, only "1" labelled, "0" at origin; scale **0.42** (fine grid ⇒
+    big-relative labels ⇒ small scale); Matura style. **GOTCHA (Daniel caught): `\foreach \x in {-10,...,-1,1,...,10}`
+    makes pgf infer step 2 across the 0-gap ⇒ positive side only got odd ticks. FIX: split into TWO foreach
+    loops per axis (`{-10,...,-1}` and `{1,...,10}`).** ALSO fixed transcription error: hyperbola was wrongly
+    `-2x` → corrected to `+2x` (image shows +2x). No per-fig crop → no tikz_originals.
+  - **#286 DONE — AUTHORED** (2024 Jesenski Pola2 [OR,VR], not a dup): "a line, circle, ellipse are drawn,
+    write their equations" — **3 SEPARATE figures** (tikz_count 0→3) in a `\begin{tabular}{cl}` (figure |
+    `Enačba:`), mirroring #528's tabular pattern. hashes line `3cd55b9ee4f6`, circ `f2396be31a13`, elli
+    `d0aea2d1b016`. TRACED curves (cv2): **line y=x/2+1** through (−2,0),(0,1) — readings at x=±3,±4 matched
+    to 0.03 (near-axis fit beats far-segment fit, which was label-contaminated); **circle (x−2)²+(y−2)²=4**
+    center (2,2) r=2 tangent to both axes (left edge x=0.08, bottom y=0.08); **ellipse x²/4+y²=1** a=2 b=1
+    centred origin. Shared axis template: x-ticks −4..4, y-ticks −2..4, scale 0.42 (same fine-grid 39px unit
+    as #273), curves `line width=0.8pt`, circle centre dot `\fill ... circle(0.09)` (UNIT-sized). **fig1
+    (line) OMITS the "y" label** (original lacks it; verified by zooming the y-axis top) — figs 2,3 have "y".
+    **Again split the x-tick `\foreach` into `{-4,...,-1}`+`{1,...,4}` (the #273 step-2 pgf bug).** No per-fig
+    crops → no tikz_originals.
+  - **#309 DONE — AUTHORED** (2024 Spomladanski Pola1 VR-only, not a dup; #214 shared `x^{3}+2x` substring
+    but is a different problem). Empty coord system for rational fn graph (part 2.1 "skicirajte njen graf").
+    hash `13ff38f39d77`, tikz_count 0→1. Integer ticks **−6..6 both axes**, unit 51px, **scale 0.65** (label
+    19px ⇒ cap/unit 0.37 ⇒ small labels ⇒ BIG scale; my first 0.5 made labels too big). **ONE-SIDED TICKS
+    like #38: x-ticks point UP `(\x,0)--(\x,0.1)`, y-ticks point RIGHT `(0,\y)--(0.1,\y)`** — verified by
+    pixel-scan + zoom (NOT straddling like #269/#271/#273; match the actual figure). Split x foreach
+    (#273 step-2 bug). ALSO fixed a 3-sign transcription error: f was wrongly `(x^3+2x)/(x^2+4)` → corrected
+    to **`(x^3-2x)/(x^2-4)`** and part 2.2 denominator `x^2+4`→`x^2-4` (image shows minus; domain excludes ±2).
+    No per-fig crop → no tikz_originals. **LESSON: tick direction varies per figure — pixel-scan both axes
+    (one-sided vs straddling) before authoring; don't assume the #269 straddling default.**
+  - **#376 DONE — AUTHORED** (2018 Spomladanski Pola1 [OR,VR], not a dup). Vectors-in-parallelogram problem:
+    **6-panel figure** (Rešeni primer + 2.1–2.5), ALL ONE tikzpicture (tikz_count 0→1, 6 panels via shifted
+    coords in a 2×3 grid). hash `407eff6fd1bb`. Shared parallelogram A=(0,0) B=(5,0) D=(1.1,5.1) C=(6.1,5.1)
+    — **b angle 77.9° measured by TRACING the b arrow** (first try 65.8°/b=(1.8,4) was too slanted; Daniel:
+    "rectangles have slightly different angle"). Midpoints E=mid AB, F=mid BC, G=mid DC, S=centre. Per-panel v:
+    ex A→F (a+½b), 2.1 D→B (a−b), 2.2 E→C (½a+b), 2.3 G→F (½a−½b), 2.4 S→B (½a−½b, both diagonals dashed),
+    2.5 A→C (a+b). Solid `->,line width=0.9pt` for a/b/v; parallelogram sides + diagonals `dashed,gray!60`.
+    Daniel tweaks: example "v" label `above left` of its arrow; "a" label moved right to (3.8,0). Figure
+    inserted AFTER the intro; the "Rešeni primer: v=a+½b" line + the 5 `\item` "v=___" blanks KEPT as page
+    text below (not embedded in figure). No per-fig crop → no tikz_originals. **LESSON: for vector/parallelogram
+    multi-panels, trace the defining arrow's ANGLE (don't eyeball); one shared base parallelogram + per-panel v.**
+  - **§4 NEXT: #439** (then 466,468,550,670,783,825,832,866). **Dup-check each first**;
+    apply the Matura coord-system style (CLAUDE.md). Note 670 is a photograph — confirm before attempting.
   - #763 (2015_Jes_P1_OR, 3 right-triangle subproblems 2.1/2.2/2.3 find α/x/y, tikz_count "3", 3 figs):
     2.1 & 2.3 already faithful (unchanged); **2.2 (fig2) REBUILT** (hash `aab7cb78c37b`) — old had a broken
     right-angle marker (malformed `!90:` calc) + huge labels. New: measured orig corners (cv2 approxPolyDP)
