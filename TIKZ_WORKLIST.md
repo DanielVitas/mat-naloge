@@ -14,8 +14,74 @@ montage **rendered → present_files → then sync**, never fabricate, one probl
 per turn unless told otherwise).
 
 ## WHERE WE LEFT OFF (status)
-- **Cache state:** global `v=602147`, `sw.js mat-tikz-674`. Bump both on any change.
-- **Group-1 NEXT: #460** (done: …,403,413,421; #404 MERGED into #396 — see below). Resume there.
+- **Cache state:** global `v=602155`, `sw.js mat-tikz-682`. Bump both on any change.
+- **GROUP-1 §1 FIXING LIST COMPLETE** (last done: **763**). NEXT: pick up §2 (rescale/resize, the
+  NON-empty list ~16,26,112,… ) or §4 (need-tikz: 138,141,269,…). Ask Daniel which group next.
+  - #763 (2015_Jes_P1_OR, 3 right-triangle subproblems 2.1/2.2/2.3 find α/x/y, tikz_count "3", 3 figs):
+    2.1 & 2.3 already faithful (unchanged); **2.2 (fig2) REBUILT** (hash `aab7cb78c37b`) — old had a broken
+    right-angle marker (malformed `!90:` calc) + huge labels. New: measured orig corners (cv2 approxPolyDP)
+    L(0,0)=65°, T(4.45,2.1)=top-right, C(1.6,-1.33)=bottom right-angle; clean right-angle square via
+    `\coordinate (rA) at ($(C)!0.32cm!(A)$); (rB) ...!(B)$; \draw (rA)--($(rA)+(rB)-(C)$)--(rB);`; x on
+    hypotenuse A-B, 5 on B-C, 65° inside at A; scale 0.6. The 2.1/2.2/2.3 are the exam's own sub-numbering
+    (`\item[2.x.]`) — faithful, keep. LESSON: robust right-angle marker = rA,rB at equal offsets from the
+    vertex along each leg, third corner = rA+rB-vertex.
+  - #532 (2012_Spom_P1_OR, vectors a=(1,2) b=(3,-2) + dashed projections, hash `3bb83f083ac4`, orig
+    `?v=6731c0` unchanged): was already faithful; Daniel wanted polish — scale 0.6→0.8, `a` label moved
+    to upper-left of its shaft `\node at (0.5,1.6)`, `b` label ABOVE its shaft `\node[above] at (1.95,-1.18)`,
+    and AXES EXTENDED to match original's long axes: x `(-3,0)--(4.2,0)`, y `(0,-6)--(0,3)` (measured orig:
+    x-left ~-3.1, y-down ~-6.1). LESSON: don't trim long axes — some matura figures draw long empty axis tails.
+  - #528 (2012_Spom_P1_OR, "draw g1..g5 transforms of f") — REBUILT as **5 SEPARATE figures** (was 1
+    tikzpicture w/ 5 panels; Daniel: "should actually be 5 figures"). Now tikz_count **1→5**, latex uses a
+    `\begin{tabular}{cc}` holding 5 separate `tikzpicture`s (g1&g2 / g3&g4 / g5), each = one coord system
+    (dotted integer-lattice grid `gray!55` `circle(0.035)` UNITS not pt — pt vanished at small scale;
+    integer tick-dashes both axes; f ramp (-2.5,-2.5)--(1,1)--(3,1); `y=f(x)` top-right; **g_i at top-left
+    corner** `\node[anchor=north west] at (-3.3,2.7)`; scale 1.0; "0" [below left]). 5 SVGs
+    prob-528-fig{1..5}.svg hashes dca011b58c1a/92aa9c456863/3c8ba1a9af91/f801de34b269/ad630841b905.
+    tikz_originals (5 crops) unchanged. LESSON: multi-panel "draw the transforms" sheets → 5 separate
+    figures in a tabular (matches #143/#161 pattern + the 5 crops), not one combined tikz.
+  - #525 (2012_Spom_P1_OR, coord system + 2 parallel lines p1/p2 + A(4,9), table fig2): VERIFIED already
+    faithful (rebuilt in earlier session) — current render matches original, no change, no re-sync.
+  - #472 (textbook ex-018, **4-panel** unit-circle tan/cot sheet, hash `bf6d8949bfa1`, 4 orig crops
+    `tb-ex-018_prob_472_fig{1..4}` unchanged) — DONE, full panel-by-panel redo + assembled. All 4 panels
+    rebuilt to the kotne-funkcije family scheme (terracotta `axc`, slate `cc`, slate wedges, red point-dots,
+    radii past circle, NO "0", points `$X(\quad,\quad)$`, **small axis-label font** `\fontsize{4.5pt}{5.5pt}`).
+    a) unit circle 4 radii 45/120/210/300°. b) **radius-3** circle (scale 0.43), axis ±4/±3, points
+    60/135/**240**/330° (old had 210° — wrong), teal dots at (0,±3), 45° wedge 135→180°. c) tangent x=1
+    (drawn AT x=1), A=(1,√3) 60° line, B=(1,−1/√3) −30° line. č) tangent y=1, RAYS from O (not diameters)
+    30°→A(√3,1) & 120°→B(−1/√3,1), two 60° wedges. Assembled via `outputs/assemble.py` (2×2 scopes,
+    each panel own scale, panel letters added). Standalones in `outputs/panel{A,B,C,D}.txt`. Label
+    sizing/positioning convention recorded in memory `matura-circle-label-positioning.md`.
+- (prior figures done: …,460,461,462; #404 MERGED into #396 — see below).
+  - #462 (textbook ex-008, 3-panel unit-circle row, tan/cot VALUE, hash `3deb5498e418`, 3 orig crops
+    `tb-ex-008_prob_462_fig{1..3}` unchanged): SAME family as 460/461 (axc terracotta, cc slate). NOT a
+    dup of #460 (shares only the instruction sentence). Construction (verify against crops!):
+    TAN panels (a 136°, c 122°): SOLID radius O→(\angle:1.4) up-left PAST circle; DASHED ray O→(1.3,1.3·tanθ)
+    down-right PAST the vertical line x=1; vertical tangent line x=1 slate (1,-1.75)..(1,1.5); RED value
+    (1,0)→(1,tanθ). COT panel (b 125°): SOLID line O→(1.3·cotθ,1.3) up-left PAST the horizontal line y=1
+    (cotθ=cos/sin); horiz line y=1 slate; RED value (0,1)→(cotθ,1). **NO DOTS anywhere** (Daniel: the
+    crops have none — I wrongly added them, he was furious). scale 1.3, xshift 4.7cm, 2 foreach loops
+    (tan / cot). LESSON: "there is no dot" = REMOVE the dot (don't add); construction lines must extend
+    PAST the tangent/cotangent line + past the circle; trace EACH crop, be precise.
+  - #461 (textbook ex-007, 4-panel unit-circle row, tan/cot signs, hash `9f6c111e1dd7`, 4 orig crops
+    `tb-ex-007_prob_461_fig{1..4}` unchanged): SAME family/colorscheme as #460 — existing render was all
+    black. Rebuilt: terracotta-red axes+labels `axc`, slate circle+radius `cc`. Each panel: red axes,
+    slate circle, slate `very thick` RADIUS O→(\angle:1.25) (extends PAST circle), slate dot at (\angle:1).
+    φ=44°/140°/215°/313°. scale 1.35, `xshift=\i*4.5cm` (4 in a row). -1 labels nudged (x `xshift=-9pt`,
+    y `yshift=-7pt`). (Student adds the red tan / blue cot themselves; figure just shows the angle.)
+  - #460 (textbook ex-006, 6-panel unit-circle grid for sin/cos values, hash `efee3688d2b5`, 6 orig
+    crops `tb-ex-006_prob_460_fig{1..6}` unchanged): existing render had it INVERTED (black axes, red
+    value horiz-segment+dot, NO radius). Original (measured colors): **terracotta-red axes+labels**
+    `\definecolor{axc}{RGB}{179,89,68}`, **slate circle+radius** `\definecolor{cc}{RGB}{60,72,74}`.
+    Each panel: red axes+arrows, slate circle, slate RADIUS O→(cosθ,sinθ), then vertical projection at
+    x=cosθ — SOLID for sine panels (a–c, the height=value), DASHED for cosine panels (č–e, construction;
+    value read on x-axis). Layout: 2 rows × 3 cols via `\begin{scope}[xshift=\i*4.5cm]`/`yshift=-4.5cm`.
+    **scale 1.35** (Daniel wanted big circles relative to labels; pulled panel spacing IN to 4.5cm so
+    they're tight, not spread). -1 labels nudged (x-axis `xshift=-9pt`, y-axis `yshift=-7pt`). Daniel
+    iterations: radius now EXTENDS PAST circle (all 6, `(0,0)--(\angle:1.25)`); SINE value line (a–c)
+    is RED + THIN (`red,line width=0.25pt`) — "value in red" CONFIRMED for sine; cosine (č–e) dashed
+    slate (value read on x-axis). LESSON: measure colors from the crop
+    (HoughCircles for center/r, sample radius vs dropline vs axis pixels) — don't trust problem-text
+    color words; multi-panel figs compare against an assembled grid of the per-panel crops.
   - #421 (circle r6 ctr S + inscribed rect ABCD + radii SC,SD + angle φ=∠CSD + shaded region, hash
     `3d1131b452e7`, orig `?v=e0a805` unchanged): tunnel cross-section. Rect corners (±2.4,±1.8) (tikz r=3,
     matches orig). Existing render shaded ONLY the rectangle + light `gray!40` + had NO φ arc. FIX:

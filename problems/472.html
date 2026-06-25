@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Naloga 472 — Textbook</title>
-<link rel="stylesheet" href="styles.css?v=602147">
+<link rel="stylesheet" href="styles.css?v=602155">
 
 <script>
   // Prevent orphaned commas/periods/semicolons/colons at the start of a
@@ -225,117 +225,138 @@
 
   <div class="compact-grid"><div class="problem-body">  <div class="pane">    <div class="pane-header"><h3>Preview</h3></div>    <div class="preview-box" id="preview"></div>  </div>  <div class="pane latex-pane">    <div class="pane-header"><h3>LaTeX</h3></div>    <textarea id="latex-source" spellcheck="false"></textarea>  </div></div><div class="problem-crops"><div class="instance-block" data-instance="0">  <div class="crop-view" id="crop-view-0">    <div class="pane-header">      <h3 id="instance-label">Textbook crop</h3>      <span style="flex:1"></span>      <button class="full-page-btn" data-instance="0" type="button">📄 Cela stran</button><button class="edit-crop-btn" data-instance="0">✎ Uredi izrez</button><button class="edit-latex-btn" type="button" aria-pressed="false">✎ Uredi LaTeX</button>    </div>    <canvas class="crop-display" id="crop-canvas-0"></canvas>  </div>  <div class="crop-editor" id="crop-editor-0" hidden>    <div class="pane-header">      <h3>Določi izrez</h3>      <span style="flex:1"></span>      <button class="save-crop-btn primary" data-instance="0">Shrani</button>      <button class="cancel-crop-btn" data-instance="0">Prekliči</button>    </div>    <div class="canvas-wrap">      <canvas id="full-page-canvas-0"></canvas>      <div id="selection-box-0" class="selection-box"></div>    </div>  </div></div></div></div>
 <script>window.META_URL = "data/meta.dee8d0fa79.json"; window.BODIES_URL = "data/bodies.7298745f90.json";</script>
-<script src="app.js?v=602147"></script>
+<script src="app.js?v=602155"></script>
 <script>
   const PROBLEM = {"n": 472, "latex": "Zapiši koordinate točk na sliki. Dopolni.
 
 \begin{center}
-\begin{tikzpicture}[scale=1.05,>=latex,
-      every node/.style={font=\scriptsize},
-      wedge/.style={fill=orange!55!brown},
-      ptlbl/.style={font=\small}]
-  % --- a) Unit circle, four radii at A(45°), B(120°), C(210°), D(300°) ---
-  \begin{scope}
-    \node[above,font=\bfseries\small] at (-1.4,1.55) {a)};
-    \fill[wedge] (0,0) -- (0:0.35) arc[start angle=0, end angle=45, radius=0.35] -- cycle;
-    \fill[wedge] (0,0) -- (90:0.35) arc[start angle=90, end angle=120, radius=0.35] -- cycle;
-    \fill[wedge] (0,0) -- (180:0.35) arc[start angle=180, end angle=210, radius=0.35] -- cycle;
-    \fill[wedge] (0,0) -- (270:0.35) arc[start angle=270, end angle=300, radius=0.35] -- cycle;
-    \draw[->,thin] (-1.4,0) -- (1.5,0);
-    \draw[->,thin] (0,-1.4) -- (0,1.5);
-    \foreach \v in {-1,1}{ \draw (\v,-0.05) -- (\v,0.05); \draw (-0.05,\v) -- (0.05,\v); }
-    \node[below] at (1,-0.05) {1};
-    \node[below] at (-1,-0.05) {$-1$};
-    \node[left]  at (-0.05,1) {1};
-    \node[left]  at (-0.05,-1) {$-1$};
-    \node[below right=-2pt] at (0,0) {0};
-    \draw[thick] (0,0) circle (1);
-    \foreach \a in {45,120,210,300}{ \draw[thick] (0,0) -- (\a:1); \fill[red] (\a:1) circle (1.2pt); }
-    \node[ptlbl,above right] at (45:1)  {$A(\;,\;)$};
-    \node[ptlbl,above left]  at (120:1) {$B(\;,\;)$};
-    \node[ptlbl,below left]  at (210:1) {$C(\;,\;)$};
-    \node[ptlbl,below right] at (300:1) {$D(\;,\;)$};
-    \node at (22:0.62)  {$45^\circ$};
-    \node at (105:0.6)  {$30^\circ$};
-    \node at (195:0.6)  {$30^\circ$};
-    \node at (285:0.6)  {$30^\circ$};
+\begin{tikzpicture}[>=latex,every node/.style={font=\scriptsize},
+      wedge/.style={fill=cc!60},ptlbl/.style={font=\small},
+      axlbl/.style={font=\fontsize{4.5pt}{5.5pt}\selectfont}]
+  \definecolor{axc}{RGB}{179,89,68}\definecolor{cc}{RGB}{60,72,74}
+  \begin{scope}[shift={(0,0)}]
+    \node[font=\bfseries\small] at (-2.0,2.4) {a)};
+    \begin{scope}[scale=1.3]
+      \fill[wedge] (0,0) -- (0:0.35) arc[start angle=0, end angle=45, radius=0.35] -- cycle;
+      \fill[wedge] (0,0) -- (90:0.35) arc[start angle=90, end angle=120, radius=0.35] -- cycle;
+      \fill[wedge] (0,0) -- (180:0.35) arc[start angle=180, end angle=210, radius=0.35] -- cycle;
+      \fill[wedge] (0,0) -- (270:0.35) arc[start angle=270, end angle=300, radius=0.35] -- cycle;
+      \draw[axc,->,thin] (-1.4,0) -- (1.5,0);
+      \draw[axc,->,thin] (0,-1.4) -- (0,1.5);
+      \foreach \v in {-1,1}{ \draw[axc] (\v,-0.05) -- (\v,0.05); \draw[axc] (-0.05,\v) -- (0.05,\v); }
+      \node[axc,axlbl,below left,xshift=2pt,yshift=2pt] at (1,0)  {1};
+      \node[axc,axlbl,below left,xshift=2pt,yshift=2pt] at (-1,0) {$-1$};
+      \node[axc,axlbl,below left,xshift=3pt,yshift=2pt] at (0,1)  {1};
+      \node[axc,axlbl,below left,xshift=3pt,yshift=2pt] at (0,-1) {$-1$};
+      \draw[cc,thick] (0,0) circle (1);
+      \foreach \a in {45,120,210,300}{ \draw[cc,thick] (0,0) -- (\a:1.12); \fill[red] (\a:1) circle (1.2pt); }
+      \node[ptlbl,above right] at (45:1)  {$A(\quad,\quad)$};
+      \node[ptlbl,above left]  at (120:1) {$B(\quad,\quad)$};
+      \node[ptlbl,below left]  at (210:1) {$C(\quad,\quad)$};
+      \node[ptlbl,below right] at (300:1) {$D(\quad,\quad)$};
+      \node[cc] at (22:0.62)  {$45^\circ$};
+      \node[cc] at (105:0.6)  {$30^\circ$};
+      \node[cc] at (195:0.6)  {$30^\circ$};
+      \node[cc] at (285:0.6)  {$30^\circ$};
+    \end{scope}
   \end{scope}
-
-  % --- b) Same layout but circle has radius axis labelled 4 / -4 ---
-  \begin{scope}[xshift=4.8cm]
-    \node[above,font=\bfseries\small] at (-1.4,1.55) {b)};
-    \fill[wedge] (0,0) -- (0:0.35) arc[start angle=0, end angle=60, radius=0.35] -- cycle;
-    \fill[wedge] (0,0) -- (90:0.35) arc[start angle=90, end angle=135, radius=0.35] -- cycle;
-    \fill[wedge] (0,0) -- (180:0.35) arc[start angle=180, end angle=210, radius=0.35] -- cycle;
-    \fill[wedge] (0,0) -- (330:0.35) arc[start angle=330, end angle=360, radius=0.35] -- cycle;
-    \draw[->,thin] (-1.5,0) -- (1.6,0);
-    \draw[->,thin] (0,-1.5) -- (0,1.6);
-    \foreach \v in {-1,-0.5,0.5,1}{ \draw (\v,-0.05) -- (\v,0.05); \draw (-0.05,\v) -- (0.05,\v); }
-    \node[below] at (1,-0.05) {4};
-    \node[below] at (-1,-0.05) {$-4$};
-    \node[left]  at (-0.05,1) {4};
-    \node[left]  at (-0.05,-1) {$-4$};
-    \node[below right=-2pt] at (0,0) {0};
-    \draw[thick] (0,0) circle (1);
-    \foreach \a in {60,135,210,330}{ \draw[thick] (0,0) -- (\a:1); \fill[red] (\a:1) circle (1.2pt); }
-    \node[ptlbl,above right] at (60:1)  {$A(\;,\;)$};
-    \node[ptlbl,above left]  at (135:1) {$B(\;,\;)$};
-    \node[ptlbl,below left]  at (210:1) {$C(\;,\;)$};
-    \node[ptlbl,below right] at (330:1) {$D(\;,\;)$};
-    \node at (30:0.6)   {$60^\circ$};
-    \node at (112:0.6)  {$45^\circ$};
-    \node at (195:0.6)  {$30^\circ$};
-    \node at (345:0.6)  {$30^\circ$};
+  \begin{scope}[shift={(7.5,0)}]
+    \node[font=\bfseries\small] at (-2.0,2.4) {b)};
+    \begin{scope}[scale=0.43]
+      \fill[wedge] (0,0) -- (0:0.95) arc[start angle=0, end angle=60, radius=0.95] -- cycle;
+      \fill[wedge] (0,0) -- (135:0.95) arc[start angle=135, end angle=180, radius=0.95] -- cycle;
+      \fill[wedge] (0,0) -- (240:0.95) arc[start angle=240, end angle=270, radius=0.95] -- cycle;
+      \fill[wedge] (0,0) -- (330:0.95) arc[start angle=330, end angle=360, radius=0.95] -- cycle;
+      \draw[axc,->,thin] (-4.6,0) -- (4.7,0);
+      \draw[axc,->,thin] (0,-3.6) -- (0,3.7);
+      \foreach \v in {-4,-3,-2,-1,1,2,3,4}{ \draw[axc] (\v,-0.08) -- (\v,0.08); }
+      \foreach \v in {-3,-2,-1,1,2,3}{ \draw[axc] (-0.08,\v) -- (0.08,\v); }
+      \node[axc,axlbl,below left,xshift=2pt,yshift=2pt] at (1,0)  {1};
+      \node[axc,axlbl,below left,xshift=2pt,yshift=2pt] at (2,0)  {2};
+      \node[axc,axlbl,below left,xshift=2pt,yshift=2pt] at (3,0)  {3};
+      \node[axc,axlbl,below left,xshift=2pt,yshift=2pt] at (4,0)  {4};
+      \node[axc,axlbl,below left,xshift=2pt,yshift=2pt] at (-1,0) {$-1$};
+      \node[axc,axlbl,below left,xshift=2pt,yshift=2pt] at (-2,0) {$-2$};
+      \node[axc,axlbl,below left,xshift=2pt,yshift=2pt] at (-3,0) {$-3$};
+      \node[axc,axlbl,below left,xshift=2pt,yshift=2pt] at (-4,0) {$-4$};
+      \node[axc,axlbl,below left,xshift=3pt,yshift=2pt] at (0,1)  {1};
+      \node[axc,axlbl,below left,xshift=3pt,yshift=2pt] at (0,2)  {2};
+      \node[axc,axlbl,below left,xshift=3pt,yshift=2pt] at (0,3)  {3};
+      \node[axc,axlbl,below left,xshift=3pt,yshift=2pt] at (0,-1) {$-1$};
+      \node[axc,axlbl,below left,xshift=3pt,yshift=2pt] at (0,-2) {$-2$};
+      \node[axc,axlbl,below left,xshift=3pt,yshift=2pt] at (0,-3) {$-3$};
+      \draw[cc,thick] (0,0) circle (3);
+      \foreach \a in {60,135,240,330}{ \draw[cc,thick] (0,0) -- (\a:3.35); }
+      \foreach \a in {60,135,240,330}{ \fill[red] (\a:3) circle (0.12); }
+      \fill[cc] (0,3) circle (0.12);
+      \fill[cc] (0,-3) circle (0.12);
+      \node[ptlbl,above right] at (60:3)  {$A(\quad,\quad)$};
+      \node[ptlbl,above left]  at (135:3) {$B(\quad,\quad)$};
+      \node[ptlbl,below left]  at (240:3) {$C(\quad,\quad)$};
+      \node[ptlbl,below right] at (330:3) {$D(\quad,\quad)$};
+      \node[cc] at (33:1.45)  {$60^\circ$};
+      \node[cc] at (152:1.45) {$45^\circ$};
+      \node[cc] at (250:1.6)  {$30^\circ$};
+      \node[cc] at (345:1.62) {$30^\circ$};
+    \end{scope}
   \end{scope}
-
-  % --- c) Unit circle, line through origin at 60° / 240° ---
-  \begin{scope}[yshift=-3.7cm]
-    \node[above,font=\bfseries\small] at (-1.4,1.55) {c)};
-    \fill[wedge] (0,0) -- (0:0.4) arc[start angle=0, end angle=60, radius=0.4] -- cycle;
-    \fill[wedge] (0,0) -- (240:0.4) arc[start angle=240, end angle=270, radius=0.4] -- cycle;
-    \draw[->,thin] (-1.4,0) -- (1.5,0);
-    \draw[->,thin] (0,-1.4) -- (0,1.55);
-    \foreach \v in {-1,1}{ \draw (\v,-0.05) -- (\v,0.05); \draw (-0.05,\v) -- (0.05,\v); }
-    \node[below] at (1,-0.05) {1};
-    \node[below] at (-1,-0.05) {$-1$};
-    \node[left]  at (-0.05,1) {1};
-    \node[left]  at (-0.05,-1) {$-1$};
-    \node[below right=-2pt] at (0,0) {0};
-    \draw[thick] (0,0) circle (1);
-    \draw[thick] (240:1.25) -- (60:1.4);
-    \fill[red] (60:1)  circle (1.2pt);
-    \fill[red] (240:1) circle (1.2pt);
-    \node[ptlbl,above right] at (60:1)  {$A(\;,\;)$};
-    \node[ptlbl,below left]  at (240:1) {$B(\;,\;)$};
-    \node at (30:0.62)  {$60^\circ$};
-    \node at (255:0.62) {$30^\circ$};
+  \begin{scope}[shift={(0,-7.5)}]
+    \node[font=\bfseries\small] at (-2.0,2.4) {c)};
+    \begin{scope}[scale=1.3]
+      \fill[wedge] (0,0) -- (0:0.38) arc[start angle=0, end angle=60, radius=0.38] -- cycle;
+      \fill[wedge] (0,0) -- (150:0.38) arc[start angle=150, end angle=180, radius=0.38] -- cycle;
+      \draw[axc,->,thin] (-1.35,0) -- (1.5,0);
+      \draw[axc,->,thin] (0,-1.35) -- (0,2.2);
+      \draw[axc] (-1,-0.05) -- (-1,0.05);
+      \draw[axc] (1,-0.05) -- (1,0.05);
+      \draw[axc] (-0.05,-1) -- (0.05,-1);
+      \draw[axc] (-0.05,1) -- (0.05,1);
+      \draw[axc] (-0.05,2) -- (0.05,2);
+      \node[axc,axlbl,below left,xshift=2pt,yshift=2pt] at (1,0)  {1};
+      \node[axc,axlbl,below left,xshift=2pt,yshift=2pt] at (-1,0) {$-1$};
+      \node[axc,axlbl,below left,xshift=3pt,yshift=2pt] at (0,1)  {1};
+      \node[axc,axlbl,below left,xshift=3pt,yshift=2pt] at (0,2)  {2};
+      \node[axc,axlbl,below left,xshift=3pt,yshift=2pt] at (0,-1) {$-1$};
+      \draw[cc,thick] (0,0) circle (1);
+      \draw[cc,thick] (1,-0.95) -- (1,2.15);
+      \draw[cc,thick] (240:1.3) -- (60:2.15);
+      \draw[cc,thick] (150:1.3) -- (330:1.3);
+      \fill[red] (1,1.732) circle (0.045);
+      \fill[red] (1,-0.577) circle (0.045);
+      \node[ptlbl,above right] at (1,1.732) {$A(\quad,\quad)$};
+      \node[ptlbl,right]       at (1,-0.577) {$B(\quad,\quad)$};
+      \node[cc] at (18:0.6)   {$60^\circ$};
+      \node[cc] at (165:0.62) {$30^\circ$};
+    \end{scope}
   \end{scope}
-
-  % --- č) Unit circle, horizontal chord y = 1/2 (A=Q1, B=Q2) ---
-  \begin{scope}[xshift=4.8cm,yshift=-3.7cm]
-    \node[above,font=\bfseries\small] at (-1.6,1.55) {č)};
-    % Wedges between each radius and the +y-axis.
-    \fill[wedge] (0,0) -- (30:0.4) arc[start angle=30, end angle=90, radius=0.4] -- cycle;
-    \fill[wedge] (0,0) -- (90:0.4) arc[start angle=90, end angle=150, radius=0.4] -- cycle;
-    \draw[->,thin] (-1.6,0) -- (1.7,0);
-    \draw[->,thin] (0,-1.4) -- (0,1.55);
-    \foreach \v in {-1,1}{ \draw (\v,-0.05) -- (\v,0.05); \draw (-0.05,\v) -- (0.05,\v); }
-    \node[below] at (1,-0.05) {1};
-    \node[below] at (-1,-0.05) {$-1$};
-    \node[left]  at (-0.05,1) {1};
-    \node[left]  at (-0.05,-1) {$-1$};
-    \node[below right=-2pt] at (0,0) {0};
-    \draw[thick] (0,0) circle (1);
-    \draw[thick] (-1.55,0.5) -- (1.65,0.5);
-    % Radii from origin to chord intersections so the wedges read.
-    \draw[thick] (0,0) -- (30:1);
-    \draw[thick] (0,0) -- (150:1);
-    \fill[red] (30:1)  circle (1.2pt);
-    \fill[red] (150:1) circle (1.2pt);
-    \node[ptlbl,above right] at (30:1)  {$A(\;,\;)$};
-    \node[ptlbl,above left]  at (150:1) {$B(\;,\;)$};
-    \node at (60:0.62)  {$60^\circ$};
-    \node at (120:0.62) {$60^\circ$};
+  \begin{scope}[shift={(7.5,-7.5)}]
+    \node[font=\bfseries\small] at (-2.0,2.4) {\v{c})};
+    \begin{scope}[scale=1.3]
+      \fill[wedge] (0,0) -- (30:0.42) arc[start angle=30, end angle=90, radius=0.42] -- cycle;
+      \fill[wedge] (0,0) -- (120:0.42) arc[start angle=120, end angle=180, radius=0.42] -- cycle;
+      \draw[axc,->,thin] (-1.3,0) -- (2.3,0);
+      \draw[axc,->,thin] (0,-1.3) -- (0,1.4);
+      \draw[axc] (-1,-0.05) -- (-1,0.05);
+      \draw[axc] (1,-0.05) -- (1,0.05);
+      \draw[axc] (2,-0.05) -- (2,0.05);
+      \draw[axc] (-0.05,-1) -- (0.05,-1);
+      \draw[axc] (-0.05,1) -- (0.05,1);
+      \node[axc,axlbl,below left,xshift=2pt,yshift=2pt] at (-1,0) {$-1$};
+      \node[axc,axlbl,below left,xshift=2pt,yshift=2pt] at (1,0)  {1};
+      \node[axc,axlbl,below left,xshift=2pt,yshift=2pt] at (2,0)  {2};
+      \node[axc,axlbl,below left,xshift=3pt,yshift=2pt] at (0,1)  {1};
+      \node[axc,axlbl,below left,xshift=3pt,yshift=2pt] at (0,-1) {$-1$};
+      \draw[cc,thick] (0,0) circle (1);
+      \draw[cc,thick] (-1.3,1) -- (2.15,1);
+      \draw[cc,thick] (0,0) -- (30:2.75);
+      \draw[cc,thick] (0,0) -- (120:1.4);
+      \fill[red] (30:2) circle (0.045);
+      \fill[red] (120:1.1547) circle (0.045);
+      \node[ptlbl,above left,xshift=3pt] at (30:2)  {$A(\quad,\quad)$};
+      \node[ptlbl,above left,xshift=-3pt]  at (120:1.1547) {$B(\quad,\quad)$};
+      \node[cc] at (60:0.65)  {$60^\circ$};
+      \node[cc] at (150:0.65) {$60^\circ$};
+    \end{scope}
   \end{scope}
 \end{tikzpicture}
 \end{center}", "topics": ["4.9 Koordinatni sistem", "4.10 Funkcije", "4.10.9 Kotne funkcije"], "tikz_count": 1, "tikz_originals": ["matura_figs/tb-ex-018_prob_472_fig1.png?v=f829f3", "matura_figs/tb-ex-018_prob_472_fig2.png?v=9076bb", "matura_figs/tb-ex-018_prob_472_fig3.png?v=3c274b", "matura_figs/tb-ex-018_prob_472_fig4.png?v=54644b"], "instances": [{"paper_id": null, "paper_prob_n": null, "season": null, "pola": null, "level": null, "section": "Kotne funkcije poljubnih kotov", "points": null, "page": null, "page_image": "textbook/mat-3-zn/kotne-funkcije-poljubnih-kotov/ex-018.png", "page_size": null, "bbox_default": null}], "body_image": "textbook/mat-3-zn/kotne-funkcije-poljubnih-kotov/ex-018.png", "is_textbook": true};
