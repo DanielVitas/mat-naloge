@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Naloga 468 — Textbook</title>
-<link rel="stylesheet" href="styles.css?v=602165">
+<link rel="stylesheet" href="styles.css?v=602168">
 
 <script>
   // Prevent orphaned commas/periods/semicolons/colons at the start of a
@@ -225,7 +225,7 @@
 
   <div class="compact-grid"><div class="problem-body">  <div class="pane">    <div class="pane-header"><h3>Preview</h3></div>    <div class="preview-box" id="preview"></div>  </div>  <div class="pane latex-pane">    <div class="pane-header"><h3>LaTeX</h3></div>    <textarea id="latex-source" spellcheck="false"></textarea>  </div></div><div class="problem-crops"><div class="instance-block" data-instance="0">  <div class="crop-view" id="crop-view-0">    <div class="pane-header">      <h3 id="instance-label">Textbook crop</h3>      <span style="flex:1"></span>      <button class="full-page-btn" data-instance="0" type="button">📄 Cela stran</button><button class="edit-crop-btn" data-instance="0">✎ Uredi izrez</button><button class="edit-latex-btn" type="button" aria-pressed="false">✎ Uredi LaTeX</button>    </div>    <canvas class="crop-display" id="crop-canvas-0"></canvas>  </div>  <div class="crop-editor" id="crop-editor-0" hidden>    <div class="pane-header">      <h3>Določi izrez</h3>      <span style="flex:1"></span>      <button class="save-crop-btn primary" data-instance="0">Shrani</button>      <button class="cancel-crop-btn" data-instance="0">Prekliči</button>    </div>    <div class="canvas-wrap">      <canvas id="full-page-canvas-0"></canvas>      <div id="selection-box-0" class="selection-box"></div>    </div>  </div></div></div></div>
 <script>window.META_URL = "data/meta.dee8d0fa79.json"; window.BODIES_URL = "data/bodies.7298745f90.json";</script>
-<script src="app.js?v=602165"></script>
+<script src="app.js?v=602168"></script>
 <script>
   const PROBLEM = {"n": 468, "latex": "Zapiši s kotno funkcijo ostrega kota in izračunaj vrednost.
 
@@ -240,7 +240,56 @@
   \item[\textbf{g)}] $\cot(-765^\circ)$
 \end{itemize}
 
-\namig{Vrednosti sinusa in kosinusa za $30^\circ$, $45^\circ$, $60^\circ$ so po VELIKOSTI UREJENI rezultati $\tfrac{1}{2},\,\tfrac{\sqrt{2}}{2},\,\tfrac{\sqrt{3}}{2}$ — veliki $\sin 60^\circ=\tfrac{\sqrt{3}}{2}$, srednji $\sin 45^\circ=\tfrac{\sqrt{2}}{2}$, majhni $\sin 30^\circ=\tfrac{1}{2}$; in obratno za kosinus.}", "topics": ["4.6 Geometrija", "4.6.2 Koti", "4.10 Funkcije", "4.10.9 Kotne funkcije"], "tikz_count": 0, "tikz_originals": [], "instances": [{"paper_id": null, "paper_prob_n": null, "season": null, "pola": null, "level": null, "section": "Kotne funkcije poljubnih kotov", "points": null, "page": null, "page_image": "textbook/mat-3-zn/kotne-funkcije-poljubnih-kotov/ex-014.png", "page_size": null, "bbox_default": null}], "body_image": "textbook/mat-3-zn/kotne-funkcije-poljubnih-kotov/ex-014.png", "is_textbook": true};
+\namig{Vrednosti sinusa in kosinusa za $30^\circ$, $45^\circ$, $60^\circ$ so po VELIKOSTI UREJENI rezultati $\tfrac{1}{2},\,\tfrac{\sqrt{2}}{2},\,\tfrac{\sqrt{3}}{2}$ — veliki $\sin 60^\circ=\tfrac{\sqrt{3}}{2}$, srednji $\sin 45^\circ=\tfrac{\sqrt{2}}{2}$, majhni $\sin 30^\circ=\tfrac{1}{2}$; in obratno za kosinus.}
+
+\begin{center}
+\begin{tikzpicture}[scale=1.15,>=latex,every node/.style={font=\small}]
+  % ===== LEFT: kosinus (cos -> x-axis) =====
+  \begin{scope}
+    \draw[line width=0.6pt,->] (-1.3,0) -- (1.32,0);
+    \draw[line width=0.6pt,->] (0,-0.28) -- (0,1.32);
+    \draw[line width=0.8pt] (0,0) circle (1);
+    \draw[gray,line width=1pt] (0,0) -- (60:1);
+    \draw[blue,line width=1pt] (0,0) -- (45:1);
+    \draw[red,line width=1pt] (0,0) -- (30:1);
+    \draw[gray!65,dashed,line width=0.5pt] (60:1) -- ({cos(60)},0);
+    \draw[gray!65,dashed,line width=0.5pt] (45:1) -- ({cos(45)},0);
+    \draw[gray!65,dashed,line width=0.5pt] (30:1) -- ({cos(30)},0);
+    \draw[gray,line width=1.5pt] (0,0) -- ({cos(60)},0);
+    \draw[blue,line width=1.5pt] ({cos(60)},0) -- ({cos(45)},0);
+    \draw[red,line width=1.5pt] ({cos(45)},0) -- ({cos(30)},0);
+    \node at (-0.9,1.12) {\itshape kosinus};
+    \draw[red,line width=0.7pt,->]  (1.36,-0.56) -- ({cos(30)},-0.06);
+    \draw[blue,line width=0.7pt,->] (1.06,-1.08) -- ({cos(45)},-0.06);
+    \draw[gray,line width=0.7pt,->] (0.74,-1.60) -- ({cos(60)},-0.06);
+    \node[red,anchor=west]  at (1.40,-0.58) {velik cos $30^\circ=\tfrac{\sqrt3}{2}$};
+    \node[blue,anchor=west] at (1.10,-1.10) {srednji cos $45^\circ=\tfrac{\sqrt2}{2}$};
+    \node[gray,anchor=west] at (0.78,-1.62) {majhen cos $60^\circ=\tfrac12$};
+  \end{scope}
+  % ===== RIGHT: sinus (sin -> y-axis) =====
+  \begin{scope}[xshift=7.3cm]
+    \draw[line width=0.6pt,->] (-1.3,0) -- (1.32,0);
+    \draw[line width=0.6pt,->] (0,-0.28) -- (0,1.32);
+    \draw[line width=0.8pt] (0,0) circle (1);
+    \draw[gray,line width=1pt] (0,0) -- (60:1);
+    \draw[blue,line width=1pt] (0,0) -- (45:1);
+    \draw[red,line width=1pt] (0,0) -- (30:1);
+    \draw[gray!65,dashed,line width=0.5pt] (30:1) -- (0,{sin(30)});
+    \draw[gray!65,dashed,line width=0.5pt] (45:1) -- (0,{sin(45)});
+    \draw[gray!65,dashed,line width=0.5pt] (60:1) -- (0,{sin(60)});
+    \draw[red,line width=1.5pt] (0,0) -- (0,{sin(30)});
+    \draw[blue,line width=1.5pt] (0,{sin(30)}) -- (0,{sin(45)});
+    \draw[gray,line width=1.5pt] (0,{sin(45)}) -- (0,{sin(60)});
+    \node at (-0.9,1.12) {\itshape sinus};
+    \draw[gray,line width=0.7pt,->] (1.5,1.82) -- (0.07,{sin(60)});
+    \draw[blue,line width=0.7pt,->] (1.5,1.36) -- (0.07,{sin(45)});
+    \draw[red,line width=0.7pt,->]  (1.5,0.92) -- (0.07,{sin(30)});
+    \node[gray,anchor=west] at (1.55,1.85) {velik sin $60^\circ=\tfrac{\sqrt3}{2}$};
+    \node[blue,anchor=west] at (1.55,1.38) {srednji sin $45^\circ=\tfrac{\sqrt2}{2}$};
+    \node[red,anchor=west]  at (1.55,0.92) {majhen sin $30^\circ=\tfrac12$};
+  \end{scope}
+\end{tikzpicture}
+\end{center}", "topics": ["4.6 Geometrija", "4.6.2 Koti", "4.10 Funkcije", "4.10.9 Kotne funkcije"], "tikz_count": 1, "tikz_originals": [], "instances": [{"paper_id": null, "paper_prob_n": null, "season": null, "pola": null, "level": null, "section": "Kotne funkcije poljubnih kotov", "points": null, "page": null, "page_image": "textbook/mat-3-zn/kotne-funkcije-poljubnih-kotov/ex-014.png", "page_size": null, "bbox_default": null}], "body_image": "textbook/mat-3-zn/kotne-funkcije-poljubnih-kotov/ex-014.png", "is_textbook": true};
   initProblemPage(PROBLEM);
 </script>
 </body>

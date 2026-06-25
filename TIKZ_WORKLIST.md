@@ -14,7 +14,7 @@ montage **rendered → present_files → then sync**, never fabricate, one probl
 per turn unless told otherwise).
 
 ## WHERE WE LEFT OFF (status)
-- **Cache state:** global `v=602165`, `sw.js mat-tikz-692`. Bump both on any change.
+- **Cache state:** global `v=602168`, `sw.js mat-tikz-695`. Bump both on any change.
 - **GROUP-1 §1 FIXING LIST COMPLETE.** Now in **§4 (need-tikz)**: Daniel chose this group.
   - **#138 was NOT authored — it's the OR twin of #143 (VR), so MERGED #138←#143** (same 2022 Jesenski
     angle problem: parallel 63°/55°, octagon, circle diam AB, circle diam AC 44°; 7 unknowns). Kept #138
@@ -101,7 +101,35 @@ per turn unless told otherwise).
     79c9a5ce5f95/0bb904a9ae6e/1382e4120153/aa58108a4991/5e0529eeec12/fd97f2f9cf50/aea6465d2e77/174a6805bbb2/2137e151ce87.
     No per-fig crops → no tikz_originals. **LESSON: for "match the graph" sets, a uniform cell window across
     all panels (like #141) reads cleaner than per-panel windows; replace any answer-giving text placeholder.**
-  - **§4 NEXT: #466** (then 468,550,670,783,825,832,866). **Dup-check each first**;
+    **REVISED (Daniel follow-ups): (1) the "Možne izbire grafov (A--I):" header was MADE-UP transcription —
+    REMOVED. (2) Made the crop SYMMETRIC: axes ±3.5 both directions, ticks −3..3, NO \clip (it cut the 1/x &
+    1/x² branches + the x/y labels); each cell auto-sizes via a symmetric `\useasboundingbox (-3.95,-3.95)
+    rectangle (3.95,3.95)` that contains the labels → uniform 480×480, labels uncut. (3) **Curve I is NOT a
+    cubic — it's `2*sin(\x r)`** (the made-up legend's "kubična s preg." was wrong). TRACED the original: ends
+    BOUNDED at y≈∓0.7 (x=±3.5), min/max ±2 at x≈±1.6 → 2·sin(x) fits to 0.05 mean err. A & I are the two
+    DISTRACTOR graphs (the table's 7 functions map to B,C,D,E,F,G,H). Final fig9(I) hash `3bc596ccbb58`.
+    LESSON: TRACE every "polynomial-looking" curve's END BEHAVIOR — bounded ⇒ trig, not poly; and don't trust
+    a transcribed text legend's curve descriptions.**
+  - **#466 DONE — AUTHORED** (TEXTBOOK mat-3-zn kotne-funkcije, not a dup). Small unit-circle SCHEMATIC for
+    the \namig hint (cos158°=−cos22° reflection). hash `814c9f66b835`, tikz_count 0→1. Circle r=1 + plain
+    x/y axes + two symmetric radii (65°/115°, poke to 1.12) + vertical projections to x-axis + **red cos
+    segment** between the feet. scale 1.2, black + red. Figure appended AFTER the \namig (centered).
+    **TEXTBOOK HTML GOTCHA: per-problem htmls for textbook problems store `latex` RAW (literal newlines +
+    single backslashes), NOT json-escaped single-line like matura problems — so json.loads/dumps round-trip
+    FAILS. Update via raw splice between `"latex": "` and `", "topics":`, and replace `"tikz_count": 0`→`1`
+    textually.** No per-fig crop → no tikz_originals.
+  - **#468 DONE — AUTHORED** (TEXTBOOK mat-3-zn kotne-funkcije, not a dup). \namig figure: **TWO unit-circle
+    schematics** (kosinus + sinus) for the 30/45/60° sin/cos values. hash `27de55246234`, tikz_count 0→1.
+    Both circles: 3 radii **60°=gray, 45°=blue, 30°=red** (Daniel's scheme) + dashed projection lines +
+    a **segmented value-bar on the projection axis** (kosinus: x-axis gray/blue/red ending at cos30°=0.87;
+    sinus: y-axis red/blue/gray ending at sin60°=0.87) then the axis continues **black** to the arrow (NO
+    coloured arrow). 6 transcribed value labels with **pointer arrows (arrowhead AT the axis mark)**: cos
+    labels staggered down-LEFT below the kosinus circle (velik cos30°=√3/2 red, srednji cos45°=√2/2 blue,
+    majhen cos60°=½ gray), sin labels in a column to the RIGHT of the sinus circle (velik sin60° gray,
+    srednji sin45° blue, majhen sin30° red); arrows fan at varying angles. Appended after \namig (centered).
+    Textbook-HTML raw-splice (see #466 note). No per-fig crop → no tikz_originals. Took ~7 iterations on
+    colours/arrow-direction/label-placement — Daniel is exacting on these kotne-funkcije callout figures.
+  - **§4 NEXT: #550** (then 670,783,825,832,866; #466,#468 done). **Dup-check each first**;
     apply the Matura coord-system style (CLAUDE.md). Note 670 is a photograph — confirm before attempting.
   - #763 (2015_Jes_P1_OR, 3 right-triangle subproblems 2.1/2.2/2.3 find α/x/y, tikz_count "3", 3 figs):
     2.1 & 2.3 already faithful (unchanged); **2.2 (fig2) REBUILT** (hash `aab7cb78c37b`) — old had a broken
