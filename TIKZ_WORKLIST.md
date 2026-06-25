@@ -14,7 +14,7 @@ montage **rendered → present_files → then sync**, never fabricate, one probl
 per turn unless told otherwise).
 
 ## WHERE WE LEFT OFF (status)
-- **Cache state:** global `v=602163`, `sw.js mat-tikz-690`. Bump both on any change.
+- **Cache state:** global `v=602164`, `sw.js mat-tikz-691`. Bump both on any change.
 - **GROUP-1 §1 FIXING LIST COMPLETE.** Now in **§4 (need-tikz)**: Daniel chose this group.
   - **#138 was NOT authored — it's the OR twin of #143 (VR), so MERGED #138←#143** (same 2022 Jesenski
     angle problem: parallel 63°/55°, octagon, circle diam AB, circle diam AC 44°; 7 unknowns). Kept #138
@@ -82,6 +82,14 @@ per turn unless told otherwise).
     inserted AFTER the intro; the "Rešeni primer: v=a+½b" line + the 5 `\item` "v=___" blanks KEPT as page
     text below (not embedded in figure). No per-fig crop → no tikz_originals. **LESSON: for vector/parallelogram
     multi-panels, trace the defining arrow's ANGLE (don't eyeball); one shared base parallelogram + per-panel v.**
+    **RESTRUCTURED (Daniel follow-up): split the 1 combined tikzpicture into 6 SEPARATE figures (tikz_count
+    1→6) in a 3×2 grid (`\begin{tabular}{cc}` with alternating image-row / caption-row), caption BELOW each
+    image: panel1 "Rešeni primer: v=a+½b", panels 2–6 "$\vec v=\rule{3cm}{0.4pt}$" blanks. Enumerate +
+    standalone example line REMOVED (now captions). Panels 2.1–2.5 keep their top-left label; example panel
+    has no inner label (caption carries "Rešeni primer"). figs hashes ex `bd152c77a9e5`, 2.1 `279ebe8d06f9`,
+    2.2 `5657bdb93495`, 2.3 `1dab3220ef64`, 2.4 `7c333fd1571d`, 2.5 `2d45d05eea23`. LESSON: Daniel prefers
+    multi-panel "fill-in" sheets as SEPARATE per-panel figures with the answer line directly under each, not
+    one combined figure + a separate text block.**
   - **§4 NEXT: #439** (then 466,468,550,670,783,825,832,866). **Dup-check each first**;
     apply the Matura coord-system style (CLAUDE.md). Note 670 is a photograph — confirm before attempting.
   - #763 (2015_Jes_P1_OR, 3 right-triangle subproblems 2.1/2.2/2.3 find α/x/y, tikz_count "3", 3 figs):
