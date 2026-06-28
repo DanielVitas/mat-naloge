@@ -112,13 +112,14 @@ exist with tikz_count>=1 and were never listed:
 | 832 | 2016_Spomladanski_Pola2_VR        | ◐      | **authored** (latex was text-only, tikz_count 0→1): triangle $ABC$ with vectors $\vec a=\vec{BC}$/$\vec b=\vec{CA}$/$\vec c=\vec{AB}$ as arrows + doubled outer triangle $A'B'C'$ (exact construction $B'=2B-A$, $C'=2C-B$, $A'=2A-C$); inserted tikzpicture after intro paragraph (before enumerate); $A$ label nudged up-and-right to match original; original crop tightened to figure-only (top/bottom text stripped); hash 333591ec91db |
 | 866 | 2016_Jesenski_Pola2_VR            | ◐      | **authored** (latex was text-only, tikz_count 0→1): empty coordinate system for part b) "Narišite graf funkcije f" (f(x)=\|x+2\|+\|1−x\|). Axes x −5→+5 (arrow right), y −5→+7 (arrow top, taller for the f-range); ticks x −4..4 / y −4..6; only 0/1/1 labeled; #269 matura style (thin 0.5pt axes, ±0.1 straddle ticks, 0 below-left, x-num [bl,xshift6,yshift-2], y-num [bl,yshift6]); scale 0.58 (cap/unit ≈0.42 matches original — original ticks are one-sided x-up/y-right but normalized to the #269 straddle standard); inserted via \begin{center} after item b); hash 2f3bd702e228 |
 
-## Non-empty figures audit (recent years — worklist §2)
+## Non-empty figures audit (recent years — worklist §2) — ✅ COMPLETE (all 36 done, 2026-06-28)
 
 Verifying existing non-empty figures (curves/shapes/vectors) against originals,
 one batch at a time, montage each. List: 16, 26, 112, 120, 129, 134, 140, 145,
 168, 193, 239, 259, 266, 272, 307, 308, 321, 323, 328, 330, 343, 344, 351, 360,
 363, 367, 383, 393, 398, 400, 412, 430, 446, 452, 458, 459 (already-done elsewhere:
-314, 481, 487, 498, 530, 537, 538, 624, 779).
+314, 481, 487, 498, 530, 537, 538, 624, 779). **ALL 36 audited & synced** (last run
+343→459 on 2026-06-28; caches at v=602195 / mat-tikz-722; Daniel to push via push.command).
 
 | n   | paper                              | status | notes                                 |
 |-----|-----------------------------------|--------|---------------------------------------|
@@ -157,6 +158,7 @@ one batch at a time, montage each. List: 16, 26, 112, 120, 129, 134, 140, 145,
 | 446 | 2020_Spomladanski_Pola1_OR        | ◐      | circle K + line p. **CRITICAL bugs:** circle was r=1.7 (should be **r=2**, passes ±2); line p was **y=−x (a diameter through centre)** → no smaller segment. Fixed: K=(0,0) r2; p=**chord y=−x−2** through (−2,0)&(0,−2) (cuts smaller lower-left segment, = the problem). **added integer ticks** −4..4 both axes (unit 59px, frame ±4.4); ±2 labels at circle edges; p label nudged straight up per Daniel. hash 7b5af3ecc9fb |
 | 452 | 2020_Spomladanski_Pola2_VR        | ◐      | empty complex plane (draw set, part 3). was the OLD block shared with #393; **added integer tick dashes −3..3 both axes**, i dot→tick dash; scale 0.85 (unit 57.7px — bigger labels than #393 so kept 0.85, not 1.05). now its own block (shared-block dup resolved). hash fe0bbf97fec7 |
 | 458 | tb-ex-004                         | ◐      | radian/degree protractor (degrees 0–350, radian fractions π/6…, radian decimals 0–6, 4 colored quadrants I–IV). orig is a high-detail scan (1° ticks + fine outer radian ring); Daniel chose to KEEP the clean simplified TikZ version. only change: **outer circle 5.55→5.7** (Daniel iterated bigger then back: 5.9→5.8→5.7). hash 650507733682 |
+| 459 | tb-ex-005                         | ◐      | 4-panel unit circles (a 44° b 222° c 111° č 333°), student draws sin/cos. **CRITICAL: b/c angles were swapped** (was 111/222) → fixed to match orig panel order a)44 b)222 c)111 č)333. **restyled per Daniel** to match orig: coral axes/labels RGB(223,120,93), slate circle/radius RGB(74,101,114), radius **crosses** the circle (→ \ang:1.18), labels `below left` (+1 inside, −1 outside). one combined tikz, scale 2.1, 4 scopes. (č needs ensure_ascii=False in sync.) hash e5e15c82c23d |
 
 ## Audit pipeline
 
