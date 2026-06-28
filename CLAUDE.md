@@ -1,3 +1,8 @@
+> # ⚠️ RULE #1 — GREATEST IMPORTANCE: ALWAYS SHOW SIDE-BY-SIDE
+> For **every** figure change — no matter how small — render the NEW figure and
+> present a side-by-side montage (NEW left, ORIGINAL right) with `present_files`
+> **before** asking for approval or syncing. ALWAYS. No exceptions.
+
 # Claude project memory — mat-naloge
 
 A Slovenian Matura math problem website, deployed via GitHub Pages at

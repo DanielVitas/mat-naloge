@@ -90,7 +90,7 @@ Status legend: ✓ = verified faithful, ◐ = TikZ fixed this session,
 | 854 | —                                  | n/a    | does not exist (stale table entry)    |
 | 862 | 2016_Jesenski_Pola2_VR             | n/a    | exists but tikz_count=0, no figure (was a Limita topic reassignment, not a figure) |
 
-**2016_Jesenski_Pola2_VR has NO tikz figures.** 2016 figure audit is complete (818, 820, 839, 843, 847).
+**2016_Jesenski_Pola2_VR Pola1_OR figures: none.** 2016 Pola1 figure audit complete (818, 820, 839, 843, 847). (NOTE: #866 in 2016_Jesenski_Pola2_VR had a text-only "draw the graph" empty-coord that was authored later — see the MISSED Pola2_VR table below.)
 
 ### Pre-2017 Pola2_VR figures the original table MISSED (genuinely unaudited)
 
@@ -109,6 +109,42 @@ exist with tikz_count>=1 and were never listed:
 | 785 | 2015_Jesenski_Pola2_VR            | ◐◒    | **authored** (latex was PNG-only, tikz_originals was empty/absent — original PNG created from page): graph y=2x·sin(3x), small left hump touching origin, main hump 0→π/3 hatched (north east lines), small dip below axis past π/3; labels 0/π/3/x/y; xscale 2.0 yscale 1.55 (matches stretch + label size); hash a2fd811d0195 (π/3 label nudged left) |
 | 791 | 2015_Jesenski_Pola2_VR            | ◐◒    | **authored** (latex was PNG-only): oblique cube ABCDEFGH, square front face ABFE, depth (0.47,0.575)·s up-right; hidden vertex D → dashed edges DA/DC/DH, rest solid; vertex labels + edge label a; NO P/S (not in original); scale 1.8 (enlarged per request, labels relatively smaller); original re-cropped to just the cube; hash 30047613863b |
 | 794 | 2015_Jesenski_Pola2_VR            | ◐◒    | **authored** (latex was PNG-only; original crop was wrong region — showed text): empty coord for plotting A/B/C/D, x ticks −1..7, y ticks −1..8 (tall), arrows +x/+y, labels 0/1(x)/1(y); scale 0.4 (cap/unit 0.6); inserted after item a); crop fixed to the coordinate system; hash 9bd2821d5ac5. FIXED transcription error: stored latex said B(5,7); page clearly shows B(5,1) (same "1" glyph as A(1,1)) — corrected to $B(5,1)$ in bodies.json + html |
+| 832 | 2016_Spomladanski_Pola2_VR        | ◐      | **authored** (latex was text-only, tikz_count 0→1): triangle $ABC$ with vectors $\vec a=\vec{BC}$/$\vec b=\vec{CA}$/$\vec c=\vec{AB}$ as arrows + doubled outer triangle $A'B'C'$ (exact construction $B'=2B-A$, $C'=2C-B$, $A'=2A-C$); inserted tikzpicture after intro paragraph (before enumerate); $A$ label nudged up-and-right to match original; original crop tightened to figure-only (top/bottom text stripped); hash 333591ec91db |
+| 866 | 2016_Jesenski_Pola2_VR            | ◐      | **authored** (latex was text-only, tikz_count 0→1): empty coordinate system for part b) "Narišite graf funkcije f" (f(x)=\|x+2\|+\|1−x\|). Axes x −5→+5 (arrow right), y −5→+7 (arrow top, taller for the f-range); ticks x −4..4 / y −4..6; only 0/1/1 labeled; #269 matura style (thin 0.5pt axes, ±0.1 straddle ticks, 0 below-left, x-num [bl,xshift6,yshift-2], y-num [bl,yshift6]); scale 0.58 (cap/unit ≈0.42 matches original — original ticks are one-sided x-up/y-right but normalized to the #269 straddle standard); inserted via \begin{center} after item b); hash 2f3bd702e228 |
+
+## Non-empty figures audit (recent years — worklist §2)
+
+Verifying existing non-empty figures (curves/shapes/vectors) against originals,
+one batch at a time, montage each. List: 16, 26, 112, 120, 129, 134, 140, 145,
+168, 193, 239, 259, 266, 272, 307, 308, 321, 323, 328, 330, 343, 344, 351, 360,
+363, 367, 383, 393, 398, 400, 412, 430, 446, 452, 458, 459 (already-done elsewhere:
+314, 481, 487, 498, 530, 537, 538, 624, 779).
+
+| n   | paper                              | status | notes                                 |
+|-----|-----------------------------------|--------|---------------------------------------|
+| 16  | 2025_Spomladanski_Pola1_VR        | ◐      | piecewise (semicircle 0→4 dip −2 + triangle peak (5,3)) faithful; **scale 0.55→0.95** (labels were too large; original cap/unit 0.256). hash 296ba923db1d |
+| 26  | 2025_Spomladanski_Pola2_OR        | ◐      | vectors a⃗ (horiz) & b⃗ at 120°, 4 units w/ tick marks — faithful; **scale 0.55→0.95** (original cap/unit 0.253). hash 3bb77ec5a103 |
+| 112 | 2021_Spomladanski_Pola1_VR        | ✓      | empty complex plane (i dot, 0, 1) for the student to draw sets A & B — faithful, no change |
+| 120 | 2021_Spomladanski_Pola2_OR        | ◐      | cubic p(x)=−3x(x−0.6)(x−1.4); **plot domain extended** −0.3:1.7 → −0.7:1.9 + frame \clip so the curve fills the frame top-left→bottom-right like the original. hash c3455bdc0f43 |
+| 129 | 2022_Jesenski_Pola1_OR            | ◐      | line y=x+2 through (−2,0),(0,2); **scale 0.6→0.45** (orig has large labels, cap/unit 0.51 — scaled DOWN to enlarge labels to match) + **added integer tick dashes −3..3 on both axes** (orig has them, was missing). hash 5ceca1b32309 |
+| 134 | 2022_Jesenski_Pola1_OR            | ◐      | complex plane (draw 2z, z̄); **scale 0.5→0.95** (labels too large) + **i marker dot→tick dash** (per Daniel: i should be a normal dash like the 1-tick, not a filled dot). hash 2b31254bc46f |
+| 140 | 2022_Jesenski_Pola1_OR            | ◐      | hyperbola (vertices ±4, F₁=−√20); **F₁ & B labels → above-left** of their dots (matching orig); **dots enlarged** 2pt→circle(0.14) units; **branch domain extended** 4:7→4:8 / −7:−4→−8:−4 so branches fill the frame. hash dec615125a00 |
+| 145 | 2022_Jesenski_Pola1_VR            | ◐      | complex plane (draw z₁,z₂,z₃); **scale 1.0→1.85** (orig has small labels, cap/unit 0.13) + **i marker dot→tick dash**. hash 80e0c5221998 |
+| 168 | 2022_Spomladanski_Pola1_OR        | ◐      | complex plane (draw z, z̄); **scale 0.5→0.95** + **i marker dot→tick dash** (the y=1 foreach tick serves as the dash). hash a4e88538851e |
+| 193 | 2022_Spomladanski_Pola2_VR        | ◐      | graph h(x)=(2−eˣ)²; **plot domain −2.5:1.5 → −3:1.45** so the left plateau (→4) reaches the frame edge like the original. hash 3ab7edb4f6a3 |
+| 239 | 2023_Spomladanski_Pola1_OR        | ◐      | parabola f=6−x² + rectangle OATD; **aspect ratio fixed** uniform scale 0.7 → xscale 1.16/yscale 0.7 (orig x:y≈1.66, parabola was too narrow); **T label → above-right** of corner. hash 0013259ce364 |
+| 259 | 2024_Jesenski_Pola1_OR            | ◐      | reflection grid, T(−1,2); **scale 0.55→0.7** (labels too large) + dash-pattern rescaled (on 1.98 off 1.19) to keep grid density. hash 1fd885d45a51 |
+| 266 | 2024_Jesenski_Pola1_OR            | ◐      | rational fn (3x+5)(x−3)/((x+2)(x−2)) with A,B,C; **axes extended +x/+y/−x, reduced −y** per Daniel (clip −6.5..6.5 × −2.7..6.5), branch domains extended to fill; **scale→0.46** (orig has large labels); B/−2 labels separated; A nudged left. hash 7fb4853b8cd8 |
+| 272 | 2024_Jesenski_Pola1_OR            | ◐      | parabolic arch + inscribed rectangle; **removed "y" axis arrow/label** (orig has plain vertical line + "4" at peak); "4"→above-left; **rectangle outline thick→very thin**. hash 25b4069738d2 |
+| 307 | 2024_Spomladanski_Pola1_VR        | ◐      | empty Im/Re grid (draw set A); **grid → light (black!40) + very thin + denser dashes (on 1.42 off 0.85)**; **7 boxes/side (grid ±7)**; **scale 0.5→1.0**; i kept dot-free (orig has a small dot — per Daniel #134/#145 no-dot preference). hash 12f386a2001c |
+| 308 | 2024_Spomladanski_Pola1_VR        | ◐      | empty Im/Re grid (draw set B); same treatment as #307 (light thin dense grid, 7 boxes/side, scale 1.0, no i-dot). hash 12f386a2001c |
+| 321 | 2024_Spomladanski_Pola2_OR        | ◐      | sinusoid f=2sin(x)+3 with (−π/2,1) min & (π/2,5) max; dots enlarged (circle 0.1); (−π/2,1) label centered-above the min; point labels font=\small; scale 0.45→0.6. hash acd1fe01937e |
+| 323 | 2024_Spomladanski_Pola2_OR        | ◐      | geometric-sequence points (ratio −1.5) on dashed grid; **grid → rectangles** (xstep 1, ystep 0.5) so half-y-step lines appear; scale 0.5→0.7. hash febe0d603125 |
+| 328 | 2017_Jesenski_Pola1_OR            | ◐      | bell curve 2e^(−x²/2), pts (±1,1.213); **horizontal dashed line symmetric ±1.4**; verticals extend up; single "0" bottom-left of origin (orig had two — not copied), aligned; "2" nudged above the curve; scale 0.7→0.9. (was stale SVG — re-rendered.) hash bbcdbec5504b |
+| 330 | 2017_Jesenski_Pola1_OR            | ◐      | **2 figs** (draw sets A & B), identical empty complex planes; integer tick dashes 4/side on both axes; i on its tick (no dot); scale 0.55→0.8. hash 341b7bb89030 (both figs) |
+| 343 | 2017_Spomladanski_Pola1_OR        | ◐      | parallelogram ABCD + lines p,q,r over x-axis. **p,q corrected to slope 1 along slant edges A→D / B→C** (were slope ~1.8, diverged); fill gray!40→gray!35; **B,C → `[above right,xshift=6pt]` so they sit at A's & D's heights, shifted right**; **added integer tick dashes x −4..4 / y −2..3** (orig has them; was only 1 each); **x-axis extended −1→−4.5 and line r extended −1→−4.1** to match original's near-full-width axes (orig r −4.07..4.05). bodies+html+svg synced. hash 8be0c39741b1 |
+| 344 | 2017_Spomladanski_Pola1_OR        | ◐      | 3-circle Venn (sets A,B,C; elements 1–7). **circle centers re-measured from original** (Hough): A(0,0) B(2.33,1.02) C(2.12,−1.43) r2 — were lopsided (1.7,0.7)/(1.4,−1.5), overlap too heavy; **all 7 digit positions + A/B/C labels re-placed from measured centroids** (1,2 stacked in A-only; 5 A∩B; 6 B-only; 4 triple; 3 A∩C; 7 C-only). scale 0.7. hash 1bbf56d5e6fe |
+| 351 | 2017_Spomladanski_Pola1_OR        | ◐      | cubic p(x)=−0.5(x+2)(x−1)² (roots −2, double 1; p(0)=−1). **full rebuild to match orig (unit 59px)**: frame ±4.3 both axes (was tiny −3.5..2.5 / ±3); **added integer tick dashes x{−4,−3,−1,2,3,4} y{−4..−2,1..4}** (orig has them, were missing); **domain −2.7:1.6 → −2.66:2.4** so right branch descends to lower-right like orig; **added "p" curve label** top-left; dots at (−2,0)(1,0)(0,−1) sized 0.09u; scale 0.65→0.8 (cap/unit 0.29). y=1 label kept LEFT per convention (orig has it right). hash cf703aebe1ca |
 
 ## Audit pipeline
 
