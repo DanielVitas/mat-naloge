@@ -1915,26 +1915,79 @@ function latexToHtml(src, problemId, tikzCount, hydrateTikz, tikzOriginals) {
         const colSpec = (_spec || '').replace(/\|/g, '');
         const colMeta = [];
         {
-          const re = /([pmb])\{([^}]+)\}|([clr])/g;
+          // Capture an optional >{\centering\arraybackslash} / >{\raggedleft…}
+          // prefix per column so centered p-columns honour their alignment.
+          const re = /(?:>\{([^}]*)\})?\s*(?:([pmb])\{([^}]+)\}|([clr]))/g;
           let mm;
           while ((mm = re.exec(colSpec)) !== null) {
-            if (mm[1]) {
-              colMeta.push({ kind: mm[1], width: mm[2] });
+            const pre = mm[1] || '';
+            const palign = /\\centering/.test(pre) ? 'center'
+                         : /\\raggedleft/.test(pre) ? 'right' : null;
+            if (mm[2]) {
+              colMeta.push({ kind: mm[2], width: mm[3], align: palign || 'left' });
             } else {
-              colMeta.push({ kind: mm[3], width: null });
+              const k = mm[4];
+              colMeta.push({ kind: k, width: null,
+                align: palign || (k === 'c' ? 'center' : k === 'r' ? 'right' : 'left') });
             }
           }
         }
+        // Per-boundary vertical bars: bars[k] = a `|` exists before column k
+        // (bars[0] = left edge, bars[ncol] = right edge). Lets a colspec like
+        // `|c|ccc|` keep the line after col 1 but drop the lines between options.
+        const bars = [];
+        {
+          let pend = false;
+          const re2 = /\||(?:>\{[^}]*\}\s*)?(?:[pmb]\{[^}]+\}|[clr])/g;
+          let mm2;
+          while ((mm2 = re2.exec(_spec || '')) !== null) {
+            if (mm2[0] === '|') pend = true;
+            else { bars.push(pend); pend = false; }
+          }
+          bars.push(pend);
+        }
+        // Proportional full-width: if every column is p{...cm}, convert the
+        // fixed widths to percentages of their sum so the table fills the
+        // panel at the original's column proportions (with table-layout:fixed).
+        let pct = null;
+        if (colMeta.length && colMeta.every(m => m.kind === 'p' && m.width && /cm$/.test(m.width))) {
+          const cms = colMeta.map(m => parseFloat(m.width));
+          const tot = cms.reduce((a, b) => a + b, 0) || 1;
+          // Only go full-width when the widths sum to near a full text line
+          // (~13cm+). Small totals are compact data tables → keep absolute cm.
+          if (tot >= 13) {
+            pct = cms.map(c => +(c / tot * 100).toFixed(2));
+            cls += ' tex-tabular-prop';
+          }
+        }
+        // Header row = first row whose cells are bold (\textbf): rendered
+        // compact while the answer rows below stay tall for fill-in.
+        const headerRow = /\\textbf/.test(rows[0] || '') ? 0 : -1;
         const out = [`<table class="${cls}"${style}>`];
-        for (const r of rows) {
+        rows.forEach((r, ri) => {
           const cells = r.split('&').map(c => c.trim());
           // Recognise `\multicolumn{N}{spec}{content}` cells and emit
           // them as <td colspan="N">content</td>. Without this the cell
           // renders verbatim as raw LaTeX in the rendered HTML.
-          out.push('<tr>' + cells.map((c, idx) => {
-            const mc = c.match(/^\\multicolumn\{(\d+)\}\{[^{}]*\}\{(.*)\}$/);
+          let colIdx = 0;
+          out.push('<tr' + (ri === headerRow ? ' class="tex-row-head"' : '') + '>' + cells.map((c) => {
+            const mc = c.match(/^\\multicolumn\{(\d+)\}\{([^{}]*)\}\{(.*)\}$/);
+            const span = mc ? parseInt(mc[1], 10) : 1;
+            const startCol = colIdx;
+            colIdx += span;
+            const styles = [];
+            // Per-boundary vertical rules: drop a cell's left/right border
+            // where the colspec has no `|` at that edge (bars[]). Lets
+            // `|c|ccc|` keep the line after col 1 but none between options.
+            if (hasBorders) {
+              if (bars[startCol] === false) styles.push('border-left:none');
+              if (bars[startCol + span] === false) styles.push('border-right:none');
+            }
             if (mc) {
-              return `<td colspan="${mc[1]}">${mc[2]}</td>`;
+              const mal = /c/.test(mc[2]) ? 'center' : /r/.test(mc[2]) ? 'right' : null;
+              if (mal) styles.push('text-align:' + mal);
+              const sa = styles.length ? ` style="${styles.join(';')}"` : '';
+              return `<td colspan="${mc[1]}"${sa}>${mc[3]}</td>`;
             }
             // `\centering` is a column-level alignment directive in real
             // LaTeX (used like `>{\centering\arraybackslash}p{w}`). When
@@ -1944,22 +1997,21 @@ function latexToHtml(src, problemId, tikzCount, hydrateTikz, tikzOriginals) {
             const cleaned = c.replace(/\\centering\s*\\arraybackslash\s*/g, '')
                              .replace(/\\centering\s*/g, () => { centered = true; return ''; })
                              .trim();
-            const meta = colMeta[idx];
-            const styles = [];
+            const meta = colMeta[startCol];
             if (meta && meta.kind === 'p' && meta.width) {
-              // Fixed-width paragraph column. CSS `width` makes the
-              // column honour the size; `white-space: normal` lets text
-              // wrap (otherwise `inline-block` cells can avoid wrapping).
-              styles.push(`width:${meta.width}`);
+              // Paragraph column. In proportional mode the % fills the panel
+              // while min-width keeps the column from collapsing or squishing
+              // its content (the .tex-tabular-scroll wrapper handles overflow).
+              if (pct) { styles.push(`width:${pct[startCol]}%`); styles.push(`min-width:${meta.width}`); }
+              else { styles.push(`width:${meta.width}`); }
               styles.push('white-space:normal');
             }
-            if (centered || (meta && (meta.kind === 'c' || meta.kind === 'p'))) {
-              if (centered) styles.push('text-align:center');
-            }
+            const align = centered ? 'center' : (meta && meta.align);
+            if (align && align !== 'left') styles.push('text-align:' + align);
             const styleAttr = styles.length ? ` style="${styles.join(';')}"` : '';
             return `<td${styleAttr}>${cleaned}</td>`;
           }).join('') + '</tr>');
-        }
+        });
         out.push('</table>');
         // Wrap in a horizontal-scroll container so tables wider than
         // the problem panel get a scroll bar instead of overflowing the
@@ -2029,6 +2081,9 @@ function latexToHtml(src, problemId, tikzCount, hydrateTikz, tikzOriginals) {
   src = src.replace(/\\emph\{([^{}]*)\}/g, '<em>$1</em>');
   src = src.replace(/\\textnormal\{([^{}]*)\}/g, '$1');
   src = src.replace(/\\fbox\{([^{}]*)\}/g, '<span class="tex-fbox">$1</span>');
+  // \encircle{...} — oval ring around a worked-example answer (matches the
+  // hand-drawn circle the exam uses to mark the solved row in a table).
+  src = src.replace(/\\encircle\{([^{}]*)\}/g, '<span class="tex-circled">$1</span>');
   src = src.replace(/\\rule\{[^{}]+\}\{[^{}]+\}/g, '<span class="tex-rule">_____</span>');
   src = src.replace(/\\renewcommand\{[^{}]+\}\{[^{}]+\}/g, '');
   src = src.replace(/\\hfill/g, ' ');

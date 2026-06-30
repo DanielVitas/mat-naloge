@@ -319,6 +319,69 @@ Daniel generally prefers a tight marker hugging the vertex with the label CONTAI
 INSIDE the arc — always get the span (edge-to-edge) and centre right, and size the arc
 to the label per the rule above.
 
+## Table spacing — match the original (MEASURE from the image, never eyeball)
+
+Goal: every `\begin{tabular}` problem (67 of them) should render on the site
+looking like its original exam table — full width, wide answer/option columns,
+compact header, roomy fill-in rows. The site converts `\begin{tabular}` →
+HTML `<table class="tex-tabular">` in `latexToHtml` (app.js); it does NOT
+pdflatex tables. So the fix is HTML/CSS, driven by per-table `p{}` widths.
+
+**Renderer support already built (app.js `latexToHtml` tabular handler + styles.css).**
+Do not re-derive these; they apply to ALL tables automatically:
+- If EVERY column is `p{...cm}`, the handler converts the cm widths to
+  **percentages of their sum**, emits `width:X%` + `min-width:<orig cm>` per
+  cell, and adds class `tex-tabular-prop`. CSS `.tex-tabular-prop{width:100%}`.
+  Net effect: the table FILLS the panel at the measured proportions, columns
+  never collapse/squish (min-width floor), and the existing
+  `.tex-tabular-scroll{overflow-x:auto}` wrapper gives a horizontal scrollbar
+  on overflow.
+- **NEVER use `table-layout:fixed`.** It forces exact widths and squishes the
+  cell content into a jumbled mess (Daniel rejected this hard). Use the default
+  **auto** layout + `width:100%` + per-column `min-width` + scroll wrapper.
+- The first row is detected as a **header** when its cells contain `\textbf`
+  → emitted as `<tr class="tex-row-head">`; CSS makes that row `height:auto`
+  (compact) while the answer rows below stay tall (the fill-in
+  `height:calc(2.2rem*var(--stretch))`). This gives the original's short-header
+  + tall-answer-rows look.
+- **`\encircle{...}`** → `<span class="tex-circled">` (oval ring), for a
+  worked-example answer the exam circles in the solved row (e.g. #29 "liha",
+  #367 "negativna"). Use it INSTEAD of `\fbox{...}` wherever the original draws
+  a hand-drawn circle around the example answer, not a box.
+
+**Per-table fix = ONLY the column widths + arraystretch.** Keep the transcribed
+rows/content unchanged; just change the column spec `{|c|c|c|}` →
+`{|p{w1cm}|p{w2cm}|p{w3cm}|}`. **Set the widths BY EYE** — the cv2 grid-detector
+(`measuretab.py`) is UNRELIABLE on borderless/varied tables, so view
+`origtab_N.png` yourself and pick the proportions; and **respect Daniel's
+existing `p{}` widths as the base** (he set them deliberately — build on them,
+don't rewrite his proportions). Remember full-width vs compact is decided by the
+SUM of the p{} widths (≥13cm → full-width prop; <13cm → compact). DA/NE tables
+with a spanning `\multicolumn` header have WIDE option columns (~30% each).
+
+**Pipeline (scripts in ../outputs/), small ~6 batches, side-by-side per RULE #1:**
+1. `python3 croptab.py N` → `origtab_N.png` (original cropped to the table grid).
+   `Read` it and choose the colspec by eye.
+2. Write `newtab_N.tex` (a small python that swaps the chosen colspec +
+   `\arraystretch` into the original tabular block; balanced-brace the colspec).
+3. `node previewbatch.js N1 N2 …` → renders the **real site HTML** of each new
+   table (actual `latexToHtml` from app.js + MathJax→SVG) next to the original
+   crop, into a **timestamped** `webpage/_tabprev_<ts>.html` (FRESH filename
+   every render — the service worker caches a same-named file, so a reused name
+   makes Daniel reload and see "nothing changed"). `present_files` the printed
+   path; iterate; on approval `python3 synctab.py N` (bodies.json + inline
+   PROBLEM in problems/NNN.html) then bump caches at the end before push.
+**I cannot see the render** (Claude-in-Chrome stays disconnected; no headless
+browser in the sandbox). So tune conservatively, present, and let Daniel guide —
+never switch layout modes or rewrite his widths blind.
+
+**Why HTML preview, not pdflatex:** the site is HTML; pdflatex row-height ≠ the
+CSS `calc(2.2rem*stretch)` row-height, so a pdflatex montage misleads on
+spacing. Math in the preview must be **pre-rendered to SVG** in node
+(`require('mathjax').init({loader:{load:['input/tex-full','output/svg']},svg:{fontCache:'local'}})`)
+because CDN MathJax does not run from a local `file://` page. See
+[[table-review-tool]] memory for the review-tool details.
+
 ## Topic vocabulary
 
 The curriculum is the M-MAT-2026 syllabus. The TOPIC_PARENT map in

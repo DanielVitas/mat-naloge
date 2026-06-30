@@ -1286,6 +1286,33 @@ body.full-page-on .crop-view { display: none; }
 .finishing-block-body .tex-tabular-fillin td.long-cell {
   white-space: normal;
 }
+/* Proportional full-width tables: when every column is p{...cm} the renderer
+   converts the widths to percentages and adds .tex-tabular-prop, so the table
+   fills the panel at the original's exact column proportions. */
+.preview-box .tex-tabular-prop,
+.finishing-block-body .tex-tabular-prop { width: 100%; }
+/* No internal vertical rules (colspec like `|p{}p{}|`): keep the outer box and
+   horizontal lines, drop the column separators. */
+.preview-box .tex-tabular-novert td, .preview-box .tex-tabular-novert th,
+.finishing-block-body .tex-tabular-novert td, .finishing-block-body .tex-tabular-novert th {
+  border-left: none; border-right: none;
+}
+.preview-box .tex-tabular-novert td:first-child, .preview-box .tex-tabular-novert th:first-child,
+.finishing-block-body .tex-tabular-novert td:first-child, .finishing-block-body .tex-tabular-novert th:first-child {
+  border-left: 1px solid #999;
+}
+.preview-box .tex-tabular-novert td:last-child, .preview-box .tex-tabular-novert th:last-child,
+.finishing-block-body .tex-tabular-novert td:last-child, .finishing-block-body .tex-tabular-novert th:last-child {
+  border-right: 1px solid #999;
+}
+/* Compact header row (first bold row): keep it short while the answer rows
+   below stay tall — matches the original exam tables. */
+.preview-box .tex-tabular .tex-row-head td,
+.finishing-block-body .tex-tabular .tex-row-head td {
+  height: auto;
+  padding-top: 0.3rem; padding-bottom: 0.3rem;
+  vertical-align: middle;
+}
 /* "Namig" (Hint) box — peach background, dashed border, mirrors the
    sidebar callout that sits next to the fill-in tables in the original
    textbook scans. */
@@ -1515,6 +1542,12 @@ body.full-page-on .crop-view { display: none; }
 }
 .preview-box .tex-fbox,
 .finishing-block-body .tex-fbox { border: 1px solid #555; padding: 0 0.3em; }
+/* \encircle{...} — oval ring around a worked-example answer in a table. */
+.preview-box .tex-circled,
+.finishing-block-body .tex-circled {
+  display: inline-block; border: 1.5px solid #333; border-radius: 50%;
+  padding: 0.12em 0.6em; line-height: 1.1;
+}
 .preview-box .tex-rule,
 .finishing-block-body .tex-rule { color: #777; letter-spacing: -1px; }
 .preview-box p { margin: 0.4rem 0; }
