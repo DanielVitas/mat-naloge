@@ -2006,6 +2006,10 @@ function latexToHtml(src, problemId, tikzCount, hydrateTikz, tikzOriginals) {
               else { styles.push(`width:${meta.width}`); }
               styles.push('white-space:normal');
             }
+            // Keep a label + its write-in box on one line (e.g. `d=` box in
+            // #267) — don't let the box wrap below the label when the table
+            // is squeezed. The cell auto-expands to fit them side by side.
+            if (/\\ansbox/.test(cleaned)) styles.push('white-space:nowrap');
             const align = centered ? 'center' : (meta && meta.align);
             if (align && align !== 'left') styles.push('text-align:' + align);
             const styleAttr = styles.length ? ` style="${styles.join(';')}"` : '';
@@ -2081,6 +2085,11 @@ function latexToHtml(src, problemId, tikzCount, hydrateTikz, tikzOriginals) {
   src = src.replace(/\\emph\{([^{}]*)\}/g, '<em>$1</em>');
   src = src.replace(/\\textnormal\{([^{}]*)\}/g, '$1');
   src = src.replace(/\\fbox\{([^{}]*)\}/g, '<span class="tex-fbox">$1</span>');
+  // \ansbox{W}{H} — an empty write-in answer box W×H cm (matches the blank
+  // rectangles/squares the exam prints for handwritten answers, e.g. #243 the
+  // d=/a_100 boxes, #267 the missing-term squares). Sized, not content-driven.
+  src = src.replace(/\\ansbox\{([\d.]+)\}\{([\d.]+)\}/g,
+    '<span class="tex-ansbox" style="width:$1cm;height:$2cm"></span>');
   // \encircle{...} — oval ring around a worked-example answer (matches the
   // hand-drawn circle the exam uses to mark the solved row in a table).
   src = src.replace(/\\encircle\{([^{}]*)\}/g, '<span class="tex-circled">$1</span>');

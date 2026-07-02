@@ -1542,6 +1542,11 @@ body.full-page-on .crop-view { display: none; }
 }
 .preview-box .tex-fbox,
 .finishing-block-body .tex-fbox { border: 1px solid #555; padding: 0 0.3em; }
+/* \ansbox{W}{H} — a blank W×H cm write-in answer box (size from inline style). */
+.preview-box .tex-ansbox,
+.finishing-block-body .tex-ansbox {
+  display: inline-block; border: 1px solid #555; vertical-align: middle;
+}
 /* \encircle{...} — oval ring around a worked-example answer in a table. */
 .preview-box .tex-circled,
 .finishing-block-body .tex-circled {
