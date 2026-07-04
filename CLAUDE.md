@@ -384,16 +384,20 @@ because CDN MathJax does not run from a local `file://` page. See
 
 ## Topic vocabulary
 
-The curriculum is the M-MAT-2026 syllabus. The TOPIC_PARENT map in
-`app.js` is the authoritative vocabulary; topics outside this map are
-silently dropped on render. When adding or renaming topics, edit the map
-in `app.js` AND update all affected problems' `topics` arrays in all
-three sync locations.
+Since 2026-07-02 the vocabulary is the RIC search-tool "Vsebina" hierarchy
+(17 mains "N Name", subtopics "N.M Name" — e.g. "10 Funkcije",
+"10.12 Kvadratna funkcija"; VR markers stripped, long names shortened).
+TOPIC_MAIN/TOPIC_PARENT in `app.js` are authoritative; topics outside the
+map are silently dropped on render. When adding or renaming topics, edit
+the map in `app.js` AND update all affected problems' `topics` arrays in
+all three sync locations. See `TOPICS_REASSIGN.md` for migration status,
+review worklist, and process gotchas (multi-line textbook PROBLEM
+constants; static "Po temah" panel in index.html must be regenerated;
+meta.<hash>.json filename = sha1[:10] of content, referenced from every
+html page).
 
-Main topics ("4.X Name") and subtopics ("4.X.Y Name") form a 2-level
-hierarchy; including a subtopic implies its parent main, but the parent
-should also be present explicitly in `topics` so the index renders
-correctly.
+Including a subtopic implies its parent main, but the parent must also be
+present explicitly in `topics` so the index renders correctly.
 
 ## Common pitfalls
 

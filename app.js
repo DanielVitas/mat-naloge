@@ -315,76 +315,154 @@ function bootstrapBodies() {
   return window.__bodiesPromise;
 }
 
-// Master topic vocabulary — sections from the M-MAT-2026 syllabus.
-// Main sections (4.x.) and subsections (4.x.y.). Each subsection's parent
-// main section is stored in TOPIC_PARENT and is enforced whenever a sub
-// is added (and removed when its parent is removed).
+// Master topic vocabulary — the RIC search-tool "Vsebina" hierarchy
+// (17 main topics, numbered "N Name"; subtopics "N.M Name"). VR markers
+// from the RIC original are stripped (the site has a separate level
+// filter); long RIC names are shortened for tag readability. Each
+// subtopic's parent main is stored in TOPIC_PARENT and is enforced
+// whenever a sub is added (and removed when its parent is removed).
 const TOPIC_MAIN = [
-  "4.1 Logika",
-  "4.2 Množice",
-  "4.3 Števila",
-  "4.4 Algebra",
-  "4.5 Potence in koreni",
-  "4.6 Geometrija",
-  "4.7 Liki",
-  "4.7b Telesa",
-  "4.8 Vektorji",
-  "4.9 Koordinatni sistem",
-  "4.10 Funkcije",
-  "4.11 Stožnice",
-  "4.12 Zaporedja",
-  "4.12b Vrste",
-  "4.13 Odvod",
-  "4.14 Integral",
-  "4.15 Kombinatorika",
-  "4.16 Verjetnost",
-  "4.17 Statistika",
+  "1 Osnove logike",
+  "2 Množice",
+  "3 Številske množice",
+  "4 Algebrski izrazi, enačbe in neenačbe",
+  "5 Potence in koreni",
+  "6 Geometrija v ravnini in prostoru",
+  "7 Geometrijski liki in telesa",
+  "8 Vektorji",
+  "9 Koordinatni sistem v ravnini",
+  "10 Funkcije",
+  "11 Stožnice",
+  "12 Zaporedja in vrste",
+  "13 Diferencialni račun",
+  "14 Integralski račun",
+  "15 Kombinatorika",
+  "16 Verjetnostni račun",
+  "17 Statistika",
 ];
 const TOPIC_PARENT = {
-  "4.3.1 Naravna in cela števila":  "4.3 Števila",
-  "4.3.2 Racionalna števila":       "4.3 Števila",
-  "4.3.3 Realna števila":           "4.3 Števila",
-  "4.3.4 Kompleksna števila":       "4.3 Števila",
-  "4.4.1 Izrazi":                   "4.4 Algebra",
-  "4.4.2 Enačbe":                   "4.4 Algebra",
-  "4.4.3 Neenačbe":                 "4.4 Algebra",
-  "4.6.1 Razdalja":                 "4.6 Geometrija",
-  "4.6.2 Koti":                     "4.6 Geometrija",
-  "4.6.3 Projekcija":               "4.6 Geometrija",
-  "4.6.4 Kosinusni izrek":          "4.6 Geometrija",
-  "4.6.5 Sinusni izrek":            "4.6 Geometrija",
-  "4.6.6 Heronova formula":         "4.6 Geometrija",
-  "4.7.1 Trikotnik":                "4.7 Liki",
-  "4.7.2 Večkotnik":                "4.7 Liki",
-  "4.7.3 Paralelogram":             "4.7 Liki",
-  "4.7.4 Romb":                     "4.7 Liki",
-  "4.7.5 Trapez":                   "4.7 Liki",
-  "4.7b.1 Prizma":                  "4.7b Telesa",
-  "4.7b.2 Valj":                    "4.7b Telesa",
-  "4.7b.3 Piramida":                "4.7b Telesa",
-  "4.7b.4 Stožec":                  "4.7b Telesa",
-  "4.7b.5 Krogla":                  "4.7b Telesa",
-  "4.8.1 Ravninski vektorji":       "4.8 Vektorji",
-  "4.8.2 Prostorski vektorji":      "4.8 Vektorji",
-  "4.10.1 Linearna funkcija":       "4.10 Funkcije",
-  "4.10.2 Potenčna funkcija":       "4.10 Funkcije",
-  "4.10.3 Korenska funkcija":       "4.10 Funkcije",
-  "4.10.4 Kvadratna funkcija":      "4.10 Funkcije",
-  "4.10.5 Eksponentna funkcija":    "4.10 Funkcije",
-  "4.10.6 Logaritemska funkcija":   "4.10 Funkcije",
-  "4.10.7 Polinomska funkcija":     "4.10 Funkcije",
-  "4.10.8 Racionalna funkcija":     "4.10 Funkcije",
-  "4.10.9 Kotne funkcije":          "4.10 Funkcije",
-  "4.10.10 Limita":                 "4.10 Funkcije",
-  "4.11.1 Elipsa":                  "4.11 Stožnice",
-  "4.11.2 Parabola":                "4.11 Stožnice",
-  "4.11.3 Hiperbola":               "4.11 Stožnice",
-  "4.12.1 Aritmetično":             "4.12 Zaporedja",
-  "4.12.2 Geometrijsko":            "4.12 Zaporedja",
-  "4.12.3 Limita":                  "4.12 Zaporedja",
-  "4.13.1 Ekstremi":                "4.13 Odvod",
-  "4.13.2 Naraščanje":              "4.13 Odvod",
-  "4.13.3 Konveksnost":             "4.13 Odvod",
+  "1.1 Izjave in povezave":                  "1 Osnove logike",
+  "1.2 Sestavljene izjave":                  "1 Osnove logike",
+  "2.1 Osnovni pojmi o množicah":            "2 Množice",
+  "2.2 Simbolni zapisi":                     "2 Množice",
+  "2.3 Vennov diagram":                      "2 Množice",
+  "2.4 Presek, unija, razlika, komplement":  "2 Množice",
+  "2.5 Potenčna množica":                    "2 Množice",
+  "2.6 Kartezični produkt":                  "2 Množice",
+  "3.1 Naravna in cela števila":             "3 Številske množice",
+  "3.2 Racionalna števila":                  "3 Številske množice",
+  "3.3 Realna števila":                      "3 Številske množice",
+  "3.4 Kompleksna števila":                  "3 Številske množice",
+  "4.1 Računske operacije z izrazi":         "4 Algebrski izrazi, enačbe in neenačbe",
+  "4.2 Potenciranje izrazov":                "4 Algebrski izrazi, enačbe in neenačbe",
+  "4.3 Razstavljanje izrazov":               "4 Algebrski izrazi, enačbe in neenačbe",
+  "4.4 Računanje z ulomki":                  "4 Algebrski izrazi, enačbe in neenačbe",
+  "4.5 Enačbe in neenačbe":                  "4 Algebrski izrazi, enačbe in neenačbe",
+  "4.6 Linearna enačba":                     "4 Algebrski izrazi, enačbe in neenačbe",
+  "4.7 Linearna enačba s parametrom":        "4 Algebrski izrazi, enačbe in neenačbe",
+  "4.8 Linearna neenačba":                   "4 Algebrski izrazi, enačbe in neenačbe",
+  "5.1 Potence s celim eksponentom":         "5 Potence in koreni",
+  "5.2 n-ti koreni":                         "5 Potence in koreni",
+  "5.3 Potence z racionalnim eksponentom":   "5 Potence in koreni",
+  "5.4 Iracionalne enačbe":                  "5 Potence in koreni",
+  "6.1 Točke, premice in krožnice":          "6 Geometrija v ravnini in prostoru",
+  "6.2 Razdalja, daljica, simetrala, kot":   "6 Geometrija v ravnini in prostoru",
+  "6.3 Vrste kotov":                         "6 Geometrija v ravnini in prostoru",
+  "6.4 Trikotnik, večkotnik":                "6 Geometrija v ravnini in prostoru",
+  "6.5 Pravokotna projekcija":               "6 Geometrija v ravnini in prostoru",
+  "6.6 Središčni in obodni koti":            "6 Geometrija v ravnini in prostoru",
+  "6.7 Kot v polkrogu":                      "6 Geometrija v ravnini in prostoru",
+  "6.8 Središčni razteg, podobnost":         "6 Geometrija v ravnini in prostoru",
+  "6.9 Izreki v pravokotnem trikotniku":     "6 Geometrija v ravnini in prostoru",
+  "6.10 Paralelogram, romb, trapez":         "6 Geometrija v ravnini in prostoru",
+  "6.11 Kosinusni in sinusni izrek":         "6 Geometrija v ravnini in prostoru",
+  "6.12 Premice in ravnine v prostoru":      "6 Geometrija v ravnini in prostoru",
+  "7.1 Ploščine likov, Heronova formula":    "7 Geometrijski liki in telesa",
+  "7.2 Včrtani in očrtani krog trikotnika":  "7 Geometrijski liki in telesa",
+  "7.3 Geometrijska telesa":                 "7 Geometrijski liki in telesa",
+  "7.4 Površina in prostornina teles":       "7 Geometrijski liki in telesa",
+  "7.5 Vrtenine":                            "7 Geometrijski liki in telesa",
+  "7.6 Geometrijski problemi":               "7 Geometrijski liki in telesa",
+  "8.1 Seštevanje in množenje s skalarjem":  "8 Vektorji",
+  "8.2 Kolinearnost, koplanarnost":          "8 Vektorji",
+  "8.3 Razvoj po bazi, pravokotna projekcija": "8 Vektorji",
+  "8.4 Linearna kombinacija vektorjev":      "8 Vektorji",
+  "8.5 Linearna neodvisnost vektorjev":      "8 Vektorji",
+  "8.6 Baza v ravnini in prostoru":          "8 Vektorji",
+  "8.7 Koordinatni sistem, krajevni vektor": "8 Vektorji",
+  "8.8 Zapis vektorja s komponentami":       "8 Vektorji",
+  "8.9 Računanje s komponentami":            "8 Vektorji",
+  "8.10 Skalarni produkt, kot, dolžina":     "8 Vektorji",
+  "8.11 Vektorji v trikotniku, težišče":     "8 Vektorji",
+  "9.1 Množice točk v ravnini":              "9 Koordinatni sistem v ravnini",
+  "9.2 Razdalja med točkama":                "9 Koordinatni sistem v ravnini",
+  "9.3 Ploščina trikotnika":                 "9 Koordinatni sistem v ravnini",
+  "10.1 Definicija funkcije":                "10 Funkcije",
+  "10.2 Lastnosti realnih funkcij":          "10 Funkcije",
+  "10.3 Kompozitum funkcij":                 "10 Funkcije",
+  "10.4 Inverzna funkcija":                  "10 Funkcije",
+  "10.5 Transformacije v ravnini":           "10 Funkcije",
+  "10.6 Limita funkcije":                    "10 Funkcije",
+  "10.7 Posebni primeri limit":              "10 Funkcije",
+  "10.8 Zveznost funkcije":                  "10 Funkcije",
+  "10.9 Linearna funkcija":                  "10 Funkcije",
+  "10.10 Potenčna funkcija":                 "10 Funkcije",
+  "10.11 Korenska funkcija":                 "10 Funkcije",
+  "10.12 Kvadratna funkcija":                "10 Funkcije",
+  "10.13 Eksponentna funkcija":              "10 Funkcije",
+  "10.14 Logaritemska funkcija":             "10 Funkcije",
+  "10.15 Polinomske funkcije":               "10 Funkcije",
+  "10.16 Racionalne funkcije":               "10 Funkcije",
+  "10.17 Kotne funkcije":                    "10 Funkcije",
+  "11.1 Krivulje II. reda":                  "11 Stožnice",
+  "11.2 Krožnica":                           "11 Stožnice",
+  "11.3 Elipsa":                             "11 Stožnice",
+  "11.4 Hiperbola":                          "11 Stožnice",
+  "11.5 Parabola":                           "11 Stožnice",
+  "11.6 Premaknjena hiperbola in parabola":  "11 Stožnice",
+  "11.7 Tangente stožnic":                   "11 Stožnice",
+  "12.1 Definicija zaporedja":               "12 Zaporedja in vrste",
+  "12.2 Lastnosti zaporedij":                "12 Zaporedja in vrste",
+  "12.3 Aritmetično zaporedje":              "12 Zaporedja in vrste",
+  "12.4 Geometrijsko zaporedje":             "12 Zaporedja in vrste",
+  "12.5 Vsota členov zaporedja":             "12 Zaporedja in vrste",
+  "12.6 Limita zaporedja":                   "12 Zaporedja in vrste",
+  "12.7 Vrste":                              "12 Zaporedja in vrste",
+  "12.8 Geometrijska vrsta":                 "12 Zaporedja in vrste",
+  "12.9 Obrestni račun":                     "12 Zaporedja in vrste",
+  "12.10 Anuitete":                          "12 Zaporedja in vrste",
+  "13.1 Odvod in geometrijski pomen":        "13 Diferencialni račun",
+  "13.2 Pravila za odvajanje":               "13 Diferencialni račun",
+  "13.3 Uporaba odvoda":                     "13 Diferencialni račun",
+  "13.4 Ekstremi, naraščanje in padanje":    "13 Diferencialni račun",
+  "13.5 Drugi odvod":                        "13 Diferencialni račun",
+  "13.6 Prevoj, konveksnost in konkavnost":  "13 Diferencialni račun",
+  "13.7 Ekstremalni problemi":               "13 Diferencialni račun",
+  "14.1 Nedoločeni integral":                "14 Integralski račun",
+  "14.2 Lastnosti nedoločenega integrala":   "14 Integralski račun",
+  "14.3 Uvedba nove spremenljivke":          "14 Integralski račun",
+  "14.4 Integracija per partes":             "14 Integralski račun",
+  "14.5 Integracija racionalnih funkcij":    "14 Integralski račun",
+  "14.6 Določeni integral":                  "14 Integralski račun",
+  "14.7 Lastnosti določenega integrala":     "14 Integralski račun",
+  "14.8 Zveza določeni–nedoločeni integral": "14 Integralski račun",
+  "14.9 Uporaba določenega integrala":       "14 Integralski račun",
+  "15.1 Osnovni izrek kombinatorike":        "15 Kombinatorika",
+  "15.2 Pravilo vsote":                      "15 Kombinatorika",
+  "15.3 Permutacije":                        "15 Kombinatorika",
+  "15.4 Permutacije s ponavljanjem":         "15 Kombinatorika",
+  "15.5 Variacije":                          "15 Kombinatorika",
+  "15.6 Variacije s ponavljanjem":           "15 Kombinatorika",
+  "15.7 Kombinacije":                        "15 Kombinatorika",
+  "15.8 Binomski izrek":                     "15 Kombinatorika",
+  "16.1 Računanje z dogodki":                "16 Verjetnostni račun",
+  "16.2 Verjetnost dogodka":                 "16 Verjetnostni račun",
+  "16.3 Nasprotni dogodki, vsota dogodkov":  "16 Verjetnostni račun",
+  "16.4 Pogojna verjetnost":                 "16 Verjetnostni račun",
+  "16.5 Verjetnost produkta, neodvisnost":   "16 Verjetnostni račun",
+  "16.6 Zaporedje neodvisnih poskusov":      "16 Verjetnostni račun",
+  "17.1 Prikazovanje podatkov":              "17 Statistika",
+  "17.2 Aritmetična sredina, mediana, modus": "17 Statistika",
 };
 const TOPIC_MAIN_SET = new Set(TOPIC_MAIN);
 const ALL_TOPICS = [...TOPIC_MAIN, ...Object.keys(TOPIC_PARENT)];
@@ -392,11 +470,11 @@ const ALL_TOPICS = [...TOPIC_MAIN, ...Object.keys(TOPIC_PARENT)];
 function isMainTopic(t) { return TOPIC_MAIN_SET.has(t); }
 function topicKindClass(t) { return isMainTopic(t) ? 'topic-main' : 'topic-sub'; }
 
-// "4.X" prefix, where X is any non-space token (digits, letters, dots) so
-// IDs like "4.7b Telesa" coexist with "4.10.5 …". After stripping the
-// prefix, also trim trailing " funkcija/e", " števila", or " vektorji"
-// (e.g. "4.10.5 Eksponentna funkcija" → "Eksponentna").
-const _PREFIX_RE = /^4\.\S+\s+/;
+// "N" / "N.M" numeric prefix (RIC numbering: mains "10 Funkcije",
+// subs "10.12 Kvadratna funkcija"). After stripping the prefix, also
+// trim trailing " funkcija/e", " števila", or " vektorji"
+// (e.g. "10.13 Eksponentna funkcija" → "Eksponentna").
+const _PREFIX_RE = /^\d+(?:\.\d+)?\s+/;
 const _FUNKCIJA_SUFFIX_RE = /\s+funkcij[ae]$/i;
 const _STEVILA_SUFFIX_RE  = /\s+števila$/i;
 const _VEKTORJI_SUFFIX_RE = /\s+vektorji$/i;
@@ -2192,20 +2270,20 @@ function wireMetaRowInteractivity(meta) {
   }));
   // ---- Topic chips → #topic/<slug>. Sub-topics resolve to their main.
   function slug(name) {
-    // "4.10 Funkcije" → "4-10-funkcije"
+    // "10 Funkcije" → "10-funkcije"
     return name.toLowerCase()
       .replace(/[\.\s]+/g, '-')
       .replace(/-+/g, '-')
       .replace(/^-|-$/g, '');
   }
   const topicsArr = (meta && meta.topics) || [];
-  // Resolve a displayed chip text to the original topic id (with "4.x"
-  // prefix) using meta.topics. Display strips the prefix; we recover it
-  // by matching the post-prefix portion.
+  // Resolve a displayed chip text to the original topic id (with the
+  // numeric prefix) using meta.topics. Display strips the prefix; we
+  // recover it by matching the post-prefix portion.
   function findOriginal(displayText) {
     const clean = displayText.replace(/[×:]/g, '').trim();
     for (const t of topicsArr) {
-      const display = t.replace(/^4\.\d+(?:\.\d+)?\s+/, '').trim();
+      const display = t.replace(/^\d+(?:\.\d+)?\s+/, '').trim();
       if (display === clean) return t;
     }
     return null;
@@ -6921,11 +6999,11 @@ function groupSubtopicsUnderMains() {
   // Index problem→topics for fast lookup.
   const probTopics = {};
   window.PROBLEMS.forEach(p => { probTopics[String(p.n)] = p.topics || []; });
-  // Helper: is a topic-id a main (4.X, 2 dotted parts) vs sub (4.X.Y).
+  // Helper: is a topic-id a main ("N", no dot) vs sub ("N.M").
   const isMain = (tid) => {
     if (!tid) return false;
     const code = tid.split(' ')[0] || '';
-    return code.split('.').length === 2;
+    return code.split('.').length === 1;
   };
   const isSubOf = (sub, main) => {
     if (!sub || !main) return false;
@@ -6935,7 +7013,7 @@ function groupSubtopicsUnderMains() {
   };
   // Slug helper matching build_webpage.py's slug() — lowercase, non-alnum
   // collapsed to dashes, leading/trailing dashes stripped. Used to map
-  // data-target="topic/4-1-logika" → "4.1 Logika".
+  // data-target="topic/10-funkcije" → "10 Funkcije".
   const slugify = (s) => (s || '').toLowerCase()
     .replace(/[čć]/g, 'c').replace(/š/g, 's').replace(/ž/g, 'z')
     .replace(/đ/g, 'd').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -7243,12 +7321,12 @@ function initTopicReorderPanel() {
       col.innerHTML = `<div class="reorder-year-label">${label}</div>`;
       bucket.querySelectorAll(':scope > .year-topic-list > .year-topic').forEach(topic => {
         const id    = topic.dataset.topicId || '';
-        // Reorder only operates on MAIN topics (4.X with 2 dotted parts).
-        // Sub-topics (4.X.Y) are folded under their parent main and don't
+        // Reorder only operates on MAIN topics ("N", no dot in the code).
+        // Sub-topics ("N.M") are folded under their parent main and don't
         // get reordered independently.
         const code = id.split(' ')[0] || '';
-        if (code.split('.').length !== 2) return;
-        // Strip a leading "4.x " prefix from the display name so the
+        if (code.split('.').length !== 1) return;
+        // Strip the leading numeric prefix from the display name so the
         // pill matches the year-tab summary label.
         const sum   = topic.querySelector(':scope > summary');
         const txt   = sum ? sum.textContent.trim() : id;
