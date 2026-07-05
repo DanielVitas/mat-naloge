@@ -2640,7 +2640,7 @@ function applyIndexStatuses() {
 // Hovering a card in a .search-results grid can expand the card downward
 // past its row. When the card is in the LAST visible row of the grid, the
 // expansion has nowhere to overflow into (the grid's bounds are determined
-// by `grid-auto-rows: 13em`), so the bottom of the card gets clipped or
+// by `grid-auto-rows: 18em`), so the bottom of the card gets clipped or
 // runs off the page. This helper pads the grid bottom dynamically so the
 // expanded card has room — and so the document scrollHeight grows when an
 // expanded card extends below the viewport.
@@ -4959,6 +4959,10 @@ async function initSearchPage(opts) {
     else                        state.topics.delete(parent);
   }
 
+  // Which main-topic groups currently show their subtopic dropdown.
+  // Session-only (not persisted) — all closed by default.
+  const openTopicGroups = new Set();
+
   function renderTopicFilters() {
     const root = document.getElementById('f-topics');
     if (!root) return;
@@ -4980,7 +4984,8 @@ async function initSearchPage(opts) {
       mainBtn.className = 'filter-chip-main';
       mainBtn.dataset.topic = g.main;
       mainBtn.setAttribute('aria-pressed', parentSelected(g.main) ? 'true' : 'false');
-      mainBtn.textContent = displayTopicName(g.main) + (g.subs.length > 0 ? ':' : '');
+      mainBtn.textContent = displayTopicName(g.main)
+        + (g.subs.length > 0 && openTopicGroups.has(g.main) ? ':' : '');
       mainBtn.addEventListener('click', (e) => {
         e.preventDefault(); e.stopPropagation();
         setParent(g.main, !parentSelected(g.main));
@@ -4990,8 +4995,23 @@ async function initSearchPage(opts) {
       });
       div.appendChild(mainBtn);
       if (g.subs.length > 0) {
+        // Dropdown arrow — subtopic chips stay hidden until opened.
+        const arrow = document.createElement('button');
+        arrow.type = 'button';
+        arrow.className = 'filter-topic-arrow';
+        arrow.setAttribute('aria-expanded', openTopicGroups.has(g.main) ? 'true' : 'false');
+        arrow.title = 'Podteme';
+        arrow.textContent = '▾';
+        arrow.addEventListener('click', (e) => {
+          e.preventDefault(); e.stopPropagation();
+          if (openTopicGroups.has(g.main)) openTopicGroups.delete(g.main);
+          else                             openTopicGroups.add(g.main);
+          renderTopicFilters();
+        });
+        div.appendChild(arrow);
         const subsWrap = document.createElement('span');
         subsWrap.className = 'filter-group-subs';
+        if (!openTopicGroups.has(g.main)) subsWrap.hidden = true;
         for (const s of g.subs) {
           const sb = document.createElement('button');
           sb.type = 'button';

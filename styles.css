@@ -312,15 +312,15 @@ a:hover { text-decoration: underline; }
    browse mode is the active one. */
 .filter-source-cell.is-hidden { display: none; }
 .filter-reorder-cell.is-hidden { display: none; }
-/* Subtopic chip row INLINE inside each main-topic <summary>, so chips
-   sit on the same height as the topic name and count. Matches the
-   search-page subtopic filter chip style. */
+/* Subtopic chip row inside each main-topic <summary> — a full-width
+   flex row of chips, left to right, on the line BELOW the main topic
+   title (user request). Matches the search-page subtopic chip style. */
 .subtopic-chip-row {
-  display: inline-flex; flex-wrap: wrap;
+  display: flex; flex-wrap: wrap;
   gap: 0.3rem;
-  margin-left: 0.6rem;
+  margin: 0.4rem 0 0.1rem;
   align-items: center;
-  vertical-align: middle;
+  width: 100%;
 }
 .subtopic-chip {
   padding: 0.12rem 0.55rem;
@@ -1474,7 +1474,7 @@ body.full-page-on .crop-view { display: none; }
 }
 /* Textbook problems are image-only: a single PNG crop replaces the LaTeX
    preview body. Sizing rules per surface so the same image looks reasonable
-   inside a 13em search-result card, on the index, in the exam preview, in
+   inside a 18em search-result card, on the index, in the exam preview, in
    the collection dropdown, and on the standalone problem page. */
 .textbook-body-img {
   display: block; max-width: 100%; height: auto;
@@ -1483,7 +1483,7 @@ body.full-page-on .crop-view { display: none; }
 .search-result .result-body .textbook-body-img {
   /* Width-first sizing: the image fills the card's body column, then
      keeps its natural aspect ratio. The card's own `overflow: hidden`
-     + 13em fixed height clip anything that doesn't fit vertically,
+     + 18em fixed height clip anything that doesn't fit vertically,
      and the bottom-fade gradient covers the cut-off. On hover the
      card grows to its auto height and the full image becomes visible.
      (Earlier this used `max-height: 11em; width: auto;`, which made
@@ -2487,7 +2487,25 @@ canvas.crop-display {
 .filter-group-subs {
   display: inline-flex; align-items: center; flex-wrap: wrap;
   gap: 0.3rem;
+  /* When the dropdown is open, subs occupy their own row under the
+     main-topic name inside the group box. */
+  flex-basis: 100%;
 }
+.filter-group-subs[hidden] { display: none; }
+/* Dropdown arrow that reveals a main topic's subtopic chips. */
+.filter-topic-arrow {
+  background: transparent;
+  border: 0;
+  padding: 0 0.15rem;
+  font: inherit;
+  font-size: 0.72rem;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.65;
+  transition: transform 0.15s ease;
+}
+.filter-topic-arrow:hover { opacity: 1; }
+.filter-topic-arrow[aria-expanded="true"] { transform: rotate(180deg); }
 .filter-chip-sub {
   display: inline-block;
   padding: 0.06rem 0.55rem;
@@ -2523,28 +2541,28 @@ canvas.crop-display {
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   /* Fixed row height — when one card grows on hover its content
      overflows visibly INSTEAD of pushing the rows below down. */
-  grid-auto-rows: 13em;
+  grid-auto-rows: 18em;
   gap: 0.6rem;
   align-items: start;
 }
 @media (max-width: 720px) {
   .search-results { grid-template-columns: 1fr; }
 }
-/* Each problem occupies a `.search-result-wrap` cell that's 13em tall
+/* Each problem occupies a `.search-result-wrap` cell that's 18em tall
    in the grid. Inside the cell are TWO sibling absolutely-positioned
    layers:
-     • `.search-result-hot-zone` — invisible 13em rectangle that IS the
+     • `.search-result-hot-zone` — invisible 18em rectangle that IS the
        hover (and click-to-navigate) target.
      • `.search-result` — the visible card, drawn over the hot zone with
        `pointer-events: none` so the cursor falls through to the hot
        zone underneath. Only the Add button re-enables pointer events.
    When the hot zone (or the Add button) is hovered, `:has()` flips the
    card to `height: auto`, so it grows downward, painting OVER the row
-   below. The instant the cursor leaves the 13em footprint the hot zone
+   below. The instant the cursor leaves the 18em footprint the hot zone
    loses :hover and the card snaps back. */
 .search-result-wrap {
   position: relative;
-  height: 13em;
+  height: 18em;
   /* The `.is-hovered` class is toggled by JS (mouseenter/leave on the
      hot zone + Add button) — not CSS `:has()` — because some browsers
      have a 1-frame paint delay between :has() reevaluation and z-index
@@ -2555,14 +2573,14 @@ canvas.crop-display {
 .search-result-hot-zone {
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 13em;
+  height: 18em;
   z-index: 0;
 }
 .search-result-hot-zone[data-href] { cursor: pointer; }
 .search-result {
   position: absolute;
   top: 0; left: 0; right: 0;          /* NO bottom — let height grow */
-  height: 13em;
+  height: 18em;
   display: flex; align-items: flex-start; gap: 0.7rem;
   padding: 0.85rem 1rem;
   background: var(--card-bg);
@@ -2581,13 +2599,13 @@ canvas.crop-display {
 .search-result .result-add { pointer-events: auto; }
 /* Expand the card when its wrap is marked hovered (by JS).
    The card grows for tall content but never shrinks below the original
-   13em footprint. Horizontal overflow stays clipped to the card's width
+   18em footprint. Horizontal overflow stays clipped to the card's width
    (so long math lines cannot escape to the right); the `.result-body`
    below gets `overflow-x: auto` so the user can scroll horizontally
    inside the card if a math expression is too wide. */
 .search-result-wrap.is-hovered .search-result {
   height: auto;
-  min-height: 13em;
+  min-height: 18em;
   max-height: 100em;
   overflow: hidden;
   z-index: 5;
@@ -2633,7 +2651,7 @@ canvas.crop-display {
 .search-result .result-body p:first-child { margin-top: 0; }
 .search-result .result-body p:last-child  { margin-bottom: 0; }
 .search-result .result-body .tex-tikz img {
-  max-width: 100%; max-height: 200px;
+  max-width: 100%; max-height: 260px;
   background: white; padding: 4px;
   border: 1px solid var(--card-border); border-radius: 4px;
 }
