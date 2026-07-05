@@ -2140,6 +2140,15 @@ function latexToHtml(src, problemId, tikzCount, hydrateTikz, tikzOriginals) {
   src = src.replace(/\\begin\{center\}([\s\S]*?)\\end\{center\}/g,
     (_, inner) => `<div class="tex-center">${inner.trim()}</div>`);
 
+  // flushleft / flushright — left/right-aligned blocks. `\\` row
+  // separators inside them (answer-line lists like "α = ___") become
+  // <br> line breaks; MathJax would otherwise choke on `\\` outside
+  // cases/align (and the env name would show up as literal text).
+  src = src.replace(/\\begin\{flushleft\}([\s\S]*?)\\end\{flushleft\}/g,
+    (_, inner) => `<div class="tex-flushleft">${inner.trim().replace(/\\\\/g, '<br>')}</div>`);
+  src = src.replace(/\\begin\{flushright\}([\s\S]*?)\\end\{flushright\}/g,
+    (_, inner) => `<div class="tex-flushright">${inner.trim().replace(/\\\\/g, '<br>')}</div>`);
+
   // \namigsplit{<left>}{<right>}  -> two-column dashed "Namig:" callout
   // (the textbook scans put a stacked proportion on the left and the
   // resolved formula on the right). Allows two levels of brace nesting.

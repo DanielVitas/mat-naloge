@@ -2542,6 +2542,9 @@ canvas.crop-display {
 .filter-chip-sub:hover,
 .filter-chip-main:hover { filter: brightness(0.97); }
 
+.tex-flushleft  { text-align: left;  margin: 0.4rem 0; }
+.tex-flushright { text-align: right; margin: 0.4rem 0; }
+
 .search-summary {
   font-size: 0.92rem; color: var(--muted);
   margin: 0.2rem 0 0.8rem;
