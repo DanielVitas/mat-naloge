@@ -259,6 +259,9 @@ a:hover { text-decoration: underline; }
   padding: 0.7rem 1rem;
   display: flex;
   align-items: center;
+  /* Allow the injected subtopic chip row to wrap onto its own full-width
+     line below the topic name (chip row has flex-basis: 100%). */
+  flex-wrap: wrap;
   gap: 0.55rem;
   user-select: none;
   font-size: 1.05rem;
@@ -318,8 +321,10 @@ a:hover { text-decoration: underline; }
 .subtopic-chip-row {
   display: flex; flex-wrap: wrap;
   gap: 0.3rem;
-  margin: 0.4rem 0 0.1rem;
+  margin: 0.15rem 0 0;
   align-items: center;
+  /* Force the row onto its own line spanning the whole box width. */
+  flex-basis: 100%;
   width: 100%;
 }
 .subtopic-chip {
@@ -2471,6 +2476,15 @@ canvas.crop-display {
   border-color: var(--card-border);
   color: var(--muted);
 }
+/* Partial selection (some but not all subtopics chosen): angled zebra
+   stripes alternating the selected violet and the deselected white. */
+.filter-topic-group[data-pressed="partial"] {
+  background: repeating-linear-gradient(45deg,
+    var(--tag-topic-main-bg) 0 7px,
+    #ffffff 7px 14px);
+  border-color: var(--tag-topic-main-border);
+  color: var(--tag-topic-main-fg);
+}
 .filter-chip-main {
   background: transparent;
   border: 0; padding: 0;
@@ -2646,6 +2660,12 @@ canvas.crop-display {
 .search-result .result-body {
   flex: 1; min-width: 0; font-size: 0.95rem;
   line-height: 1.5;
+  /* Render the problem content at a much smaller scale so more of the
+     problem fits into the unexpanded card (user request). `zoom` scales
+     layout too (unlike transform), so text, MathJax math, TikZ figures
+     and textbook images all shrink together and the expanded height
+     stays correct. */
+  zoom: 0.65;
 }
 .search-result .result-body p { margin: 0.2rem 0; }
 .search-result .result-body p:first-child { margin-top: 0; }

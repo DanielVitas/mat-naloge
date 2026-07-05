@@ -4978,7 +4978,12 @@ async function initSearchPage(opts) {
     for (const g of groups) {
       const div = document.createElement('div');
       div.className = 'filter-topic-group';
-      div.dataset.pressed = parentSelected(g.main) ? 'true' : 'false';
+      // Three visual states: 'true' (all subs selected), 'partial' (some
+      // but not all — zebra-striped), 'false' (none / deselected).
+      const selCount = g.subs.filter(s => state.topics.has(s)).length;
+      const allSel = parentSelected(g.main);
+      const partial = g.subs.length > 0 && selCount > 0 && !allSel;
+      div.dataset.pressed = allSel ? 'true' : (partial ? 'partial' : 'false');
       const mainBtn = document.createElement('button');
       mainBtn.type = 'button';
       mainBtn.className = 'filter-chip-main';
